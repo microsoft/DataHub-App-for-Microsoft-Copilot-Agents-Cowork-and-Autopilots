@@ -10,6 +10,9 @@ Screenshots use synthetic data. Every name in them is invented.
 
 For a concise reading guide to the full app, see **[How to read the DataHub App (PDF)](DataHub-App-Guide.pdf)**.
 It is also linked above the tabs' content on **Appendix**, in every tab.
+The 16-page PDF includes the full-app tour plus seven visual metric explainers for Value,
+Consumption, Efficiency and Readiness. Worked examples are explicitly illustrative, with no
+tenant data; they explain units, denominators, calculations, filter scope and limitations.
 
 - **Filters** sit in the bar at the top. A page uses only the ones that apply to it.
 - **Optional** pages appear only once their data has loaded.
@@ -250,7 +253,8 @@ python scripts\build_datahub_guide.py
 ```
 
 Alternatively, pass `--browser "C:\path\to\msedge.exe"` to use an installed Chromium-based browser.
-The script rejects overflowing pages and writes `docs/DataHub-App-Guide.pdf` and an identical
+The script rejects overflowing pages and clipped or unlabelled diagrams, verifies the PDF page
+count and footers, and writes `docs/DataHub-App-Guide.pdf` and an identical
 `app/src/assets/DataHub-App-Guide.pdf`. Commit both PDFs with the source. The app imports the
 bundled copy as a Vite asset, so Fabric and Azure builds use the deployed asset URL, including
 the configured base path; no GitHub main-branch publish is needed for the link to work.

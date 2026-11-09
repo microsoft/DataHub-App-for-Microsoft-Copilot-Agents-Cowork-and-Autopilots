@@ -23,6 +23,22 @@
   .small { font-size: 14px; color: #46616b; }
   footer { margin-top: auto; padding-top: 4mm; border-top: 1px solid #cbd6da; display: flex; justify-content: space-between; font-size: 12px; color: #46616b; }
   a { color: #176b70; text-underline-offset: 3px; }
+  figure { margin: 4mm 0; }
+  figcaption { font-size: 13px; color: #46616b; margin-top: 2mm; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; fill: #172d35; }
+  .formula { background: #f0f5f5; padding: 3mm 4mm; font-size: 16px; margin: 3mm 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 4mm 0; }
+  th, td { padding: 2.5mm 2mm; text-align: left; vertical-align: top; border-bottom: 1px solid #cbd6da; }
+  th { font-weight: 650; color: #176b70; }
+  .example { font-size: 12px; color: #176b70; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .detail { font-size: 15px; line-height: 1.42; }
+  .detail .eyebrow { margin-bottom: 4mm; }
+  .detail p { margin-bottom: 2.5mm; }
+  .detail h3 { margin-top: 4mm; }
+  .detail figure, .detail table { margin: 3mm 0; }
+  .detail th, .detail td { padding: 1.8mm 2mm; }
+  .detail .note { font-size: 14px; margin-top: 3mm; }
   @media print { body { background: white; } .page { margin: 0; } }
 </style>
 </head>
@@ -42,6 +58,7 @@
   <p>Check dates, filters and source labels. Dates are UTC. A source's freshness date is its newest row, not today's refresh time; it ignores page filters and does not prove every intervening day loaded.</p>
   <p>Open each page's tabs. The bar offers dates, org, licence, Activity (Copilot chat, Agents, Cowork) and agent filters where applicable. Read <strong>Not filtered by</strong> notes. <strong>Group by</strong> changes the org attribute; missing org matches can leave people out of breakdowns.</p>
   <p class="note">Blank, hidden, not connected or failed to load does not mean zero. Purview is not the authoritative Copilot usage report; its coverage can differ from the Microsoft 365 admin center and Viva Insights.</p>
+  <p class="small">Pages 2-9: full-app tour. Pages 10-16: visual metric explainers for Value, Consumption, Efficiency and Readiness. All worked examples are fictional arithmetic, not app results or benchmarks.</p>
   <footer><span>Full app, not the separate Power BI report</span><span>01 / 09</span></footer>
 </section>
 
@@ -206,5 +223,241 @@
   <p class="small">More detail: <a href="https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/METHODOLOGY.md">Methodology</a> · <a href="https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/APP-GUIDE.md">Page reference</a>. This guide contains no tenant data.</p>
   <footer><span>Read the evidence, then make the decision</span><span>09 / 09</span></footer>
 </section>
+
+<!-- Deep-dive grounding: ValueLens - Fabric.pbit measures Human Equivalent Hours
+     (Behaviour Basis), Cowork Hours (Task Category Basis), Expert Equivalent Hours,
+     AI Assisted Value, Projected Annualised Value; screens/value/* and task-times context. -->
+<section class="page detail" data-page="Value: units and estimated hours">
+  <p class="eyebrow">Metric explainer / Value</p>
+  <h2>From recorded work<br>to estimated hours</h2>
+  <p class="lead">More rows do not necessarily mean more finished work.</p>
+  <figure>
+    <svg viewBox="0 0 640 132" role="img" aria-labelledby="value-flow-title">
+      <title id="value-flow-title">One prompt reading three files becomes three task rows, but one distinct prompt. Estimated hours use the behaviour's effort grain, not the task row total directly.</title>
+      <rect x="1" y="12" width="166" height="72" rx="5" fill="#f0f5f5"/>
+      <text x="15" y="40" font-size="18" font-weight="600">1 prompt</text>
+      <text x="15" y="65" font-size="15">reads 3 files</text>
+      <path d="M177 48 H211 M203 42 L211 48 L203 54" fill="none" stroke="#176b70" stroke-width="2"/>
+      <rect x="223" y="12" width="174" height="72" rx="5" fill="#f0f5f5"/>
+      <text x="237" y="40" font-size="18" font-weight="600">3 AI tasks</text>
+      <text x="237" y="65" font-size="15">1 distinct prompt</text>
+      <path d="M407 48 H441 M433 42 L441 48 L433 54" fill="none" stroke="#176b70" stroke-width="2"/>
+      <rect x="453" y="12" width="186" height="72" rx="5" fill="#e1eeee"/>
+      <text x="467" y="40" font-size="18" font-weight="600">Effort units</text>
+      <text x="467" y="65" font-size="15">depend on behaviour</text>
+      <text x="1" y="116" font-size="14">Do not multiply the page's AI task count by one universal time saving.</text>
+    </svg>
+    <figcaption>Conceptual counting diagram; not a screenshot or observed result.</figcaption>
+  </figure>
+  <p class="formula">Copilot / agent hours = sum of<br><strong>effort units x scenario minutes x category adjustment / 60</strong></p>
+  <p>Per-turn behaviours use distinct prompt IDs. Per-resource behaviours use prompt-resource rows divided by that behaviour's estate-wide rows-per-prompt average. This normalises the resource mix; it is not raw files x minutes.</p>
+  <p class="example">Illustrative example / assumed band, not a shipped task default</p>
+  <p>100 per-turn units at 6 / 12 / 18 minutes, adjustment 1, give <strong>10 / 20 / 30 hours</strong>. At $50/hour and penalty factor 1, value is <strong>$500 / $1,000 / $1,500</strong>. Changing the hourly rate changes money, not hours.</p>
+  <h3>Cowork uses a different calculation</h3>
+  <p>It sums thread + task-category groups: inferred runs x category minutes x adjustment / 60. Analysis/research uses material rows / 5; email and communication / 4; meetings / 3; code / 6. Runs round to nearest (ties to even), minimum one; other categories use one run.</p>
+  <p class="note">For example, 10 qualifying material rows in one Analysis &amp; Research group imply 2 runs. Its shipped Typical band is 67 minutes: 2 x 67 / 60 = <strong>2.23 hours</strong> at adjustment 1. This is inferred effort, not a stopwatch measurement. Assumptions edits behaviour times, not Cowork's category bands.</p>
+  <footer><span>Scope: page filters, chosen scenario and shared task-time settings</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: queries/value/cost-vs-value.ts compare, pairLines, licenceCost,
+     matchAgents; screens/value/cost-vs-value-data.ts; value-summary.dax. -->
+<section class="page detail" data-page="Value: return, time and scope">
+  <p class="eyebrow">Metric explainer / Value</p>
+  <h2>Return on cost<br>and break-even rate</h2>
+  <p class="example">Illustrative example / US dollars, one common 30-day span</p>
+  <p>10 licensed seats at $30/month cost 10 x $30 x 30 / 30.4375 = <strong>$295.69</strong>. Add $100 of counted credits: total <strong>$395.69</strong>. Suppose the paired value is $500 / $1,000 / $1,500.</p>
+  <figure>
+    <svg viewBox="0 0 640 187" role="img" aria-labelledby="return-bars-title">
+      <title id="return-bars-title">Illustrative estimated value bars: conservative 500 dollars, typical 1000 dollars, optimistic 1500 dollars. Counted cost is about 396 dollars in every scenario.</title>
+      <text x="0" y="25" font-size="15">Conservative</text><rect x="145" y="9" width="140" height="24" fill="#8bbbbb"/><text x="295" y="27" font-size="16">$500</text>
+      <text x="0" y="68" font-size="15">Typical</text><rect x="145" y="52" width="280" height="24" fill="#176b70"/><text x="435" y="70" font-size="16">$1,000</text>
+      <text x="0" y="111" font-size="15">Optimistic</text><rect x="145" y="95" width="420" height="24" fill="#8bbbbb"/><text x="575" y="113" font-size="16">$1,500</text>
+      <path d="M256 1 V133" stroke="#172d35" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="145" y="158" font-size="14">Dashed line: ~$396 counted cost, unchanged by effort scenario</text>
+      <text x="145" y="181" font-size="14">A taller value bar means more assumed effort, not more cash realised.</text>
+    </svg>
+    <figcaption>Common dollar scale; bars show modelled value, not measured savings.</figcaption>
+  </figure>
+  <p class="formula"><strong>Return on cost = value / counted cost</strong><br>Typical: $1,000 / $395.69 = <strong>2.53x</strong><br>Break-even: $50 / return = <strong>about $19.78/hour</strong> (unrounded ratio)</p>
+  <p>Below 1x, cost exceeds the chosen scenario's value. A high ratio may reflect generous minutes/rates or missing costs, not better outcomes. No positive cost means no usable return ratio.</p>
+  <table>
+    <thead><tr><th>Cost line</th><th>Paired work</th></tr></thead>
+    <tbody>
+      <tr><td>Licence snapshot x price x days / 30.4375</td><td>Licensed users' Copilot chat/apps</td></tr>
+      <tr><td>Copilot Studio credit cost</td><td>Agents, including some licence-funded agents</td></tr>
+      <tr><td>Cowork / Work IQ credit cost</td><td>Cowork</td></tr>
+    </tbody>
+  </table>
+  <p>Only dates and org narrow this comparison. It intersects held activity/credit date spans; that does not prove every day loaded. Org-unfilterable costs are omitted. Missing credits can inflate headline return. Check included costs and the per-line pairing, not the ratio alone.</p>
+  <p class="note">The headline value excludes free unlicensed chat but can still include activity whose credit cost is unavailable. Azure/Foundry and GitHub Copilot are outside this comparison. Agent cost is allocated by undated credit share and matched by name. Non-USD costs need the configured exchange rate. Annualised value is period value x 52 / weeks in view, not a forecast.</p>
+  <footer><span>Use the conservative-to-optimistic range as a sensitivity check</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: consumption/cowork-window-cost.dax, cowork queries and commercial
+     terms; Consumption Central model cost measures; screens/consumption/*; filter-profiles.ts. -->
+<section class="page detail" data-page="Consumption: credits, rates and attribution">
+  <p class="eyebrow">Metric explainer / Consumption</p>
+  <h2>Credits are quantities.<br>Cost adds pricing rules.</h2>
+  <p class="lead">The same number of credits can produce a different cost.</p>
+  <p class="formula">Prepaid credits = min(credits used, pack balance)<br>Cost = prepaid credits x prepaid rate<br>+ remaining credits x pay-as-you-go rate</p>
+  <p class="example">Illustrative Cowork example / not actual usage or contract rates</p>
+  <figure>
+    <svg viewBox="0 0 640 155" role="img" aria-labelledby="credit-bar-title">
+      <title id="credit-bar-title">Ten thousand illustrative credits split into six thousand prepaid and four thousand pay as you go. At 1 cent and 2 cents per credit, costs are 60 and 80 dollars.</title>
+      <rect x="0" y="10" width="384" height="42" fill="#176b70"/><rect x="384" y="10" width="256" height="42" fill="#aecfcf"/>
+      <text x="12" y="38" font-size="17" style="fill:white">6,000 prepaid credits</text><text x="396" y="38" font-size="17">4,000 PAYG credits</text>
+      <path d="M192 60 V78 M512 60 V78" stroke="#46616b"/>
+      <text x="66" y="103" font-size="17">6,000 x $0.01 = $60</text><text x="397" y="103" font-size="17">4,000 x $0.02 = $80</text>
+      <text x="0" y="141" font-size="16" font-weight="600">10,000 credits / $140 total / $0.014 blended cost per credit</text>
+    </svg>
+    <figcaption>Width represents credits, not dollars. The PAYG slice costs more per credit.</figcaption>
+  </figure>
+  <p>Cowork draws down the selected period's pack balance in date order. Later weeks spill into PAYG first. Unused pack balance is not added as a cost here. Blended rate = calculated cost / credits used.</p>
+  <table>
+    <thead><tr><th>View</th><th>What the number means</th></tr></thead>
+    <tbody>
+      <tr><td>Cowork / Work IQ</td><td>Weekly credits by person; allowed/headroom shares only for positive limits. Zero or blank limit means no limit set.</td></tr>
+      <tr><td>Studio tenant</td><td>Prepaid and PAYG split priced at each rate; API entitlement share may be allocated across environments.</td></tr>
+      <tr><td>Studio agents / users</td><td>Costs priced at PAYG, not each person's invoice. $0.02 x 10,000 = $200 would not reconcile to the $140 split-cost example.</td></tr>
+      <tr><td>Azure / Foundry</td><td>Billing-export cost, its reported basis and currency; credit rates do not apply.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">A rise can come from more credits, a changed source mix, rates or pack exhaustion. First compare quantities and coverage. Studio API data covers allocated environments only; user-only totals miss unattributed credits. Export precedence and missing model/feature detail can change the breakdown without changing behaviour.</p>
+  <footer><span>Rates &amp; packs are shared settings; credit cost is calculated, not an invoice</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: lib/budget-runway.ts; screens/consumption/budget-series.ts,
+     budget-runway-stage.tsx; lib/filter-profiles.ts consumption profiles. -->
+<section class="page detail" data-page="Consumption: runway and filter scope">
+  <p class="eyebrow">Metric explainer / Consumption</p>
+  <h2>Reading budget runway<br>and source scope</h2>
+  <p class="example">Illustrative example / $100 spent through day 10 of a 30-day month</p>
+  <p class="formula">Daily average = $100 / 10 = <strong>$10/day</strong><br>Projected month end = $10 x 30 = <strong>$300</strong><br>With a $250 budget: <strong>at risk</strong>; crossing is around day 25.</p>
+  <figure>
+    <svg viewBox="0 0 640 180" role="img" aria-labelledby="runway-title">
+      <title id="runway-title">Illustrative runway: recorded spend reaches 100 dollars on day 10, a dashed projection reaches 300 dollars on day 30 and crosses a 250 dollar budget around day 25.</title>
+      <path d="M55 12 V142 H620" fill="none" stroke="#9eafb5"/>
+      <path d="M55 142 L243 99" fill="none" stroke="#176b70" stroke-width="4"/>
+      <path d="M243 99 L620 13" fill="none" stroke="#176b70" stroke-width="3" stroke-dasharray="6 4"/>
+      <path d="M55 35 H620" stroke="#46616b" stroke-dasharray="3 3"/>
+      <text x="1" y="39" font-size="13">$250</text><text x="65" y="29" font-size="14">Budget</text>
+      <circle cx="243" cy="99" r="5" fill="#176b70"/>
+      <text x="252" y="115" font-size="14">$100 recorded</text>
+      <text x="449" y="69" font-size="14">Projected, not loaded spend</text>
+      <text x="550" y="18" font-size="14">$300</text>
+      <text x="55" y="168" font-size="13">Month start</text><text x="212" y="168" font-size="13">Day 10</text><text x="493" y="168" font-size="13">Day 25</text><text x="579" y="168" font-size="13">Day 30</text>
+    </svg>
+    <figcaption>Solid = recorded cost; dashed = extrapolation. This is an explanatory chart, not an app screenshot.</figcaption>
+  </figure>
+  <p>Elapsed days end at the newest source date. Under three days: too early. At/above budget: over. Projection above budget: at risk; otherwise on track. No positive budget: no comparison.</p>
+  <p>Cowork spreads weekly cost evenly across seven days. A $70 week split three days / four days between months contributes $30 / $40. This is allocated, not measured daily spend.</p>
+  <h3>Check the scope</h3>
+  <table>
+    <thead><tr><th>Section</th><th>Scope to check</th></tr></thead>
+    <tbody>
+      <tr><td>All products</td><td>Reporting dates; tenant totals ignore org and agent.</td></tr>
+      <tr><td>Cowork / Work IQ</td><td>Own billing period; org can narrow people. No per-agent credits.</td></tr>
+      <tr><td>Studio</td><td>Own period for tenant/agent billing; agent filter where supported. Tenant totals ignore org; undated people views cannot follow date filters.</td></tr>
+      <tr><td>Azure / runway</td><td>Azure uses its own period, not org/agent. Runway ignores page filters and uses each source's latest loaded month. Read its coverage notes.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Low spend may mean missing/late data. Projection ignores seasonality, pack exhaustion and future prices. Keep billing currencies separate. On track is not a guarantee.</p>
+  <footer><span>Read Not filtered by notes before comparing sections</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: lib/grading-method.ts; core/valuelens_core/processor.py;
+     model Usage Efficiency and Model: measures; screens/efficiency/* filter exclusions. -->
+<section class="page detail" data-page="Efficiency: grades and denominators">
+  <p class="eyebrow">Metric explainer / Efficiency</p>
+  <h2>Fit grades<br>and their denominators</h2>
+  <p>At Balanced: Strong fit spans two or more recognised apps, builds/packages a file, or has 3+ material items of 2+ kinds (or more than 5 items). Fair fit has some sources, reads messages or stays in one app. Chat with nothing attached is Worth a look; insufficient evidence is ungraded.</p>
+  <figure>
+    <svg viewBox="0 0 640 126" role="img" aria-labelledby="fit-share-title">
+      <title id="fit-share-title">Out of 100 illustrative Cowork threads, 40 strong, 30 fair and 10 worth a look are graded, while 20 are ungraded. Strong share is 40 divided by 80, or 50 percent, not 40 percent.</title>
+      <rect x="0" y="10" width="256" height="36" fill="#176b70"/><rect x="256" y="10" width="192" height="36" fill="#aecfcf"/><rect x="448" y="10" width="64" height="36" fill="#d4b88e"/><rect x="512" y="10" width="128" height="36" fill="#e8edef"/>
+      <text x="12" y="34" font-size="15" style="fill:white">40 strong</text><text x="270" y="34" font-size="15">30 fair</text><text x="462" y="34" font-size="15">10</text><text x="524" y="34" font-size="15">20</text>
+      <text x="0" y="75" font-size="15">80 graded: strong share = 40 / 80 = 50%</text>
+      <text x="2" y="103" font-size="14">Worth a look = 10 / 80 = 12.5%; 20 ungraded are outside both shares.</text>
+    </svg>
+    <figcaption>Illustrative counts. Grey = ungraded; tan = Worth a look. Coverage matters as much as the share.</figcaption>
+  </figure>
+  <table>
+    <thead><tr><th>Work grade</th><th>Frontier model</th><th>Workhorse model</th></tr></thead>
+    <tbody>
+      <tr><td>Strong fit</td><td>Good match</td><td>Try stronger</td></tr>
+      <tr><td>Fair fit</td><td>Good match</td><td>Good match</td></tr>
+      <tr><td>Worth a look</td><td>Lighter model may do</td><td>Good match</td></tr>
+      <tr><td>Ungraded / no tier</td><td colspan="2">Not judged</td></tr>
+    </tbody>
+  </table>
+  <p>Frontier includes Opus / GPT-6; Workhorse includes Sonnet, other Claude, GPT-5 / GPT-4. The thread takes its dearest logged tier. Model verdict shares divide by <strong>judged threads</strong>; logged share divides threads with a tier by all model threads. A segment needs five judged threads for a verdict.</p>
+  <p class="small">The fit/model cards count distinct thread IDs; do not assume they equal Adoption's user + app + thread sessions. Cowork fit's Tasks completed card counts distinct prompts, not verified completions.</p>
+  <p class="note">Higher strong-fit share means more recorded complex work, not better outputs. Lower model match is a test candidate, not proven wasted spend: no per-call token cost is held. Cowork fit ignores Activity/agent filters; dates, org and licence apply where supported. Strict/Lenient change grading; see Appendix for the setting caveat.</p>
+  <footer><span>Never change models or judge people on this proxy alone</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: license-candidates.dax, license-candidates-m365.dax; model License
+     Priority Score (User), median tasks/days, dormancy; readiness/license-readiness-stage.tsx. -->
+<section class="page detail" data-page="Readiness: licence scoring">
+  <p class="eyebrow">Metric explainer / Readiness</p>
+  <h2>How licence<br>priority is scored</h2>
+  <p>For each unlicensed candidate, T is tasks per active week and D is active days per active week. Each is total recorded activity / distinct weeks with unlicensed prompts, not all elapsed calendar weeks. The measures called Median take a median across people, not across weekly values for one person.</p>
+  <p class="formula">Without matched Microsoft 365 breadth:<br><strong>score = round(60 x min(T/30, 1) + 40 x min(D/5, 1))</strong><br>With breadth B (workloads per active M365 day):<br><strong>round(50 x min(T/30, 1) + 30 x min(D/5, 1)<br>+ 20 x min(B/4, 1))</strong></p>
+  <p class="example">Illustrative example / T = 15 tasks, D = 4 days, B = 2 workloads</p>
+  <figure>
+    <svg viewBox="0 0 640 140" role="img" aria-labelledby="license-score-title">
+      <title id="license-score-title">Illustrative licence score contributions: without breadth, 30 volume points plus 32 day points equals 62. With breadth, 25 volume plus 24 day plus 10 breadth points equals 59.</title>
+      <text x="2" y="24" font-size="14">Without breadth</text><rect x="153" y="7" width="150" height="29" fill="#176b70"/><rect x="303" y="7" width="160" height="29" fill="#aecfcf"/><text x="165" y="28" font-size="15" style="fill:white">30</text><text x="314" y="28" font-size="15">32</text><text x="477" y="28" font-size="17">62 / 100</text>
+      <text x="2" y="72" font-size="14">With breadth</text><rect x="153" y="55" width="125" height="29" fill="#176b70"/><rect x="278" y="55" width="120" height="29" fill="#aecfcf"/><rect x="398" y="55" width="50" height="29" fill="#d4b88e"/><text x="165" y="76" font-size="15" style="fill:white">25</text><text x="290" y="76" font-size="15">24</text><text x="407" y="76" font-size="15">10</text><text x="477" y="76" font-size="17">59 / 100</text>
+      <text x="153" y="118" font-size="14">Dark: tasks / pale: active days / tan: M365 breadth</text>
+    </svg>
+    <figcaption>Both scores describe demand. Adding breadth changes the weights; it does not always raise the score.</figcaption>
+  </figure>
+  <p>Each component caps at 1 before weighting. No positive tasks/days means no score; the candidate list also needs an observed unlicensed session. No matched breadth keeps the 60/40 formula, rather than deducting 20 points.</p>
+  <h3>Read the other figures alongside it</h3>
+  <p><strong>Active unlicensed users</strong> is a count; share divides by all active users. Sessions per person/week is not the task count used to score. More resources per prompt can increase tasks without proving more demand.</p>
+  <p><strong>Dormant seats</strong> use 30+ days inactive before the newest audit date; reclaim value is dormant seats x Monthly Licence Cost. Zero configured cost means not costed. These estate cards ignore date and org filters, while demand and candidates follow them.</p>
+  <p class="note">A score of 62 is not a 62% chance of value. Few active weeks, a stale/mismatched licence snapshot, concealed names or incomplete source coverage weaken it. Trial with willing users and assess outcomes before allocating or reclaiming seats.</p>
+  <footer><span>Task intensity and breadth are evidence of use, not proven incremental benefit</span><span class="page-number"></span></footer>
+</section>
+
+<!-- Grounding: queries/agents/cowork-candidates.dax, cowork-readiness-summary.dax;
+     model Cowork Readiness: Surfaces Per Day, Cowork Fit: Eligible Users,
+     Cowork Fit: Session Depth, Cowork Fit: Agent User Share; readiness/habit-licence.ts. -->
+<section class="page detail" data-page="Readiness: Cowork rank and evidence">
+  <p class="eyebrow">Metric explainer / Readiness</p>
+  <h2>Cowork rank is relative<br>to the selected candidates</h2>
+  <p>B = distinct app-hosts per active user-day from non-Cowork prompts. D = session prompts / observed non-Cowork sessions. A = 1 when the person has an observed agent session, otherwise 0.</p>
+  <p class="formula">Ranking score = round(<strong>45 x B / maximum candidate B<br>+ 35 x D / maximum candidate D + 20 x A</strong>)<br>Each normalised component caps at 1.</p>
+  <p class="example">Illustrative candidates / maxima: 4 apps/day and 8 prompts/session</p>
+  <table>
+    <thead><tr><th>Candidate</th><th>B / D / A</th><th>Contributions</th><th>Score / rank</th></tr></thead>
+    <tbody>
+      <tr><td>Example A</td><td>4 / 4 / 1</td><td>45 + 17.5 + 20</td><td>83 / 1</td></tr>
+      <tr><td>Example B</td><td>2 / 8 / 0</td><td>22.5 + 35 + 0</td><td>58 / 2</td></tr>
+    </tbody>
+  </table>
+  <figure>
+    <svg viewBox="0 0 640 124" role="img" aria-labelledby="cowork-rank-title">
+      <title id="cowork-rank-title">Illustrative candidate A combines 45 breadth, 17.5 depth and 20 agent points, ranking above candidate B with 22.5 breadth and 35 depth points. A longer conversation alone does not determine the rank.</title>
+      <text x="0" y="28" font-size="15">Example A</text><rect x="115" y="9" width="225" height="30" fill="#176b70"/><rect x="340" y="9" width="87.5" height="30" fill="#aecfcf"/><rect x="427.5" y="9" width="100" height="30" fill="#d4b88e"/>
+      <text x="0" y="77" font-size="15">Example B</text><rect x="115" y="58" width="112.5" height="30" fill="#176b70"/><rect x="227.5" y="58" width="175" height="30" fill="#aecfcf"/>
+      <text x="115" y="116" font-size="14">Dark: breadth / pale: depth / tan: prior agent use</text>
+    </svg>
+    <figcaption>Points are a ranking aid; the app displays rank, apps/day, prompts/session and agent use, not a promised success rate.</figcaption>
+  </figure>
+  <p>Dense rank 1 is highest; ties share a rank. The list excludes recorded Cowork sessions in the selection and needs nonblank breadth/depth. Changing dates or org changes candidates and maxima, so rank can move without the person's behaviour changing.</p>
+  <p>The <strong>Could be offered Cowork</strong> headline excludes known Cowork users across held audit history; the list checks selected-period sessions. Its count need not reconcile to list rows. Headline breadth averages eligible user-days; depth is aggregate prompts/session; Already using agents divides eligible agent users by eligible people.</p>
+  <p><strong>Heavy users without a licence</strong> is separate: active-day bands in the last full month, not this ranking. Eleven or more days identifies frequent unlicensed users; a group needs five people for its share to show.</p>
+  <p class="note">Readiness is inferred, not proof Cowork is suitable or authorised for someone's role. Equal depth cannot separate candidates. Missing history can make prior use invisible. Confirm task needs, access, user interest and outcomes in a controlled trial.</p>
+  <footer><span>All examples are fictional; no tenant or identifiable person data</span><span class="page-number"></span></footer>
+</section>
+<script>
+  const pages = Array.from(document.querySelectorAll(".page"));
+  pages.forEach((page, index) => {
+    page.querySelector("footer span:last-child").textContent =
+      `${String(index + 1).padStart(2, "0")} / ${String(pages.length).padStart(2, "0")}`;
+  });
+</script>
 </body>
 </html>

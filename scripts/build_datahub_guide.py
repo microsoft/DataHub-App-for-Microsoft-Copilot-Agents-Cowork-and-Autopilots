@@ -39,6 +39,20 @@ def main() -> None:
             })""")
             if overflow:
                 raise ValueError(f"Content overflows guide pages: {overflow}")
+            clipped_visuals = page.locator("svg").evaluate_all("""visuals => visuals.flatMap((svg, index) => {
+                const box = svg.viewBox.baseVal;
+                const labelled = svg.getAttribute('aria-labelledby');
+                const title = labelled && document.getElementById(labelled);
+                const clipped = Array.from(svg.querySelectorAll('text')).some(text => {
+                    const bounds = text.getBBox();
+                    return bounds.x < box.x || bounds.y < box.y ||
+                        bounds.x + bounds.width > box.x + box.width ||
+                        bounds.y + bounds.height > box.y + box.height;
+                });
+                return !title?.textContent.trim() || clipped ? [index + 1] : [];
+            })""")
+            if clipped_visuals:
+                raise ValueError(f"Unlabelled or clipped guide visuals: {clipped_visuals}")
             pdf = page.pdf(
                 prefer_css_page_size=True, print_background=True, display_header_footer=False,
                 tagged=True, outline=True,
