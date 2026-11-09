@@ -11,6 +11,20 @@ import license from "./licensing/license-candidates.dax?raw";
 import m365 from "./licensing/license-candidates-m365.dax?raw";
 
 describe("candidate rank contracts (offline, not DAX execution)", () => {
+    it("limits Cowork users before eligibility, normalization, ranks and totals", () => {
+        const licensed = cowork.slice(cowork.indexOf("VAR __LicensedUsers"), cowork.indexOf("VAR __Scope"));
+        expect(licensed).toContain("VALUES('Chat + Agent Interactions (Audit Logs)'[Audit_UserId])");
+        expect(licensed).toContain("KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[License Status] = \"M365 Copilot Licensed\")");
+        expect(licensed).toMatch(/COUNTROWS\('Chat \+ Agent Interactions \(Audit Logs\)'\)[\s\S]*> 0/);
+        const scope = cowork.slice(cowork.indexOf("VAR __Scope"), cowork.indexOf("VAR __MaxB"));
+        expect(scope).toMatch(/ADDCOLUMNS\(\s*__LicensedUsers,/);
+        expect(cowork).toContain("VAR __MaxB = MAXX(__Scope, [@b])");
+        expect(cowork).toContain("VAR __MaxD = MAXX(__Scope, [@d])");
+        expect(cowork).toContain("VAR __Total = COUNTROWS(__Scope)");
+        expect(cowork).toMatch(/VAR __Scored =\s*ADDCOLUMNS\(\s*__Scope,/);
+        expect(cowork).toContain('VAR __Scores = DISTINCT(SELECTCOLUMNS(__Scored, "@Value", [@s]))');
+    });
+
     it("keeps Cowork eligibility and score components from the original user-level measure", () => {
         expect(cowork).toContain("[@cw] = 0 && NOT ISBLANK([@b]) && NOT ISBLANK([@d])");
         expect(cowork).toContain("KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[Is_Cowork] = FALSE())");

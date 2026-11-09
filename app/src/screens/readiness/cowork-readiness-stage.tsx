@@ -131,7 +131,7 @@ export function CoworkReadinessStage() {
             <OnDemand
                 id="cowork-candidates"
                 label="Show the people"
-                note="Everyone yet to try Cowork, readiest first."
+                note="Licensed Microsoft 365 Copilot users yet to try Cowork, ranked among licensed users only."
             >
                 <CoworkCandidates />
             </OnDemand>
@@ -227,7 +227,7 @@ function CoworkCandidates() {
                     <QueryEmpty
                         className="h-full"
                         title="Nobody to rank"
-                        description="Everyone with recorded Copilot use has already tried Cowork, or nobody has used Copilot in this period."
+                        description="No licensed Microsoft 365 Copilot users with recorded use are yet to try Cowork in this selection."
                     />
                 ) : (
                     <DataGrid
@@ -237,13 +237,13 @@ function CoworkCandidates() {
                         theme={theme}
                         header={{
                             title: "Who to offer Cowork next",
-                            subtitle: `${formatKpi(listCount(candidatesTable), "whole")} people, readiest first`,
+                            subtitle: `${formatKpi(listCount(candidatesTable), "whole")} licensed users, readiest first`,
                         }}
                     />
                 )}
             </div>
             {candidatesTable && !candidatesResult.isLoading && candidatesResult.data?.status === "success" && (
-                <TruncationNote shown={candidatesTable.rows.length} total={listTotal(candidatesTable)} noun="people" by="by readiness" />
+                <TruncationNote shown={candidatesTable.rows.length} total={listTotal(candidatesTable)} noun="licensed users" by="by readiness" />
             )}
         </>
     );
