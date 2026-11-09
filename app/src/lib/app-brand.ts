@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-export const DEFAULT_APP_NAME = "Analytics Hub";
+export const DEFAULT_APP_NAME = "DataHub App";
 export const PREVIEW_APP_NAME = "DataHub App";
 
 export function appDisplayName(): string {

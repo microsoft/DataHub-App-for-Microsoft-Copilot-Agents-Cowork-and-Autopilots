@@ -12,7 +12,7 @@ instead, and give you two roles on just that group:
 Registering resource providers is subscription-wide, so the admin does that once too. A few roles
 sit outside the resource group: the installer prints them, as commands, for the admin.
 
-The Entra, Power BI, Teams and Power Platform rights in [Prerequisites](PREREQUISITES.md) don't
+The Entra, Power BI and Power Platform requirements in [Prerequisites](PREREQUISITES.md) don't
 change. Publishing the Teams app to your org's catalog stays optional: a Teams admin can
 [upload the package](../azure/teams/README.md#give-it-to-everyone) instead.
 
@@ -57,7 +57,7 @@ CONDITION="((!(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})) 
 az role assignment create --assignee-object-id "$INSTALLER_ID" --assignee-principal-type User \
   --role "Role Based Access Control Administrator" --scope "$RG_ID" \
   --condition "$CONDITION" --condition-version "2.0" \
-  --description "Analytics Hub installer: only the roles it gives"
+  --description "DataHub App installer: only the roles it gives"
 ```
 
 With private networking, an advanced setting, register these too. The feature can take a while, so

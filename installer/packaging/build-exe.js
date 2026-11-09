@@ -250,9 +250,9 @@ try {
   for (const f of ['Launcher.cs', 'app.manifest']) copyFileSync(join(LAUNCHER, f), join(work, f));
   writeFileSync(join(work, 'AssemblyInfo.cs'), [
     'using System.Reflection;',
-    '[assembly: AssemblyTitle("Analytics Hub installer")]',
-    '[assembly: AssemblyDescription("Sets up Analytics Hub for Microsoft Copilot in Microsoft Fabric.")]',
-    '[assembly: AssemblyProduct("ValueLens Analytics Hub")]',
+    '[assembly: AssemblyTitle("DataHub App installer")]',
+    '[assembly: AssemblyDescription("Sets up DataHub App for Microsoft Copilot in Microsoft Fabric.")]',
+    '[assembly: AssemblyProduct("DataHub App")]',
     '[assembly: AssemblyCompany("Microsoft Corporation")]',
     '[assembly: AssemblyCopyright("Copyright (c) Microsoft Corporation. MIT License.")]',
     `[assembly: AssemblyVersion("${fileVersion(version)}")]`,

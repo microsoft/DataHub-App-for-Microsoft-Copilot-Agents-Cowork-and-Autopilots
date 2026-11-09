@@ -1,9 +1,9 @@
 # Changelog
 
-Notable, reviewed changes to Analytics Hub: the installer, the app, the Fabric notebooks and
+Notable, reviewed changes to the DataHub App: the installer, the app, the Fabric notebooks and
 pipeline, and the Azure target.
 
-Analytics Hub moved here from
+This project moved here from
 [ValueLens for Microsoft Copilot](https://github.com/microsoft/ValueLens-for-Microsoft-Copilot),
 where it was paths 1 (Fabric) and 2 (Azure), with its history. Entries up to 0.4.2 were written
 there and refer to its folder names: `1. Fabric/installer` is now `installer/`,
@@ -19,6 +19,12 @@ Deployment instructions do **not** live here. They live in the READMEs:
 ---
 
 ## Unreleased
+
+**DataHub App naming.** Current documentation, app branding, installer wording, Teams
+titles and future release titles now use DataHub App. Existing resource names,
+authorization values, download names and links remain compatible; released entries below retain
+the name used at the time. Screenshots and videos still show earlier branding. See
+[Names and compatibility](docs/INSTALL.md#names-and-compatibility).
 
 **Group by: all meaningful loaded org attributes.** The main app, Cowork/Studio and Agent
 Evaluator no longer hide useful business attributes because they are numeric, boolean or dates,
@@ -66,10 +72,11 @@ change, and windows read by different sources never duplicate.
 - **Checks and reliability.** `check-audit` tests the selected sources without Graph audit
   search. Sentinel pages in stable timestamp/record-ID order; invalid results and expired feed
   content fail explicitly instead of being accepted as empty successful loads.
-- **A history load beside the daily load no longer drops its windows.** Each run used to save the
-  manifest it loaded at the start, so a Graph history recovery running beside the scheduled load
-  overwrote the windows that load had just read from the Management Activity API. Each save now
-  keeps what another run saved for windows this run hasn't written.
+- **Partial backfills preserve existing rows.** When a source cannot cover the whole requested
+  history, the ingester now uses a merge rather than a replacement.
+- **Manifest recovery.** Each save keeps untouched windows that another run already saved, but
+  simultaneous writes can still race. A failed manifest read stops the run instead of overwriting
+  saved checkpoints. Wait for one audit run to finish before starting another.
 - See [Where the audit log comes from](fabric/notebooks/README.md#where-the-audit-log-comes-from).
 
 **Licensed users: no more unlicensed users shown as licensed.** Since 0.6.8, a user in the
@@ -180,8 +187,8 @@ asked for.
   reads CSVs from a SharePoint library, with no Fabric or Azure. `sharepoint/provenance.json` pins
   it to the ValueLens commit it came from, and a test checks the copy matches.
   `scripts/Check-SharePoint-Queries.py` reports which of the app's ValueLens queries the model
-  answers, 68 of 95 today, and where Analytics Hub gets the rest. The installer, the app and the
-  releases don't use it yet.
+  answers, and where the dashboard gets the rest. The installer, the app and the releases don't
+  use it yet.
 
 ### Fixed
 

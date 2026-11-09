@@ -1,18 +1,28 @@
 # Reference
 
-Everything that isn't a setup step. To set Analytics Hub up, start at the
+Everything that isn't a setup step. To set up the DataHub App, start at the
 [README](../README.md#getting-started).
 
 ## What you get
 
-History, your organisation, agents, value and cost, on top of the official Copilot reports. See
-[What it adds](FAQ.md#what-does-it-add-to-the-official-reports).
+History, your organisation, agents, Cowork, estimated value and cost, on top of the official
+Copilot reports. See [What it adds](FAQ.md#what-does-it-add-to-the-official-reports).
+Cowork fit and readiness insights use audit data; Cowork credits and cost need optional
+credit consumption data.
 
 **Pages:** Executive summary · Adoption · Value · Consumption · Efficiency · Leaderboards · Work
 patterns · Readiness · Agent Evaluation · Governance · Feedback · Ask · Assumptions · Appendix.
 Screenshots and every section: **[App guide](APP-GUIDE.md)**.
 
-**Demo video:** the app, page by page.
+**[DataHub App overview](../README.md#datahub-app-in-42-seconds):** 42 seconds, created with
+OpenMontage using synthetic demo data and AI-generated narration.
+[Captions](../media/DataHub-App-Overview-OpenMontage.en-GB.vtt) ·
+[Transcript](../media/DataHub-App-Overview-OpenMontage-transcript.txt).
+
+**[Installer walkthrough](../media/datahub-app-installer-walkthrough-v3.mp4):** AI-generated
+narration and simulated services. For Fabric and Azure setup instructions, see [Install](INSTALL.md).
+
+**Earlier demo video:** the app, page by page, with earlier branding.
 [Watch it](https://github.com/user-attachments/assets/b415625d-c2ae-467f-9a91-59ef9adca6c8) or
 [download it](../media/AnalyticsHub-Demo.mp4).
 
@@ -49,7 +59,7 @@ The pages in this folder are also on the [wiki](https://github.com/microsoft/Ana
 
 ## More
 
-- **Moved from ValueLens.** Analytics Hub used to be paths 1 and 2 of
+- **Moved from ValueLens.** The dashboard used to be paths 1 and 2 of
   [ValueLens for Microsoft Copilot](https://github.com/microsoft/ValueLens-for-Microsoft-Copilot).
   Existing installs keep working: see [I used ValueLens](FAQ.md#i-used-valuelens-what-changes).
 - What each folder holds: [Repository layout](../CONTRIBUTING.md#repository-layout).
