@@ -24,17 +24,18 @@ import { adoptionTrend, type AdoptionTrendMeasure } from "@/queries/adoption";
 import { adoptionTrendHeadline } from "./headlines";
 import { useAdoptionSummary } from "./use-adoption-summary";
 
-/** The four surfaces usage is reported across. */
+/** The surfaces usage is reported across, alongside the overall total. */
 const surfaces = [
     { id: "overall", label: "Overall", usersColumn: "[Overall Users]", rateColumn: "[Overall SPUW]" },
     { id: "licensed", label: "Licensed chat", usersColumn: "[Licensed Users]", rateColumn: "[Licensed SPUW]" },
     { id: "unlicensed", label: "Unlicensed chat", usersColumn: "[Unlicensed Users]", rateColumn: "[Unlicensed SPUW]" },
     { id: "agents", label: "Agents", usersColumn: "[Agent Users]", rateColumn: "[Agent SPUW]" },
+    { id: "cowork", label: "Cowork", usersColumn: "[Cowork Users]", rateColumn: "[Cowork SPUW]" },
 ] as const;
 
 /** Every card and trend line here is already one surface, so these filters pick the card to highlight instead. */
 const SURFACE_FILTERS: FilterKey[] = ["licence", "audience"];
-const PICKABLE = ["licensed", "unlicensed", "agents"] as const;
+const PICKABLE = ["licensed", "unlicensed", "agents", "cowork"] as const;
 
 const trendMeasures: { id: AdoptionTrendMeasure; label: string }[] = [
     { id: "sessionsPerUser", label: "Per user" },
@@ -57,7 +58,7 @@ export function AdoptionStage() {
     const unshown = unshownActivity(filters, applicable, PICKABLE);
     const surfaceReason = unshown
         ? `${unshown} has no card of its own, so ${highlighted.label} is highlighted.`
-        : `licensed chat, unlicensed chat and agents are each shown in their own card and line, so ${highlighted.label} is highlighted.`;
+        : `each activity has its own card, so ${highlighted.label} is highlighted. The trend measure switches the chart below.`;
 
     const summary = useAdoptionSummary(SURFACE_FILTERS);
     const trend = useMemo(() => adoptionTrend({ measure }), [measure]);
@@ -108,7 +109,7 @@ export function AdoptionStage() {
             {summary.error ? (
                 <QueryError message={summary.error} onRetry={summary.refetch} />
             ) : !summary.loaded ? (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {surfaces.map((surface) => (
                         <QueryLoading key={surface.id} />
                     ))}
@@ -120,28 +121,40 @@ export function AdoptionStage() {
                 />
             ) : (
                 <>
-                    <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                         {surfaces.map((surface) => (
                             <KpiCard
                                 key={surface.id}
                                 label={surface.label}
                                 value={readNumber(summaryRow, surface.rateColumn)}
                                 format="rate"
+                                emptyValue={surface.id === "cowork" && coworkUsers === undefined ? "No activity" : undefined}
                                 emphasis={surface.id === highlighted.id}
                                 detail={
-                                    <div className="flex flex-col gap-100">
-                                        <span className="block pb-100">sessions per user per week</span>
-                                        <KpiStat
-                                            label="Active users"
-                                            value={readNumber(summaryRow, surface.usersColumn)}
-                                        />
-                                        {surface.id === "overall" && (
+                                    surface.id === "cowork" && coworkUsers === undefined ? (
+                                        "No Cowork activity in the selected period."
+                                    ) : (
+                                        <div className="flex flex-col gap-100">
+                                            <span className="block pb-100">sessions per user per week</span>
                                             <KpiStat
-                                                label="Sessions"
-                                                value={readNumber(summaryRow, "[Overall Sessions]")}
+                                                label="Active users"
+                                                value={readNumber(summaryRow, surface.usersColumn)}
                                             />
-                                        )}
-                                    </div>
+                                            {surface.id === "overall" && (
+                                                <KpiStat
+                                                    label="Sessions"
+                                                    value={readNumber(summaryRow, "[Overall Sessions]")}
+                                                />
+                                            )}
+                                            {surface.id === "cowork" && (
+                                                <KpiStat
+                                                    label="Hours per week"
+                                                    value={readNumber(summaryRow, "[Cowork Hours Wk]")}
+                                                    format="hours"
+                                                />
+                                            )}
+                                        </div>
+                                    )
                                 }
                             />
                         ))}

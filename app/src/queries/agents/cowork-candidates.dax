@@ -3,11 +3,20 @@ EVALUATE
 -- for every person it ranks, so its cost grows with the square of the user
 -- count. It is built once here, as the measure builds it for one person with
 -- no organization in scope. Inside the measure, ALLSELECTED brings back the
--- filters this query runs under, which are the users VALUES sees here.
+-- filters this query runs under. Restrict people to licensed candidates before
+-- normalizing scores or ranking, while keeping their full activity for scoring.
+VAR __LicensedUsers =
+    FILTER(
+        VALUES('Chat + Agent Interactions (Audit Logs)'[Audit_UserId]),
+        CALCULATE(
+            COUNTROWS('Chat + Agent Interactions (Audit Logs)'),
+            KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[License Status] = "M365 Copilot Licensed")
+        ) > 0
+    )
 VAR __Scope =
     FILTER(
         ADDCOLUMNS(
-            VALUES('Chat + Agent Interactions (Audit Logs)'[Audit_UserId]),
+            __LicensedUsers,
             "@b", [Cowork Readiness: Surfaces Per Day],
             "@d", CALCULATE([Prompts per Observed Session], KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[Is_Cowork] = FALSE())),
             "@a", IF(COALESCE(CALCULATE([Observed Agent Sessions]), 0) > 0, 1, 0),
