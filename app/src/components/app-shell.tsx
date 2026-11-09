@@ -23,6 +23,7 @@ import { useIsRefreshing } from "@/lib/refresh-tracker";
 import { PAGE_SOURCES } from "@/lib/freshness";
 import { earliestDate, newPackId, packFilters, packSources, stageLabel, type PackRun, type ReportPack } from "@/lib/report-pack";
 import { runtimeConfig } from "@/lib/runtime-config";
+import { appDisplayName } from "@/lib/app-brand";
 import { cn } from "@/lib/utils";
 import { getAccessToken } from "@/services/rayfin-auth.service";
 import {
@@ -307,7 +308,7 @@ export function AppShell({ view, onNavigate, onOpenPack, children }: AppShellPro
                 <div className={cn("flex items-start", compact ? "justify-center" : "justify-between gap-200 px-200")}>
                     {!compact && (
                         <div className="flex flex-col gap-100">
-                            <span className="text-[length:var(--text-500)] leading-500 font-semibold">DataHub App</span>
+                            <span className="text-[length:var(--text-500)] leading-500 font-semibold">{appDisplayName()}</span>
                             <span className="text-[length:var(--text-200)] leading-200 text-muted-foreground">for Microsoft Copilot</span>
                         </div>
                     )}
@@ -431,7 +432,7 @@ export function AppShell({ view, onNavigate, onOpenPack, children }: AppShellPro
                     >
                         <Menu className="icon-size-300" aria-hidden="true" />
                     </button>
-                    <span className="text-[length:var(--text-400)] leading-400 font-semibold">DataHub App</span>
+                    <span className="text-[length:var(--text-400)] leading-400 font-semibold">{appDisplayName()}</span>
                 </header>
             ) : (
                 <nav
@@ -461,6 +462,18 @@ export function AppShell({ view, onNavigate, onOpenPack, children }: AppShellPro
                 className="relative min-w-0 flex-1 overflow-y-auto outline-none [scrollbar-gutter:stable]"
             >
                 <div className="mx-auto flex max-w-[1400px] flex-col gap-600 px-400 pt-500 pb-800 md:px-600 lg:px-700 lg:pt-600" data-print="flow">
+                    {runtimeConfig().demo && (
+                        <div
+                            role="status"
+                            className="rounded-md border border-primary/30 bg-primary/5 px-300 py-200 text-[length:var(--text-200)] leading-200 text-muted-foreground"
+                        >
+                            Interactive demo · Synthetic sample data · Changes stay in this browser session
+                            {active === "work-patterns" && <p className="mt-100">The published sample pack has no Microsoft 365 telemetry. The empty state below is intentional; this demo cannot collect live data.</p>}
+                            {active === "agent-evaluation" && <p className="mt-100">Evaluation conversations are not included in the published sample pack. No live agent or environment is connected.</p>}
+                            {active === "governance" && <p className="mt-100">Agent 365 registry data is included. Defender and Resource Graph exports are not included; their configuration checks are unavailable, not verified clear.</p>}
+                            {active === "cross-vendor" && <p className="mt-100">Separate seeded comparison scenario; not the published CSV cohort on the other pages.</p>}
+                        </div>
+                    )}
                     {view.kind === "pack" ? (
                         <ReportHeader
                             key={viewKey}

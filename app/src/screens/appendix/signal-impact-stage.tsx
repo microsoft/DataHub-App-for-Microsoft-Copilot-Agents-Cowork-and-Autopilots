@@ -155,16 +155,17 @@ function withCategory(table: DataTable, category: string | undefined): DataTable
 }
 
 /**
- * The report's Signal → Impact appendix: the audit-log signal ValueLens reads
- * as a Task Breakdown, what that task is, the human time it would take, and
- * the research the estimate rests on. These are the editable assumptions
- * behind the Value destination, so the minutes are shaded on one scale for
- * every Task Category.
+ * The app's Signal → Impact reference: how audit-log signals map to task
+ * breakdowns, with the model's human-time baseline and its research source.
  */
 export function SignalImpactStage() {
     const { theme } = useThemeContext();
     const config = signalImpact();
-    const result = useFilteredQuery({ connection: config.connection, query: config.query });
+    const result = useFilteredQuery({
+        connection: config.connection,
+        query: config.query,
+        columnMetadata: config.columnMetadata,
+    });
     const [category, setCategory] = useState<string>();
 
     const table = useMemo(
@@ -191,7 +192,7 @@ export function SignalImpactStage() {
         <Section
             id={stageAnchor("signal-impact")}
             title="Signal → Impact"
-            description="Each audit-log signal, the task it counts as, and the human time that task would otherwise take."
+            description="See how each audit-log signal maps to a task category and task breakdown, alongside the model's human-time reference estimate."
             actions={
                 categories.length > 1 ? (
                     <ChoiceMenu
@@ -205,9 +206,10 @@ export function SignalImpactStage() {
             }
         >
             <p className="max-w-[85ch] text-[length:var(--text-300)] leading-300 text-muted-foreground">
-                The minutes come from the semantic model's Human Time Estimates table. To use your own timings in
-                this app, change them under Assumptions; the Power BI report keeps the model's. Each estimate links
-                to the research it loosely draws on, with the model's confidence in it.
+                Human minutes are the model's Human Baseline estimate, not measured time saved. On the Assumptions
+                page, you can override each task's Conservative, Typical, and Optimistic times for estimated hours and
+                value. Those overrides do not change this reference estimate. Rows link to the cited research and show
+                the model's confidence when available.
             </p>
 
             <div
@@ -222,7 +224,7 @@ export function SignalImpactStage() {
                     <QueryEmpty
                         className="h-full"
                         title="No signals mapped"
-                        description="The semantic model's Behavior Value Map table is empty. It ships with the ValueLens template, so check that the model was deployed from it."
+                        description="The connected model's Behavior Value Map table is empty. Check that the expected semantic model is deployed."
                     />
                 ) : (
                     <DataGrid
@@ -231,7 +233,7 @@ export function SignalImpactStage() {
                         data={visible}
                         theme={theme}
                         header={{
-                            title: selected ? `${selected} signals` : "Every signal ValueLens values",
+                            title: selected ? `${selected} signals` : "All mapped signals",
                             subtitle: `${formatKpi(visible.rows.length, "whole")} signals · minutes shaded on one scale across all task categories`,
                         }}
                     />

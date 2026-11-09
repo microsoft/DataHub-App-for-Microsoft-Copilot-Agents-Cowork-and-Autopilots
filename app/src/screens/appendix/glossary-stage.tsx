@@ -22,7 +22,7 @@ function pageAnchor(page: string): string {
     return `glossary-${page.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 }
 
-/** "Adoption › Activation" for a report page the app folded into a stage. */
+/** "Adoption › Activation" for a source page the app maps into a stage. */
 function appLocation(page: string): string | undefined {
     const home = GLOSSARY_PAGE_HOME[page];
     if (!home) return undefined;
@@ -99,14 +99,16 @@ function PageCard({ page, term }: { page: GlossaryPage; term: string }) {
 }
 
 /**
- * The report's Metric Glossary: every metric defined page by page, searchable,
- * with a note of where each report page now lives in the app. The report
- * showed one page at a time behind a slicer; here the pages read as one
- * document with an index beside it.
+ * The semantic model's Metric Glossary: every metric defined page by page,
+ * searchable, with a note of where each source page maps into the app.
  */
 export function GlossaryStage() {
     const config = glossary();
-    const result = useFilteredQuery({ connection: config.connection, query: config.query });
+    const result = useFilteredQuery({
+        connection: config.connection,
+        query: config.query,
+        columnMetadata: config.columnMetadata,
+    });
     const [term, setTerm] = useState("");
     const deferredTerm = useDeferredValue(term);
     const searchId = useId();
@@ -125,7 +127,7 @@ export function GlossaryStage() {
         <Section
             id={stageAnchor("glossary")}
             title="Glossary"
-            description="What every metric in ValueLens means, page by page, in the words the semantic model defines it."
+            description="Definitions from the semantic model, grouped by source page, with the corresponding DataHub App destination shown when available."
         >
             {result.data?.status === "error" ? (
                 <QueryError message={result.data.error.message} onRetry={result.refetch} />
@@ -134,7 +136,7 @@ export function GlossaryStage() {
             ) : pages.length === 0 ? (
                 <QueryEmpty
                     title="No glossary in this model"
-                    description="The semantic model's Metric Glossary table is empty. It ships with the ValueLens template, so check that the model was deployed from it."
+                    description="The connected model's Metric Glossary table is empty. Check that the app is using the expected semantic model."
                 />
             ) : (
                 <div className="flex flex-col gap-400">
@@ -170,14 +172,14 @@ export function GlossaryStage() {
                         <p aria-live="polite" className="text-[length:var(--text-200)] leading-200 text-muted-foreground">
                             {searching
                                 ? `${formatKpi(metricCount, "whole")} ${metricCount === 1 ? "match" : "matches"} on ${formatKpi(visible.length, "whole")} ${visible.length === 1 ? "page" : "pages"}`
-                                : `${formatKpi(metricCount, "whole")} metrics across ${formatKpi(visible.length, "whole")} report pages`}
+                                : `${formatKpi(metricCount, "whole")} metrics across ${formatKpi(visible.length, "whole")} source pages`}
                         </p>
                     </div>
 
                     {visible.length === 0 ? (
                         <QueryEmpty
                             title={`Nothing matches “${deferredTerm.trim()}”`}
-                            description="Try a shorter word, or a metric's name as the report shows it, such as Active users."
+                            description="Try a shorter word, or a metric name from the model's glossary."
                         />
                     ) : (
                         <div className="grid items-start gap-500 xl:grid-cols-[220px_minmax(0,1fr)]">

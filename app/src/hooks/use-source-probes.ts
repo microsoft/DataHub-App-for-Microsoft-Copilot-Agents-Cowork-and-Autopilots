@@ -72,6 +72,15 @@ export function useSourceProbes(): SourceAvailability {
     const resourceGraph = useProbe("resourceGraph", alone && !leftOff(modules, "resourceGraph"));
     const answer = merged.data;
     return useMemo(() => {
+        if (runtimeConfig().demo) {
+            return {
+                m365Activity: "notConfigured",
+                productFeedback: "present",
+                agentRegistry: "present",
+                defender: "notConfigured",
+                resourceGraph: "notConfigured",
+            } satisfies SourceAvailability;
+        }
         const own: SourceAvailability = { m365Activity, productFeedback, agentRegistry, defender, resourceGraph };
         const row = answer?.status === "success" ? toSummaryRow(answer.table) : undefined;
         const state = (source: OptionalSource): SourceState => {
