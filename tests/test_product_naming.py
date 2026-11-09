@@ -44,10 +44,13 @@ def test_app_source_uses_requested_brand_and_keeps_named_flow():
             continue
         source = path.read_text(encoding="utf-8")
         assert "Analytics Hub dashboard" not in source, path.relative_to(ROOT)
-        assert not re.search(r"\bDataHub\b(?! App)", source), path.relative_to(ROOT)
+        display_source = source.replace("DataHub-App-Guide.pdf", "")
+        assert not re.search(r"\bDataHub\b(?! App)", " ".join(display_source.split())), path.relative_to(ROOT)
     assert "Analytics Hub - Agent inventory" in text("app/src/queries/governance/governance-resource-graph.ts")
     assert "<title>DataHub App</title>" in text("app/index.html")
-    assert 'pptx.author = "DataHub App"' in text("app/src/lib/report-export.ts")
+    assert 'DEFAULT_APP_NAME = "DataHub App"' in text("app/src/lib/app-brand.ts")
+    assert 'PREVIEW_APP_NAME = "DataHub App"' in text("app/src/lib/app-brand.ts")
+    assert "pptx.author = appDisplayName()" in text("app/src/lib/report-export.ts")
 
 
 def test_public_descriptions_include_cowork_and_optional_credits():
