@@ -21,9 +21,9 @@ const columnMetadata: ColumnMetadataMap = {
 };
 
 /**
- * The report's metric glossary, one row per metric, in the order the report's
- * pages and cards present them. It is reference data, not activity, so no
- * filter applies to it.
+ * The semantic model's metric glossary, one row per metric, ordered by its
+ * source pages and metrics. It is reference data, not activity, so no filter
+ * applies to it.
  */
 export function glossary() {
     return { connection, query, columnMetadata };

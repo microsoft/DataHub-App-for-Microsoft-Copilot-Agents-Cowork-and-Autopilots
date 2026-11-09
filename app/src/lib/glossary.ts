@@ -20,8 +20,8 @@ export interface GlossaryPage {
 }
 
 /**
- * Groups glossary rows into report pages, pages and metrics each in the
- * report's own order. Rows without a metric name are dropped.
+ * Groups glossary rows into source pages and metrics in the semantic model's
+ * order. Rows without a metric name are dropped.
  */
 export function toGlossaryPages(rows: readonly SummaryRow[]): GlossaryPage[] {
     const pages = new Map<string, { order: number; description?: string; entries: (GlossaryEntry & { order: number })[] }>();
@@ -90,10 +90,9 @@ export function highlightParts(text: string, term: string): { text: string; matc
 }
 
 /**
- * Where each report page's metrics now live in the app. The app folded the
- * report's pages into destinations and renamed some, so the glossary says
- * where to look. A page a customer adds to their own glossary has no entry and
- * simply shows no location.
+ * Where each semantic-model source page maps into the app. The glossary keeps
+ * source page names and shows the matching app destination when one is known.
+ * A custom source page has no mapping and simply shows no location.
  */
 export const GLOSSARY_PAGE_HOME: Readonly<Record<string, { destination: DestinationId; stage?: StageId }>> = {
     Activation: { destination: "adoption", stage: "activation" },
