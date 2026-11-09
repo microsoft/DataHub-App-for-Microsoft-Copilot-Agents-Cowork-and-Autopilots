@@ -14,6 +14,7 @@ import { samples, selectedActivity, hours, sum, sessions, firstDate, lastDate } 
 import { sampleConsumptionRows } from "./sample-consumption";
 import { withTaskTimes } from "@/queries/assumptions/task-times";
 import { describeOrgAttribute, orgValueFilter, withOrgAttribute } from "@/lib/org-attribute";
+import { glossary, signalImpact } from "@/queries/appendix";
 
 type Query = { query: string; columnMetadata?: ColumnMetadataMap };
 function answer(source: Query, filters: string[] = []) {
@@ -190,5 +191,27 @@ describe("published synthetic sample adapter", () => {
         const overridden = objects({ ...source, query: withTaskTimes(source.query, saved) })[0];
         expect(overridden.Tasks).toBe(13337);
         expect(Number(overridden.Hours)).toBeLessThan(Number(objects(source)[0].Hours));
+    });
+
+    it("keeps Appendix reference minutes independent of saved effort overrides", () => {
+        const source = signalImpact();
+        const baseline = objects(source);
+        const saved = samples.times.map(row => ({ task: row.Behavior, low: 0, typical: 0, high: 0 }));
+        expect(objects({ ...source, query: withTaskTimes(source.query, saved) })).toEqual(baseline);
+        expect(baseline.length).toBe(samples.signals.length);
+        for (const row of baseline) {
+            const reference = samples.times.find(time => time.Behavior === row["AI Tasks"]);
+            expect(row["Human Equivalent (Minutes)"]).toBe(reference ? Number(reference["Human Baseline (min)"]) : null);
+        }
+    });
+
+    it("serves glossary definitions from the packaged model reference without rewriting them", () => {
+        const rows = objects(glossary());
+        expect(rows.length).toBe(samples.glossary.length);
+        for (const row of rows) {
+            const reference = samples.glossary.find(entry => entry.Page === row.Page && entry.Metric === row.Metric);
+            expect(reference).toBeDefined();
+            expect(row.Description).toBe(reference?.Description);
+        }
     });
 });

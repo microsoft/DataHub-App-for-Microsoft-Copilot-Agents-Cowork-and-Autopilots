@@ -393,7 +393,7 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
     if (has("Signal", "AI Tasks", "Human Equivalent (Minutes)")) return output(...samples.signals.map(row => {
         const time = samples.times.find(time => time.Behavior === row.Behavior);
         return { Signal: row.Signal, "AI Tasks": row.Behavior, "Use Case": row["Use Case"], "Value Outcome": row["Value Outcome"],
-            "Human Equivalent (Minutes)": time ? Number(time["Min Typical"]) : null, "Research Source": time?.["Primary Source"],
+            "Human Equivalent (Minutes)": time ? Number(time["Human Baseline (min)"]) : null, "Research Source": time?.["Primary Source"],
             "Source URL": time?.["Source URL"], Confidence: time?.Confidence, Category: time?.Category };
     }));
     if (has("Total Feedback", "Theme Summary")) return output({ ...ratings,
