@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "..", "..");
 const data = JSON.parse(await readFile(resolve(root, "app", "src", "demo", "sample-data.generated.json"), "utf8"));
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 await writeFile(resolve(output, "SOURCE_PROVENANCE.json"), `${JSON.stringify({
-    repository: "https://github.com/microsoft/DataHub",
+    repository: "https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots",
     sourceRevision: git("rev-parse", "HEAD"),
     sourceDirty: git("status", "--porcelain", "--untracked-files=no") !== "",
     sampleTree: git("rev-parse", "HEAD:samples"),
