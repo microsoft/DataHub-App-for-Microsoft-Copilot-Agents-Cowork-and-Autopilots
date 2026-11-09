@@ -470,14 +470,16 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
             "Prompts Per Session": mean(values.map(row => row["Prompts Per Session"])),
             "Agent User Share": ratio(values.filter(row => row["Uses Agents"]).length, values.length) });
         if (has("Rank")) {
-            const maxBreadth = Math.max(0, ...candidates.map(row => row["Surfaces Per Day"]));
-            const maxDepth = Math.max(0, ...candidates.map(row => row["Prompts Per Session"]));
-            const scored = candidates.map(row => ({ ...row, score: Math.round(45 * ratio(row["Surfaces Per Day"], maxBreadth)
+            const licensedUsers = new Set(licensed.map(row => row.user));
+            const eligible = candidates.filter(row => licensedUsers.has(row.User));
+            const maxBreadth = Math.max(0, ...eligible.map(row => row["Surfaces Per Day"]));
+            const maxDepth = Math.max(0, ...eligible.map(row => row["Prompts Per Session"]));
+            const scored = eligible.map(row => ({ ...row, score: Math.round(45 * ratio(row["Surfaces Per Day"], maxBreadth)
                 + 35 * ratio(row["Prompts Per Session"], maxDepth) + 20 * Number(row["Uses Agents"])) }));
             return output(...scored.sort((a, b) => b.score - a.score).map(row => ({
                 ...row, "Uses Agents": row["Uses Agents"] ? "Yes" : "No",
                 Rank: new Set(scored.filter(other => other.score > row.score).map(other => other.score)).size + 1,
-                Depths: new Set(candidates.map(value => value["Prompts Per Session"])).size, Total: candidates.length,
+                Depths: new Set(eligible.map(value => value["Prompts Per Session"])).size, Total: eligible.length,
             })));
         }
         return has("Organization") ? output(...groups(candidates, row => row.Organization).map(([Organization, values]) => ({

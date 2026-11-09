@@ -15,6 +15,7 @@ import { sampleConsumptionRows } from "./sample-consumption";
 import { withTaskTimes } from "@/queries/assumptions/task-times";
 import { describeOrgAttribute, orgValueFilter, withOrgAttribute } from "@/lib/org-attribute";
 import { glossary, signalImpact } from "@/queries/appendix";
+import { coworkCandidates, coworkReadinessSummary, coworkReadinessByOrg } from "@/queries/agents";
 
 type Query = { query: string; columnMetadata?: ColumnMetadataMap };
 function answer(source: Query, filters: string[] = []) {
@@ -29,6 +30,39 @@ const objects = (source: Query, filters: string[] = []) => {
 };
 
 describe("published synthetic sample adapter", () => {
+    it("ranks only licensed candidates before normalization and counts without narrowing readiness summaries", () => {
+        const original = samples.activity;
+        const base = original.find(row => !row.cowork && row.prompt && row.observed)!;
+        const [first, second, outlier] = samples.people;
+        const row = (user: string, app: string, message: string, licensed: boolean) => ({
+            ...base, user, app, message, thread: app, licensed, audience: "Copilot", cowork: false,
+        });
+        samples.activity = [
+            row(first.user, "App A", "first", true),
+            row(first.user, "App A", "second", false),
+            row(first.user, "App B", "third", false),
+            row(second.user, "App A", "fourth", true),
+            ...Array.from({ length: 18 }, (_, i) => row(outlier.user, `App ${Math.floor(i / 3)}`, `outlier-${i}`, false)),
+        ];
+        try {
+            const ranked = objects(coworkCandidates());
+            expect(ranked.map(entry => entry.User)).toEqual([first.user, second.user]);
+            expect(ranked.map(entry => entry.Rank)).toEqual([1, 2]);
+            expect(ranked.every(entry => entry.Total === 2 && entry.Depths === 2)).toBe(true);
+            expect(ranked[0]["Surfaces Per Day"]).toBe(2);
+            expect(ranked[0]["Prompts Per Session"]).toBe(1.5);
+            expect(objects(coworkReadinessSummary())[0]["Eligible Users"]).toBe(3);
+            expect(sum(objects(coworkReadinessByOrg()), entry => Number(entry["Eligible Users"]))).toBe(3);
+            samples.activity = samples.activity.filter(entry => entry.user !== outlier.user);
+            expect(objects(coworkCandidates())).toEqual(ranked);
+            samples.activity = samples.activity.map(entry => ({ ...entry, licensed: false }));
+            expect(objects(coworkCandidates())).toEqual([]);
+            expect(objects(coworkReadinessSummary())[0]["Eligible Users"]).toBe(2);
+        } finally {
+            samples.activity = original;
+        }
+    });
+
     it("preserves the published row count, people and unshifted dates", () => {
         expect(samples.activity).toHaveLength(13337);
         expect(samples.people).toHaveLength(170);
