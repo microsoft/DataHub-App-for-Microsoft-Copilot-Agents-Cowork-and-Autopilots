@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FileStack, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
+import { FileStack, Menu, Moon, PanelLeftClose, PanelLeftOpen, Play, Sun } from "lucide-react";
 import { DataToContext } from "@/hooks/data-to.context";
 import { useFilterContext } from "@/hooks/filter.context";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -361,6 +361,20 @@ export function AppShell({ view, onNavigate, onOpenPack, children }: AppShellPro
                     <UpdateNotice />
                 </>
             )}
+
+            <a
+                href="https://ai-datalab.github.io/#/watch/datahub-explainer"
+                target="_blank"
+                rel="noreferrer"
+                title={compact ? "Explainer" : undefined}
+                className={cn(
+                    "flex items-center rounded-md py-200 text-[length:var(--text-300)] leading-300 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                    compact ? "justify-center px-200" : "gap-300 px-300",
+                )}
+            >
+                <Play className="icon-size-200 shrink-0" aria-hidden="true" />
+                <span className={cn(compact && "sr-only")}>Explainer</span>
+            </a>
 
             <button
                 type="button"

@@ -1,0 +1,1837 @@
+WEBVTT
+
+1
+00:00:00.200 --> 00:00:04.793
+This short guide shows you how to read the DataHub App, page by page.
+
+2
+00:00:04.793 --> 00:00:07.089
+For each screen, you'll learn three things.
+
+3
+00:00:07.089 --> 00:00:08.073
+What it shows.
+
+4
+00:00:08.073 --> 00:00:09.385
+How to read it.
+
+5
+00:00:09.385 --> 00:00:11.354
+And what to look at next.
+
+6
+00:00:11.354 --> 00:00:13.650
+All the figures are synthetic demo data.
+
+7
+00:00:14.367 --> 00:00:17.604
+Use the chapters to jump straight to the page you need.
+
+8
+00:00:17.604 --> 00:00:20.252
+Some optional pages have no data in this demo.
+
+9
+00:00:20.252 --> 00:00:24.667
+When that happens, we show the empty page, and explain what it would tell you.
+
+10
+00:00:25.367 --> 00:00:27.953
+Keep three kinds of number apart.
+
+11
+00:00:27.953 --> 00:00:32.264
+Counted numbers are what really happened, like sessions or credits.
+
+12
+00:00:32.264 --> 00:00:37.869
+Labelled numbers sort that activity using rules, like task types or fit grades.
+
+13
+00:00:37.869 --> 00:00:41.749
+Estimated numbers add assumptions, like expert hours and value.
+
+14
+00:00:41.749 --> 00:00:44.767
+Only counted numbers are a direct record.
+
+15
+00:00:45.450 --> 00:00:49.688
+Before you read any chart, check the data date at the top.
+
+16
+00:00:49.688 --> 00:00:52.512
+It shows how far the loaded data goes.
+
+17
+00:00:52.512 --> 00:00:55.691
+For example, audit log to the thirty-first of August.
+
+18
+00:00:55.691 --> 00:00:58.162
+Different sources can end on different dates.
+
+19
+00:00:58.162 --> 00:01:00.988
+A blank or a dash means no data.
+
+20
+00:01:00.988 --> 00:01:02.400
+It doesn't mean zero.
+
+21
+00:01:03.117 --> 00:01:07.945
+Use the filter bar to choose dates, organisation, licence and activity type.
+
+22
+00:01:07.945 --> 00:01:13.577
+Group by changes how people are split, for example by organisation or by country.
+
+23
+00:01:13.577 --> 00:01:15.991
+Not every card follows every filter.
+
+24
+00:01:15.991 --> 00:01:20.417
+If a card says not filtered by, it ignores that filter.
+
+25
+00:01:21.117 --> 00:01:26.820
+When you compare two numbers, keep the same dates, the same people and the same unit.
+
+26
+00:01:26.820 --> 00:01:31.454
+If one card covers three months and another covers one, they won't match.
+
+27
+00:01:31.454 --> 00:01:32.167
+That's expected.
+
+28
+00:01:32.867 --> 00:01:35.181
+The bottom line answers two questions.
+
+29
+00:01:35.181 --> 00:01:38.652
+The top row asks: is Copilot doing real work?
+
+30
+00:01:38.652 --> 00:01:42.510
+The bottom row asks: is it becoming how people work?
+
+31
+00:01:42.510 --> 00:01:46.367
+Read the big number first, then the arrow beside it.
+
+32
+00:01:47.033 --> 00:01:52.140
+An up arrow means the last full month was higher than the month before.
+
+33
+00:01:52.140 --> 00:01:57.977
+Totals are compared per day, so a longer month doesn't look better just because it's longer.
+
+34
+00:01:57.977 --> 00:01:59.436
+Points means percentage points.
+
+35
+00:01:59.436 --> 00:02:03.083
+Going from seventy to seventy-two percent is up two points.
+
+36
+00:02:03.783 --> 00:02:05.607
+Expert hours are an estimate.
+
+37
+00:02:05.607 --> 00:02:07.066
+Tasks are counted requests.
+
+38
+00:02:07.066 --> 00:02:11.444
+The credits card adds Copilot Studio and Cowork for the whole tenant.
+
+39
+00:02:11.444 --> 00:02:16.186
+Azure is billed in money, not credits, so it isn't in that total.
+
+40
+00:02:16.186 --> 00:02:19.833
+If a number surprises you, open the page behind it.
+
+41
+00:02:20.533 --> 00:02:24.518
+This page shows two monthly charts on the same timeline.
+
+42
+00:02:24.518 --> 00:02:27.307
+The top chart shows estimated expert hours.
+
+43
+00:02:27.307 --> 00:02:29.697
+The bottom chart shows credits used.
+
+44
+00:02:29.697 --> 00:02:33.283
+Each colour is the same source in both charts.
+
+45
+00:02:33.950 --> 00:02:35.680
+Read from left to right.
+
+46
+00:02:35.680 --> 00:02:38.103
+A taller bar means more that month.
+
+47
+00:02:38.103 --> 00:02:39.487
+Then check the colours.
+
+48
+00:02:39.487 --> 00:02:45.025
+If one colour grows and the others stay flat, the change comes from that one source.
+
+49
+00:02:45.025 --> 00:02:48.485
+Here, hours peak in August, but credits peak in July.
+
+50
+00:02:48.485 --> 00:02:51.600
+That's a reason to look closer, not a problem.
+
+51
+00:02:52.283 --> 00:02:55.468
+Faded months sit outside your selected dates, for context.
+
+52
+00:02:55.468 --> 00:02:59.006
+A last month that's only partly loaded will look low.
+
+53
+00:02:59.006 --> 00:03:02.899
+So check the month is complete before you call a drop.
+
+54
+00:03:02.899 --> 00:03:06.083
+Then open Value for hours, or Consumption for credits.
+
+55
+00:03:06.783 --> 00:03:08.708
+Each circle is an organisation.
+
+56
+00:03:08.708 --> 00:03:12.941
+Further right means more of its licensed seats are in use.
+
+57
+00:03:12.941 --> 00:03:17.174
+Higher up means more estimated expert hours per seat each month.
+
+58
+00:03:17.174 --> 00:03:19.483
+A bigger circle means more seats.
+
+59
+00:03:20.200 --> 00:03:22.892
+The dashed lines mark the middle of the group.
+
+60
+00:03:22.892 --> 00:03:25.284
+Top right is high use and high hours.
+
+61
+00:03:25.284 --> 00:03:27.078
+Bottom left is lower on both.
+
+62
+00:03:27.078 --> 00:03:32.162
+A big circle low down is a good place to offer help, because many seats are involved.
+
+63
+00:03:32.162 --> 00:03:36.050
+A small circle high up may have a way of working worth sharing.
+
+64
+00:03:36.700 --> 00:03:42.480
+The table lists seats, seats in use, habit rate and hours per seat for each organisation.
+
+65
+00:03:42.480 --> 00:03:46.453
+Compare per-seat rates, so big teams don't win just by size.
+
+66
+00:03:46.453 --> 00:03:50.788
+The bar chart shows which kinds of work add the most hours.
+
+67
+00:03:50.788 --> 00:03:54.400
+People without a department are left out of these views.
+
+68
+00:03:55.117 --> 00:03:59.667
+This page lists the few things the data says need attention, biggest impact first.
+
+69
+00:03:59.667 --> 00:04:04.217
+Each card says what it found, and links to the page with the detail.
+
+70
+00:04:04.867 --> 00:04:06.803
+On each card, read two things.
+
+71
+00:04:06.803 --> 00:04:11.319
+The size of the gap, and how many ratings or people it rests on.
+
+72
+00:04:11.319 --> 00:04:16.482
+A gap based on thirty ratings is weaker than the same gap based on three hundred.
+
+73
+00:04:16.482 --> 00:04:20.353
+Extra hours on a card show what closing a gap could add.
+
+74
+00:04:20.353 --> 00:04:21.967
+They're not hours already gained.
+
+75
+00:04:22.617 --> 00:04:25.462
+Open Can we trust these numbers before you act.
+
+76
+00:04:25.462 --> 00:04:27.675
+No card doesn't mean everything is fine.
+
+77
+00:04:27.675 --> 00:04:32.417
+For each card you act on, name an owner and a date to check again.
+
+78
+00:04:33.117 --> 00:04:35.917
+Adoption shows how often people come back.
+
+79
+00:04:35.917 --> 00:04:39.517
+The main number is sessions per user per week.
+
+80
+00:04:39.517 --> 00:04:43.117
+A session is one conversation thread in one app.
+
+81
+00:04:43.117 --> 00:04:47.517
+There are cards for everyone, licensed chat, unlicensed chat and agents.
+
+82
+00:04:48.200 --> 00:04:50.881
+The weekly chart has one line per group.
+
+83
+00:04:50.881 --> 00:04:54.567
+A line that stays high week after week shows a habit.
+
+84
+00:04:54.567 --> 00:04:59.258
+A single spike is usually an event, like a launch or a training day.
+
+85
+00:04:59.258 --> 00:05:04.284
+If the licensed line sits above the unlicensed line, licensed users come back more often.
+
+86
+00:05:04.284 --> 00:05:07.300
+That's a difference, not proof the licence caused it.
+
+87
+00:05:07.950 --> 00:05:10.585
+Don't add up the user counts across cards.
+
+88
+00:05:10.585 --> 00:05:14.538
+One person can use chat and agents, so they appear in both.
+
+89
+00:05:14.538 --> 00:05:19.150
+Use the buttons at the top to switch between per user, sessions and hours.
+
+90
+00:05:19.867 --> 00:05:21.992
+Activation asks a simple question.
+
+91
+00:05:21.992 --> 00:05:24.967
+Who has used Copilot at least once?
+
+92
+00:05:24.967 --> 00:05:29.217
+Each card shows active people, inactive people and the total.
+
+93
+00:05:29.867 --> 00:05:33.167
+The percentage is active people divided by the total.
+
+94
+00:05:33.167 --> 00:05:39.767
+For example, one hundred and eight active out of one hundred and twelve licensed is about ninety-six percent.
+
+95
+00:05:39.767 --> 00:05:41.600
+High activation means wide reach.
+
+96
+00:05:41.600 --> 00:05:44.533
+It doesn't tell you if people come back.
+
+97
+00:05:44.533 --> 00:05:47.467
+That's what Adoption and Habit formation are for.
+
+98
+00:05:48.117 --> 00:05:52.855
+Open the organisation view to see which teams have the most inactive people.
+
+99
+00:05:52.855 --> 00:05:55.407
+That's where first-use help will matter most.
+
+100
+00:05:55.407 --> 00:05:59.417
+Check the licence list is correct before you call anyone inactive.
+
+101
+00:06:00.117 --> 00:06:07.000
+Habit formation sorts licensed people by how many days they used Copilot in the last full month.
+
+102
+00:06:07.000 --> 00:06:09.429
+Beginner is one to five days.
+
+103
+00:06:09.429 --> 00:06:11.048
+Developing, six to ten.
+
+104
+00:06:11.048 --> 00:06:12.668
+Habitual, eleven to fifteen.
+
+105
+00:06:12.668 --> 00:06:14.287
+Power, sixteen or more.
+
+106
+00:06:14.287 --> 00:06:16.717
+Inactive means licensed, but no use.
+
+107
+00:06:17.367 --> 00:06:19.112
+Switch between share and count.
+
+108
+00:06:19.112 --> 00:06:20.507
+Share shows the mix.
+
+109
+00:06:20.507 --> 00:06:22.252
+Count shows how many people.
+
+110
+00:06:22.252 --> 00:06:27.138
+In the chart below, each bar is one month, with Power at the top.
+
+111
+00:06:27.138 --> 00:06:32.722
+If the Power and Habitual bands grow over time, more people are using Copilot most days.
+
+112
+00:06:32.722 --> 00:06:34.467
+That's the trend you want.
+
+113
+00:06:35.117 --> 00:06:38.667
+If many people stay in Beginner, focus your support there.
+
+114
+00:06:38.667 --> 00:06:41.507
+These bands measure how often, not how well.
+
+115
+00:06:41.507 --> 00:06:45.767
+Someone who works part time may use it less, for good reasons.
+
+116
+00:06:46.450 --> 00:06:51.180
+The heatmap shows one measure for every team and every week.
+
+117
+00:06:51.180 --> 00:06:52.470
+Rows are organisations.
+
+118
+00:06:52.470 --> 00:06:53.760
+Columns are weeks.
+
+119
+00:06:53.760 --> 00:06:59.350
+Pick the measure first: active users, active days, hours, or sessions per user.
+
+120
+00:07:00.033 --> 00:07:02.181
+Darker cells mean more of that measure.
+
+121
+00:07:02.181 --> 00:07:05.249
+Read across a row to follow one team over time.
+
+122
+00:07:05.249 --> 00:07:08.624
+Read down a column to compare teams in the same week.
+
+123
+00:07:08.624 --> 00:07:13.533
+A pale column across every team is often a holiday, or a gap in the data.
+
+124
+00:07:14.200 --> 00:07:17.809
+Look for patterns that last several weeks, not single cells.
+
+125
+00:07:17.809 --> 00:07:21.780
+A team that fades over a month is worth a conversation.
+
+126
+00:07:21.780 --> 00:07:25.750
+To compare big and small teams fairly, use a per-user measure.
+
+127
+00:07:26.450 --> 00:07:31.890
+Task breakdown shows how much work Copilot was asked to do, and what kind.
+
+128
+00:07:31.890 --> 00:07:37.718
+The top cards show tasks, and tasks per user, for everyone, licensed, unlicensed and agents.
+
+129
+00:07:37.718 --> 00:07:40.826
+A task is one request on one item.
+
+130
+00:07:40.826 --> 00:07:45.100
+So one prompt that reads three files counts as three tasks.
+
+131
+00:07:45.783 --> 00:07:47.862
+The bar chart ranks task types.
+
+132
+00:07:47.862 --> 00:07:50.979
+A longer bar means more tasks of that kind.
+
+133
+00:07:50.979 --> 00:07:56.521
+If one bar is twice as long as another, that type had twice as many tasks.
+
+134
+00:07:56.521 --> 00:08:00.677
+Use break down by to switch to workflow action or value outcome.
+
+135
+00:08:00.677 --> 00:08:04.833
+Task types are labelled by rules, so treat them as a guide.
+
+136
+00:08:05.533 --> 00:08:11.864
+Lower down, two charts show where requests came from, like Teams or Outlook, and which model answered.
+
+137
+00:08:11.864 --> 00:08:16.704
+No model logged means the model wasn't recorded, not that none was used.
+
+138
+00:08:16.704 --> 00:08:19.683
+Use this to spot common uses worth sharing.
+
+139
+00:08:20.367 --> 00:08:26.078
+Estimated value asks: how long would this work take an expert, and what is that worth?
+
+140
+00:08:26.078 --> 00:08:28.219
+It's a model, not measured savings.
+
+141
+00:08:28.219 --> 00:08:33.217
+The top cards show hours per week, value per week and a yearly figure.
+
+142
+00:08:33.867 --> 00:08:39.147
+Choose Conservative, Typical or Optimistic to set how long tasks are assumed to take.
+
+143
+00:08:39.147 --> 00:08:41.032
+Then set your hourly rate.
+
+144
+00:08:41.032 --> 00:08:44.804
+Changing the rate changes the money, but not the hours.
+
+145
+00:08:44.804 --> 00:08:47.067
+Changing the effort level changes both.
+
+146
+00:08:47.783 --> 00:08:49.221
+Here's a simple example.
+
+147
+00:08:49.221 --> 00:08:53.533
+Twenty estimated hours at fifty dollars an hour is one thousand dollars.
+
+148
+00:08:53.533 --> 00:08:57.486
+Double the rate, and the value doubles to two thousand dollars.
+
+149
+00:08:57.486 --> 00:08:59.283
+The hours stay at twenty.
+
+150
+00:08:59.950 --> 00:09:03.662
+The value table shows which kinds of work add the most.
+
+151
+00:09:03.662 --> 00:09:07.038
+Open a row to see the task types inside it.
+
+152
+00:09:07.038 --> 00:09:10.075
+The agents table ranks named agents the same way.
+
+153
+00:09:10.075 --> 00:09:13.788
+The yearly figure just scales your dates up to a year.
+
+154
+00:09:13.788 --> 00:09:15.138
+It isn't a forecast.
+
+155
+00:09:15.138 --> 00:09:18.850
+Quote the range from Conservative to Optimistic, not one big number.
+
+156
+00:09:19.533 --> 00:09:25.320
+This page shows estimated expert hours per person in the last full month, for each habit band.
+
+157
+00:09:25.320 --> 00:09:28.383
+Each bar is per person, not a team total.
+
+158
+00:09:29.033 --> 00:09:32.924
+A taller bar means more hours for each person in that band.
+
+159
+00:09:32.924 --> 00:09:39.409
+If Power users show about seventeen hours and Beginners about two, a Power user logs around eight times as much.
+
+160
+00:09:39.409 --> 00:09:42.003
+The curve below shows how concentrated hours are.
+
+161
+00:09:42.003 --> 00:09:47.191
+The further it bows from the straight line, the more a few people carry the total.
+
+162
+00:09:47.191 --> 00:09:50.433
+A dash means the group was too small to show.
+
+163
+00:09:51.117 --> 00:09:55.522
+Frequent users show more hours, but that doesn't prove habit creates value.
+
+164
+00:09:55.522 --> 00:09:59.194
+Heavy users may just have more work that suits Copilot.
+
+165
+00:09:59.194 --> 00:10:03.967
+Use this to find ways of working worth sharing, not to rank people.
+
+166
+00:10:04.617 --> 00:10:10.513
+Cost versus value sets estimated value against what Copilot cost over the same dates.
+
+167
+00:10:10.513 --> 00:10:15.567
+The main number, return on cost, is estimated value divided by cost.
+
+168
+00:10:16.283 --> 00:10:20.120
+Above one times, the estimated value is bigger than the cost.
+
+169
+00:10:20.120 --> 00:10:22.561
+Below one times, the cost is bigger.
+
+170
+00:10:22.561 --> 00:10:27.443
+The break-even rate is the lowest hourly rate at which value still covers cost.
+
+171
+00:10:27.443 --> 00:10:30.233
+The lower it is, the stronger the case.
+
+172
+00:10:30.950 --> 00:10:38.753
+For example, one thousand dollars of estimated value, divided by four hundred dollars of cost, is two and a half times.
+
+173
+00:10:38.753 --> 00:10:41.726
+Remember, the value is modelled, not cash saved.
+
+174
+00:10:41.726 --> 00:10:45.814
+And the cost is licences plus credits at your set rates.
+
+175
+00:10:45.814 --> 00:10:47.300
+It's not an invoice.
+
+176
+00:10:47.950 --> 00:10:52.624
+The bars and table pair each cost with the work it pays for.
+
+177
+00:10:52.624 --> 00:10:54.422
+Licences with licensed users' work.
+
+178
+00:10:54.422 --> 00:10:55.861
+Studio credits with agents.
+
+179
+00:10:55.861 --> 00:10:57.299
+Cowork credits with Cowork.
+
+180
+00:10:57.299 --> 00:11:00.535
+The agent chart does the same for each agent.
+
+181
+00:11:00.535 --> 00:11:04.850
+Check the Conservative figure before you use the number in a decision.
+
+182
+00:11:05.533 --> 00:11:12.710
+All products puts Cowork and Work IQ, Copilot Studio and Azure side by side, over the same dates.
+
+183
+00:11:12.710 --> 00:11:20.683
+The bar at the top shows the rates used: the pay-as-you-go rate, the prepaid rate, and your Capacity Pack balance.
+
+184
+00:11:21.367 --> 00:11:23.592
+Credits are an amount of use.
+
+185
+00:11:23.592 --> 00:11:27.300
+Cost is those credits priced at the rates you set.
+
+186
+00:11:27.300 --> 00:11:29.896
+It's a calculated figure, not an invoice.
+
+187
+00:11:29.896 --> 00:11:31.008
+Azure is different.
+
+188
+00:11:31.008 --> 00:11:34.717
+It's already money, from billing, so it has no credits.
+
+189
+00:11:35.367 --> 00:11:37.414
+Read the table side by side.
+
+190
+00:11:37.414 --> 00:11:39.120
+Never add credits to dollars.
+
+191
+00:11:39.120 --> 00:11:43.214
+The bar chart shows which product costs most over the same dates.
+
+192
+00:11:43.214 --> 00:11:46.967
+If one product jumps, open its own tab to see why.
+
+193
+00:11:47.617 --> 00:11:54.617
+Budget runway shows each product's spend so far in its latest loaded month, against an optional monthly budget.
+
+194
+00:11:55.283 --> 00:12:01.583
+Each card shows the spend so far, and where the month ends if the same daily pace continues.
+
+195
+00:12:01.583 --> 00:12:05.083
+The status can be On track, At risk or Over.
+
+196
+00:12:05.083 --> 00:12:07.883
+No budget just means none has been set.
+
+197
+00:12:07.883 --> 00:12:09.283
+It's not a warning.
+
+198
+00:12:09.950 --> 00:12:14.246
+For example, one hundred dollars in ten days is ten dollars a day.
+
+199
+00:12:14.246 --> 00:12:16.889
+Over thirty days, that's about three hundred dollars.
+
+200
+00:12:16.889 --> 00:12:21.185
+With a budget of two hundred and fifty, the card warns you early.
+
+201
+00:12:21.185 --> 00:12:25.150
+It's a straight line from the pace so far, not a forecast.
+
+202
+00:12:25.867 --> 00:12:30.803
+This page shows weekly Cowork and Work IQ credits, by person or group.
+
+203
+00:12:30.803 --> 00:12:38.017
+The cards show credits used, people using credits, credits per user, and how much of their allowance they've used.
+
+204
+00:12:38.700 --> 00:12:40.905
+Switch to Cost to see money.
+
+205
+00:12:40.905 --> 00:12:43.844
+Cost uses the Capacity Pack balance you enter.
+
+206
+00:12:43.844 --> 00:12:48.253
+It's applied once to the whole selected period, not once a month.
+
+207
+00:12:48.253 --> 00:12:51.928
+Credits use up that balance first, at the prepaid rate.
+
+208
+00:12:51.928 --> 00:12:54.500
+Anything beyond it is priced at pay-as-you-go.
+
+209
+00:12:55.200 --> 00:13:05.298
+For example, with a six thousand credit balance and ten thousand credits used, six thousand are priced at the prepaid rate, and four thousand at pay-as-you-go.
+
+210
+00:13:05.298 --> 00:13:08.016
+The weekly chart shows when use peaks.
+
+211
+00:13:08.016 --> 00:13:11.900
+Allowance used only means something where a limit is set.
+
+212
+00:13:12.617 --> 00:13:16.089
+Copilot Studio shows the credits your agents use.
+
+213
+00:13:16.089 --> 00:13:22.167
+The cards show total credits, active users, agents with credits, and credits per user.
+
+214
+00:13:22.867 --> 00:13:27.727
+The main chart shows credits each day, stacked as prepaid and pay-as-you-go.
+
+215
+00:13:27.727 --> 00:13:30.562
+That split comes from Microsoft's own data.
+
+216
+00:13:30.562 --> 00:13:35.422
+The line is a seven-day average, so it smooths out busy days.
+
+217
+00:13:35.422 --> 00:13:39.067
+A rising line means agents are using more credits.
+
+218
+00:13:39.783 --> 00:13:43.013
+Next, see which models and features use the credits.
+
+219
+00:13:43.013 --> 00:13:47.319
+Not recorded means the source didn't say, not that nothing was used.
+
+220
+00:13:47.319 --> 00:13:50.548
+The agent and user tables show each one's share.
+
+221
+00:13:50.548 --> 00:13:55.213
+If one agent takes a large share, check what it does before acting.
+
+222
+00:13:55.213 --> 00:13:58.083
+High use isn't the same as high value.
+
+223
+00:13:58.783 --> 00:14:04.256
+The Azure tab shows what the Azure side of the solution costs, in money.
+
+224
+00:14:04.256 --> 00:14:09.338
+It isn't measured in credits, so it's never part of the credits total.
+
+225
+00:14:09.338 --> 00:14:11.292
+First, choose Actual or Amortized.
+
+226
+00:14:11.292 --> 00:14:13.638
+Actual shows charges when they happen.
+
+227
+00:14:13.638 --> 00:14:15.983
+Amortized spreads up-front purchases over time.
+
+228
+00:14:16.700 --> 00:14:21.470
+Model share is the part of Azure cost spent on AI models.
+
+229
+00:14:21.470 --> 00:14:25.445
+Supporting cost is everything around them, like storage and search.
+
+230
+00:14:25.445 --> 00:14:29.022
+The other cards count usage, like requests and tokens.
+
+231
+00:14:29.022 --> 00:14:32.600
+Cost per million tokens is a simple unit rate.
+
+232
+00:14:33.283 --> 00:14:36.929
+The daily chart shows how cost moves over time.
+
+233
+00:14:36.929 --> 00:14:40.576
+The service bars show which Azure services cost most.
+
+234
+00:14:40.576 --> 00:14:46.247
+The resource table shows each resource, and the department its tag assigns it to.
+
+235
+00:14:46.247 --> 00:14:49.083
+Untagged cost isn't shared out across teams.
+
+236
+00:14:49.783 --> 00:14:53.410
+Cowork fit asks whether the work people give Cowork suits it.
+
+237
+00:14:53.410 --> 00:14:57.696
+Each session gets a grade, based on the apps and sources it used.
+
+238
+00:14:57.696 --> 00:15:00.333
+It doesn't judge the quality of the answer.
+
+239
+00:15:01.033 --> 00:15:06.885
+Strong fit means work across two or more apps, building a file, or using many sources.
+
+240
+00:15:06.885 --> 00:15:10.543
+Fair fit means some sources, or work inside one app.
+
+241
+00:15:10.543 --> 00:15:13.834
+Worth a look means plain chat with nothing attached.
+
+242
+00:15:13.834 --> 00:15:16.760
+Everyday Copilot Chat could probably have done it.
+
+243
+00:15:16.760 --> 00:15:20.783
+The bar chart shows the mix for each type of task.
+
+244
+00:15:21.450 --> 00:15:23.334
+Shares only count graded sessions.
+
+245
+00:15:23.334 --> 00:15:30.871
+For example, forty Strong out of eighty graded is fifty percent, even if twenty more were too light to grade.
+
+246
+00:15:30.871 --> 00:15:36.900
+A high Worth a look share is a chance to coach people, not proof of waste.
+
+247
+00:15:37.617 --> 00:15:42.943
+Model fit compares how heavy the work is with the kind of model used.
+
+248
+00:15:42.943 --> 00:15:44.464
+Frontier models are premium.
+
+249
+00:15:44.464 --> 00:15:46.367
+Workhorse models are mid cost.
+
+250
+00:15:47.033 --> 00:15:50.062
+Good match means the model suits the work.
+
+251
+00:15:50.062 --> 00:15:54.226
+Lighter model may do means a premium model did light work.
+
+252
+00:15:54.226 --> 00:15:57.633
+Try stronger means a mid-cost model did heavy work.
+
+253
+00:15:57.633 --> 00:16:00.283
+Not judged means there wasn't enough information.
+
+254
+00:16:00.950 --> 00:16:03.887
+The tool chart compares agents, Copilot and Cowork.
+
+255
+00:16:03.887 --> 00:16:09.760
+The table shows the verdict for each task type, and needs at least five judged sessions.
+
+256
+00:16:09.760 --> 00:16:12.696
+Use a flag to pick something to test.
+
+257
+00:16:12.696 --> 00:16:16.000
+It isn't proof of savings, or of poor answers.
+
+258
+00:16:16.700 --> 00:16:20.983
+The leaderboard ranks people, teams, apps and tasks by sessions.
+
+259
+00:16:20.983 --> 00:16:26.550
+The top cards show active users, sessions, and sessions per user per week.
+
+260
+00:16:27.200 --> 00:16:31.224
+The concentration cards show how much use comes from the busiest people.
+
+261
+00:16:31.224 --> 00:16:37.259
+For example, if the top five percent of people make thirteen percent of sessions, use is fairly spread.
+
+262
+00:16:37.259 --> 00:16:40.947
+If they made half, a few people would be carrying it.
+
+263
+00:16:40.947 --> 00:16:44.300
+A dash means the group was too small to show.
+
+264
+00:16:44.950 --> 00:16:48.850
+Use this to find people who could share good ways of working.
+
+265
+00:16:48.850 --> 00:16:52.750
+Lots of sessions can also mean a heavy role, or repeated tries.
+
+266
+00:16:52.750 --> 00:16:54.700
+It's not a performance league table.
+
+267
+00:16:55.367 --> 00:16:59.083
+The Agents tab shows which agents people actually use.
+
+268
+00:16:59.083 --> 00:17:06.517
+The cards show agent users, their share of all active users, agent sessions, and sessions per agent user.
+
+269
+00:17:07.200 --> 00:17:09.774
+The bar chart ranks agents by sessions.
+
+270
+00:17:09.774 --> 00:17:11.981
+A longer bar means more use.
+
+271
+00:17:11.981 --> 00:17:20.808
+The three highlight cards show the most used agent, the one used by the most job functions, and the one reaching the most organisations.
+
+272
+00:17:20.808 --> 00:17:23.750
+Wide reach means many teams find it useful.
+
+273
+00:17:24.450 --> 00:17:30.030
+The table lists each agent with its owner, who can use it, and when it was last used.
+
+274
+00:17:30.030 --> 00:17:33.750
+An agent with no matched use may just have a naming gap.
+
+275
+00:17:33.750 --> 00:17:36.850
+Sessions show use, not whether the agent solved the problem.
+
+276
+00:17:37.533 --> 00:17:41.230
+Work patterns needs an optional Microsoft 365 data source.
+
+277
+00:17:41.230 --> 00:17:45.337
+This demo doesn't include it, so the page is empty.
+
+278
+00:17:45.337 --> 00:17:46.980
+Empty means not connected.
+
+279
+00:17:46.980 --> 00:17:49.033
+It doesn't mean zero activity.
+
+280
+00:17:49.700 --> 00:17:55.748
+When connected, this tab shows how people work across Teams, Outlook, SharePoint and OneDrive.
+
+281
+00:17:55.748 --> 00:18:00.500
+Read active people separately from counts of meetings, emails and calls.
+
+282
+00:18:01.200 --> 00:18:05.000
+Use it to see how Copilot fits into everyday work.
+
+283
+00:18:05.000 --> 00:18:08.800
+Don't judge anyone's productivity by their email or meeting counts.
+
+284
+00:18:09.450 --> 00:18:14.300
+Apps and devices uses the same optional source, so it's empty here too.
+
+285
+00:18:14.950 --> 00:18:20.715
+When connected, it shows which Microsoft 365 apps people use, how many, and on which devices.
+
+286
+00:18:20.715 --> 00:18:27.200
+One person can use several devices, so the shares can add up to more than one hundred percent.
+
+287
+00:18:27.867 --> 00:18:31.917
+Use it to tailor training to the apps and devices people actually use.
+
+288
+00:18:32.617 --> 00:18:37.190
+This tab would compare Copilot users with other Microsoft 365 users.
+
+289
+00:18:37.190 --> 00:18:40.517
+It's empty here, because the source isn't connected.
+
+290
+00:18:41.200 --> 00:18:47.523
+When connected, a ratio above one means Copilot users do more of that activity per person.
+
+291
+00:18:47.523 --> 00:18:51.079
+For example, one point two means twenty percent more.
+
+292
+00:18:51.079 --> 00:18:53.450
+It doesn't prove Copilot caused it.
+
+293
+00:18:54.117 --> 00:18:59.917
+Use it to find licensed people who aren't using Copilot yet, and to choose a way of working to try.
+
+294
+00:19:00.617 --> 00:19:05.607
+License readiness shows people using Copilot without a licence, and licences sitting idle.
+
+295
+00:19:05.607 --> 00:19:12.517
+The cards show active unlicensed users, their share of all active users, and how often they use it.
+
+296
+00:19:13.200 --> 00:19:17.119
+The bar chart shows which organisations have the busiest unlicensed users.
+
+297
+00:19:17.119 --> 00:19:19.969
+The table ranks people by a priority score.
+
+298
+00:19:19.969 --> 00:19:26.737
+It's based on how many tasks they do, and how many days they're active each week they use Copilot.
+
+299
+00:19:26.737 --> 00:19:28.162
+Higher means stronger demand.
+
+300
+00:19:28.162 --> 00:19:30.300
+It isn't a chance of success.
+
+301
+00:19:30.950 --> 00:19:34.896
+Use the top of the list for a conversation or a short trial.
+
+302
+00:19:34.896 --> 00:19:40.057
+Idle seats are licences with no use for thirty days or more, so they could be moved.
+
+303
+00:19:40.057 --> 00:19:43.700
+Check the licence list is up to date before you reassign anyone.
+
+304
+00:19:44.367 --> 00:19:46.710
+This tab looks at the last full month.
+
+305
+00:19:46.710 --> 00:19:50.517
+It splits people by habit band, and by whether they have a licence.
+
+306
+00:19:51.200 --> 00:19:53.206
+Read the share unlicensed column.
+
+307
+00:19:53.206 --> 00:19:57.218
+It's the share of each habit band with no licence.
+
+308
+00:19:57.218 --> 00:20:02.835
+For example, if two of twenty-seven Habitual users have no licence, that's seven percent.
+
+309
+00:20:02.835 --> 00:20:07.650
+Unlicensed people in the Habitual or Power bands show the strongest demand.
+
+310
+00:20:08.367 --> 00:20:11.732
+The list below shows the most active unlicensed people.
+
+311
+00:20:11.732 --> 00:20:16.967
+Ask about their work first, then try a time-limited licence and check the results.
+
+312
+00:20:17.617 --> 00:20:24.667
+Cowork readiness lists Copilot users who haven't tried Cowork yet, with the broadest and deepest users first.
+
+313
+00:20:25.367 --> 00:20:27.293
+Three things raise someone's rank.
+
+314
+00:20:27.293 --> 00:20:30.375
+Breadth: how many apps they use each day.
+
+315
+00:20:30.375 --> 00:20:32.687
+Depth: how many prompts per session.
+
+316
+00:20:32.687 --> 00:20:34.999
+And whether they already use agents.
+
+317
+00:20:34.999 --> 00:20:38.467
+Higher on all three means higher on the list.
+
+318
+00:20:39.117 --> 00:20:41.829
+Rank compares people with each other in your selection.
+
+319
+00:20:41.829 --> 00:20:44.540
+Change the dates or teams, and ranks can move.
+
+320
+00:20:44.540 --> 00:20:50.567
+Offer Cowork to the people at the top as a trial, and check they have access and a real need.
+
+321
+00:20:51.283 --> 00:20:54.563
+Agent Evaluation needs Copilot Studio conversation data.
+
+322
+00:20:54.563 --> 00:20:59.717
+This demo has none, so it says No agent conversations found.
+
+323
+00:20:59.717 --> 00:21:01.591
+That means no data.
+
+324
+00:21:01.591 --> 00:21:03.933
+It doesn't mean zero failures.
+
+325
+00:21:04.617 --> 00:21:12.170
+When connected, Performance shows conversations, how many the agent resolved, failures, hand-offs to people, and satisfaction.
+
+326
+00:21:12.170 --> 00:21:15.474
+Higher resolved and lower failure is better.
+
+327
+00:21:15.474 --> 00:21:20.667
+Satisfaction is thumbs up, divided by thumbs up plus thumbs down.
+
+328
+00:21:21.367 --> 00:21:23.220
+Watch the trends over time.
+
+329
+00:21:23.220 --> 00:21:27.667
+If failures rise, review some of those conversations to find out why.
+
+330
+00:21:28.367 --> 00:21:31.767
+Conversations and topics shares the same empty state.
+
+331
+00:21:32.450 --> 00:21:35.870
+When connected, it shows each topic's volume and friction.
+
+332
+00:21:35.870 --> 00:21:40.050
+Friction runs from zero to one hundred, and higher is worse.
+
+333
+00:21:40.050 --> 00:21:43.090
+Grounded means the agent used an internal source.
+
+334
+00:21:43.090 --> 00:21:45.750
+That doesn't prove the answer was right.
+
+335
+00:21:46.450 --> 00:21:50.494
+Start with topics that are both busy and high in friction.
+
+336
+00:21:50.494 --> 00:21:52.700
+Fixing those helps the most people.
+
+337
+00:21:53.367 --> 00:21:55.709
+Governance helps you review your agents.
+
+338
+00:21:55.709 --> 00:21:58.831
+It's a review aid, not a compliance certificate.
+
+339
+00:21:58.831 --> 00:22:05.467
+Estate health shows how many agents are registered, their lifecycle stage, and how many have review flags.
+
+340
+00:22:06.117 --> 00:22:08.005
+Read the coverage note first.
+
+341
+00:22:08.005 --> 00:22:10.270
+It says which sources are loaded.
+
+342
+00:22:10.270 --> 00:22:12.913
+A check that couldn't run is unavailable.
+
+343
+00:22:12.913 --> 00:22:14.046
+It hasn't passed.
+
+344
+00:22:14.046 --> 00:22:17.067
+The lifecycle bars show where agents sit today.
+
+345
+00:22:17.783 --> 00:22:21.311
+Use the flags to decide which agents to check first.
+
+346
+00:22:21.311 --> 00:22:24.133
+Confirm the current setup before you change anything.
+
+347
+00:22:24.783 --> 00:22:27.233
+Exposure places each agent on two axes.
+
+348
+00:22:27.233 --> 00:22:29.333
+One is who it's shared with.
+
+349
+00:22:29.333 --> 00:22:32.133
+The other is what data it can read.
+
+350
+00:22:32.783 --> 00:22:40.182
+An agent shared with the whole organisation, that can read organisational content, sits in the corner worth reviewing first.
+
+351
+00:22:40.182 --> 00:22:42.518
+That doesn't mean data has leaked.
+
+352
+00:22:42.518 --> 00:22:44.076
+Not reported means unknown.
+
+353
+00:22:44.076 --> 00:22:45.633
+It doesn't mean safe.
+
+354
+00:22:46.283 --> 00:22:49.517
+Ask the owner if the audience and access are intended.
+
+355
+00:22:49.517 --> 00:22:51.133
+Broad sharing can be fine.
+
+356
+00:22:51.783 --> 00:22:55.283
+Accountability shows whether each agent has a known owner.
+
+357
+00:22:55.950 --> 00:22:58.655
+The chart splits agents by owner status.
+
+358
+00:22:58.655 --> 00:23:02.132
+Active, disabled, not found, no owner, or not checked.
+
+359
+00:23:02.132 --> 00:23:03.291
+Active is good.
+
+360
+00:23:03.291 --> 00:23:07.155
+Disabled or not found may mean the owner has left.
+
+361
+00:23:07.155 --> 00:23:08.700
+Not checked means unknown.
+
+362
+00:23:09.367 --> 00:23:15.667
+For any agent without an active owner, find a responsible person or team before you retire or reassign it.
+
+363
+00:23:16.367 --> 00:23:20.367
+The review queue lists agents with flags, most important first.
+
+364
+00:23:21.033 --> 00:23:23.033
+Each row lists its reasons.
+
+365
+00:23:23.033 --> 00:23:28.233
+For example, a missing owner, shared with everyone, or shared but never used.
+
+366
+00:23:28.233 --> 00:23:30.633
+More flags put an agent higher.
+
+367
+00:23:30.633 --> 00:23:32.233
+Higher means review sooner.
+
+368
+00:23:32.233 --> 00:23:34.633
+It doesn't mean harm has happened.
+
+369
+00:23:35.283 --> 00:23:41.492
+For each agent, confirm the setup, find the owner, and decide: keep, fix or retire.
+
+370
+00:23:41.492 --> 00:23:42.733
+Write down why.
+
+371
+00:23:43.450 --> 00:23:48.933
+Shadow AI uses Microsoft Defender data about AI tools seen on devices and networks.
+
+372
+00:23:48.933 --> 00:23:53.633
+This demo has none, so it says Defender is not turned on.
+
+373
+00:23:53.633 --> 00:23:55.200
+That means no data.
+
+374
+00:23:55.200 --> 00:23:57.550
+It doesn't mean no shadow AI.
+
+375
+00:23:58.200 --> 00:24:03.829
+When connected, it shows AI tools run, AI sites visited, and AI software installed.
+
+376
+00:24:03.829 --> 00:24:07.850
+Devices and people are different counts, so don't mix them.
+
+377
+00:24:08.533 --> 00:24:12.226
+Treat it as the minimum you can see, not a full count.
+
+378
+00:24:12.226 --> 00:24:16.533
+Work with your security team to check use and policy, not to blame people.
+
+379
+00:24:17.200 --> 00:24:22.705
+Feedback shows the thumbs up and thumbs down people submit in Microsoft 365.
+
+380
+00:24:22.705 --> 00:24:27.362
+The cards show total items, thumbs up, thumbs down and satisfaction.
+
+381
+00:24:27.362 --> 00:24:30.750
+Satisfaction is thumbs up divided by all feedback.
+
+382
+00:24:31.450 --> 00:24:36.464
+In the weekly chart, thumbs up sit above zero, and thumbs down below.
+
+383
+00:24:36.464 --> 00:24:40.321
+A deeper bar below means more negative feedback that week.
+
+384
+00:24:40.321 --> 00:24:42.250
+Compare it with the total.
+
+385
+00:24:42.250 --> 00:24:44.950
+More complaints can simply mean more use.
+
+386
+00:24:45.617 --> 00:24:48.860
+The theme and category charts show what people talk about.
+
+387
+00:24:48.860 --> 00:24:53.077
+Look for a theme with a low thumbs-up share and lots of ratings.
+
+388
+00:24:53.077 --> 00:24:54.374
+That's worth following up.
+
+389
+00:24:54.374 --> 00:24:58.267
+Themes are sorted by keywords, so read a few comments to check.
+
+390
+00:24:58.950 --> 00:25:03.690
+Time per task shows the minutes assumed for each kind of task.
+
+391
+00:25:03.690 --> 00:25:06.850
+These numbers turn tasks into estimated expert hours.
+
+392
+00:25:07.533 --> 00:25:13.679
+If you raise the minutes for a task, its estimated hours and value go up.
+
+393
+00:25:13.679 --> 00:25:17.776
+Conservative, Typical and Optimistic give low, middle and high values.
+
+394
+00:25:17.776 --> 00:25:19.825
+Use research restores the defaults.
+
+395
+00:25:19.825 --> 00:25:22.283
+Cowork has its own time bands.
+
+396
+00:25:22.950 --> 00:25:26.783
+In a real deployment, these settings are shared by everyone.
+
+397
+00:25:26.783 --> 00:25:29.850
+Agree any change with others, and note why.
+
+398
+00:25:30.533 --> 00:25:32.475
+The glossary defines each term.
+
+399
+00:25:32.475 --> 00:25:37.133
+Search for the one you're reading, like task, session or active day.
+
+400
+00:25:37.783 --> 00:25:40.040
+For any number, ask four questions.
+
+401
+00:25:40.040 --> 00:25:41.168
+What is counted?
+
+402
+00:25:41.168 --> 00:25:42.296
+Who is included?
+
+403
+00:25:42.296 --> 00:25:44.177
+What is it divided by?
+
+404
+00:25:44.177 --> 00:25:46.433
+And what dates does it cover?
+
+405
+00:25:47.117 --> 00:25:52.767
+When you share a screenshot, include the definition and the filters, so others read it the same way.
+
+406
+00:25:53.450 --> 00:25:57.850
+Signal to Impact shows how the app turns activity into value.
+
+407
+00:25:57.850 --> 00:25:59.450
+First, a recorded event.
+
+408
+00:25:59.450 --> 00:26:02.650
+Then a rule labels the type of task.
+
+409
+00:26:02.650 --> 00:26:05.850
+Then assumed minutes turn it into estimated hours.
+
+410
+00:26:06.533 --> 00:26:08.553
+Each step adds an assumption.
+
+411
+00:26:08.553 --> 00:26:12.187
+A recorded event isn't a finished piece of work.
+
+412
+00:26:12.187 --> 00:26:14.610
+A label isn't a human review.
+
+413
+00:26:14.610 --> 00:26:17.033
+Estimated hours aren't measured time saved.
+
+414
+00:26:17.700 --> 00:26:22.350
+When someone asks where the value number comes from, walk them through these three steps.
+
+415
+00:26:23.033 --> 00:26:26.240
+How grading works explains the fit and model rules.
+
+416
+00:26:26.240 --> 00:26:28.733
+Use it when a grade needs explaining.
+
+417
+00:26:29.450 --> 00:26:31.762
+Check which setting is used.
+
+418
+00:26:31.762 --> 00:26:33.612
+Balanced, Strict or Lenient.
+
+419
+00:26:33.612 --> 00:26:35.000
+Strict grades harder.
+
+420
+00:26:35.000 --> 00:26:36.850
+Lenient grades more gently.
+
+421
+00:26:36.850 --> 00:26:40.550
+Missing data leaves work ungraded, not graded badly.
+
+422
+00:26:41.200 --> 00:26:45.337
+If a grade looks wrong, check the apps and sources behind it.
+
+423
+00:26:45.337 --> 00:26:47.750
+Test any change on real work first.
+
+424
+00:26:48.450 --> 00:26:51.600
+Ask lets you type a question in plain words.
+
+425
+00:26:51.600 --> 00:26:55.100
+In this demo, it's a local example using synthetic data.
+
+426
+00:26:55.783 --> 00:27:01.541
+In a live deployment, Ask answers using the app's own queries, and shows which ones it used.
+
+427
+00:27:01.541 --> 00:27:06.283
+Page filters don't apply, so say the dates, team and measure in your question.
+
+428
+00:27:06.950 --> 00:27:10.050
+Before you share an answer, check it on the matching page.
+
+429
+00:27:10.700 --> 00:27:14.809
+Reports gather existing pages into a story you can share.
+
+430
+00:27:14.809 --> 00:27:20.150
+Exec pre-read starts with the headline picture, then links cost with estimated value.
+
+431
+00:27:20.867 --> 00:27:24.179
+Read each section just as you would its original page.
+
+432
+00:27:24.179 --> 00:27:25.504
+Estimates are still estimates.
+
+433
+00:27:25.504 --> 00:27:28.485
+Check the filters and data dates before you export.
+
+434
+00:27:28.485 --> 00:27:31.467
+Use Save a copy to make your own version.
+
+435
+00:27:32.117 --> 00:27:36.644
+Finance weekly groups the spending and value pages for a finance audience.
+
+436
+00:27:36.644 --> 00:27:40.417
+Start with the cost basis, the currency and the dates.
+
+437
+00:27:41.117 --> 00:27:42.798
+Keep three things apart.
+
+438
+00:27:42.798 --> 00:27:44.059
+Billed Azure cost.
+
+439
+00:27:44.059 --> 00:27:45.320
+Calculated credit cost.
+
+440
+00:27:45.320 --> 00:27:46.581
+And estimated value.
+
+441
+00:27:46.581 --> 00:27:52.467
+A month-end projection, or a yearly value, is not a forecast or an invoice.
+
+442
+00:27:53.117 --> 00:27:57.867
+Adoption review groups reach, habit and readiness for an enablement conversation.
+
+443
+00:27:58.533 --> 00:28:04.407
+Read activation as first use, adoption as coming back, and habit as days used last month.
+
+444
+00:28:04.407 --> 00:28:08.078
+Pages with no data are skipped, not shown as zero.
+
+445
+00:28:08.078 --> 00:28:12.483
+Use the pack to agree a small trial, then check back later.
+
+446
+00:28:13.200 --> 00:28:18.059
+New pack lets you choose pages, put them in order, and name your own report.
+
+447
+00:28:18.059 --> 00:28:20.650
+In the demo, it stays in your browser.
+
+448
+00:28:21.367 --> 00:28:25.242
+PDF and PowerPoint exports include the filters and data dates.
+
+449
+00:28:25.242 --> 00:28:28.342
+Once exported, files leave the app's access controls.
+
+450
+00:28:28.342 --> 00:28:32.217
+So check for names and small groups before you share.
+
+451
+00:28:32.867 --> 00:28:34.883
+Here's a simple reading order.
+
+452
+00:28:34.883 --> 00:28:36.899
+Check the data dates first.
+
+453
+00:28:36.899 --> 00:28:40.527
+Use Executive summary and Adoption to find the question.
+
+454
+00:28:40.527 --> 00:28:44.156
+Use Value and Consumption to see effort and cost.
+
+455
+00:28:44.156 --> 00:28:46.978
+Use Efficiency and Readiness to pick trials.
+
+456
+00:28:46.978 --> 00:28:51.817
+Then use Feedback, Agent Evaluation and Governance to check quality and ownership.
+
+457
+00:28:52.533 --> 00:28:56.844
+For every number, ask: is it counted, labelled, or estimated?
+
+458
+00:28:56.844 --> 00:28:59.430
+More activity isn't automatically more value.
+
+459
+00:28:59.430 --> 00:29:05.033
+Use the DataHub App to ask better questions, and then test the answers.
