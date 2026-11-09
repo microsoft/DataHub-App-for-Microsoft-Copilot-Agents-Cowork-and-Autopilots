@@ -6,7 +6,8 @@ const MIME_TYPES = new Map([
   ['.html', 'text/html; charset=utf-8'], ['.js', 'text/javascript; charset=utf-8'],
   ['.mjs', 'text/javascript; charset=utf-8'], ['.css', 'text/css; charset=utf-8'],
   ['.json', 'application/json; charset=utf-8'], ['.png', 'image/png'], ['.svg', 'image/svg+xml'],
-  ['.ico', 'image/x-icon'], ['.woff', 'font/woff'], ['.woff2', 'font/woff2']
+  ['.ico', 'image/x-icon'], ['.woff', 'font/woff'], ['.woff2', 'font/woff2'],
+  ['.pdf', 'application/pdf']
 ]);
 /** Where precompress.js writes each encoding's copy of a file. */
 export const PRECOMPRESSED_SUFFIX = { br: '.br', gzip: '.gz' };

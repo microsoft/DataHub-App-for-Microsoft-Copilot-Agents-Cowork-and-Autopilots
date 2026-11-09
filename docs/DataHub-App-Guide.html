@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to read the DataHub App</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #172d35; background: #e8edef; font: 16px/1.5 "Segoe UI", Arial, sans-serif; }
+  .page { width: 210mm; height: 297mm; padding: 18mm 19mm 14mm; background: white; margin: 12mm auto; display: flex; flex-direction: column; break-after: page; }
+  .page:last-child { break-after: auto; }
+  .eyebrow { color: #176b70; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 7mm; border-top: 3px solid #176b70; padding-top: 4mm; }
+  h1 { font-size: 46px; line-height: 1.12; font-weight: 600; letter-spacing: -.035em; margin: 4mm 0 8mm; max-width: 13ch; }
+  h2 { font-size: 34px; line-height: 1.15; font-weight: 600; letter-spacing: -.025em; margin: 0 0 4mm; }
+  h3 { font-size: 20px; margin: 6mm 0 2mm; font-weight: 600; }
+  p { margin: 0 0 3mm; }
+  .lead { font-size: 19px; color: #46616b; margin-bottom: 5mm; }
+  dl { margin: 0; }
+  dt { font-weight: 650; margin-top: 3mm; }
+  dd { margin: 0 0 2mm; color: #354e58; }
+  .note { border-top: 1px solid #cbd6da; padding-top: 3mm; margin-top: 5mm; font-size: 15px; }
+  .small { font-size: 14px; color: #46616b; }
+  footer { margin-top: auto; padding-top: 4mm; border-top: 1px solid #cbd6da; display: flex; justify-content: space-between; font-size: 12px; color: #46616b; }
+  a { color: #176b70; text-underline-offset: 3px; }
+  @media print { body { background: white; } .page { margin: 0; } }
+</style>
+</head>
+<body>
+<!-- Grounding: app/src/components/destinations.ts, lib/filters.ts, filter-profiles.ts;
+     docs/METHODOLOGY.md sections 1, 2, 4, 8.7 and 9; app/README.md. -->
+<section class="page" data-page="Start here">
+  <p class="eyebrow">DataHub App / Reading guide</p>
+  <h1>How to read the DataHub App</h1>
+  <p class="lead">Use the signals. Question the estimates.</p>
+  <dl>
+    <dt>Observed</dt><dd>Users, prompts, sessions and credits count what the loaded sources record. They are not a complete census of all AI use.</dd>
+    <dt>Inferred</dt><dd>Task categories, fit grades and readiness use rules over metadata. They suggest where to look, not what someone achieved.</dd>
+    <dt>Modelled</dt><dd>Expert-equivalent hours and value estimate work at assumed task times and an hourly rate. They are not measured time saved, cash savings or realised productivity.</dd>
+  </dl>
+  <h3>Before comparing numbers</h3>
+  <p>Check dates, filters and source labels. Dates are UTC. A source's freshness date is its newest row, not today's refresh time; it ignores page filters and does not prove every intervening day loaded.</p>
+  <p>Open each page's tabs. The bar offers dates, org, licence, Activity (Copilot chat, Agents, Cowork) and agent filters where applicable. Read <strong>Not filtered by</strong> notes. <strong>Group by</strong> changes the org attribute; missing org matches can leave people out of breakdowns.</p>
+  <p class="note">Blank, hidden, not connected or failed to load does not mean zero. Purview is not the authoritative Copilot usage report; its coverage can differ from the Microsoft 365 admin center and Viva Insights.</p>
+  <footer><span>Full app, not the separate Power BI report</span><span>01 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/executive/*, screens/adoption/*, queries/executive/*,
+     queries/adoption/*, lib/filters.ts, docs/METHODOLOGY.md section 6. -->
+<section class="page" data-page="Executive summary and Adoption">
+  <p class="eyebrow">01 / Reach and momentum</p>
+  <h2>Executive summary<br>and Adoption</h2>
+  <p class="lead">Is use broadening, deepening and returning?</p>
+  <h3>Executive summary</h3>
+  <dl>
+    <dt>The bottom line</dt><dd>Read tasks, expert-equivalent hours, seats in use and satisfaction together. Hours are estimates; credits are whole-tenant totals, not org spend.</dd>
+    <dt>Is it growing?</dt><dd>Compare monthly work and credits. The newest period may be incomplete.</dd>
+    <dt>Where it is landing</dt><dd>Right means more seats in use; up means more hours per seat. Circle size is seats; dashed lines are medians, not targets.</dd>
+    <dt>What needs attention</dt><dd>Follow the flagged decisions and coverage checks to the detailed pages. No flag is not an assurance that nothing is wrong.</dd>
+  </dl>
+  <h3>Adoption</h3>
+  <dl>
+    <dt>Adoption / Activation</dt><dd>Active users show reach; sessions per user per week show repeat use. Activation needs a usable population and licence roster; blank shares can mean the roster does not reconcile.</dd>
+    <dt>Habit formation</dt><dd>The last complete calendar month in the selection: Beginner 1-5 active days; Developing 6-10; Habitual 11-15; Power 16+. Inactive needs a licence.</dd>
+    <dt>Trend heatmap</dt><dd>Compare one selected metric across groups and weeks, with the same filters.</dd>
+  </dl>
+  <p class="note">Habit bands are working thresholds, not validated benchmarks. Over 10,000 active people, the main model defaults to the last 12 weeks; Consumption and Agent Evaluation keep all dates until you choose a range.</p>
+  <footer><span>Use trends to guide investigation, not prove causation</span><span>02 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/value/*; queries/value/*; docs/METHODOLOGY.md sections 4, 5, 8.3, 8.6. -->
+<section class="page" data-page="Value">
+  <p class="eyebrow">02 / Work and value</p>
+  <h2>Value</h2>
+  <p class="lead">What work is recorded, and what might it be worth?</p>
+  <dl>
+    <dt>Task breakdown</dt><dd>Tasks are prompt-resource rows, not completed outputs. One prompt touching three files can count as three tasks. Prompts are distinct messages; sessions group a user, app and thread. Scheduled Cowork runs can make an owner active without adding prompts or sessions.</dd>
+    <dt>Estimated value</dt><dd>Copilot and agent hours use behaviour-specific units, assumed minutes and adjustments. Value = expert-equivalent hours x hourly rate. Conservative, Typical and Optimistic pick the low, middle and high effort bands. Cowork uses separate task-category time bands.</dd>
+    <dt>Value by habit</dt><dd>Last full month's hours per person by habit, plus concentration among the busiest people. Groups below five people are suppressed. More activity gives more work to count; this is not evidence that habit caused value.</dd>
+    <dt>Cost vs value</dt><dd>Return on cost = estimated value / counted cost. Below 1x, cost exceeds that scenario's value. Break-even hourly rate is the rate that would make them equal.</dd>
+  </dl>
+  <h3>Read the cost basis</h3>
+  <p>Dates and org narrow value and licence cost. Costs that cannot follow the org selection are left out, not apportioned; read the filtering notes. Shared activity/credit dates are used when available. Licence cost uses the licence snapshot, monthly price and days / 30.44.</p>
+  <p>Check <strong>Prices</strong>, exchange rate and credit coverage. Missing credits leave licence-only cost and can overstate return. Free unlicensed chat, Azure AI Foundry work and GitHub Copilot are outside the comparison.</p>
+  <p class="note">Agent cost is allocated by credit share and matched to activity by name, not a dated per-agent invoice. Agents' value can include licence-funded agents, so that pairing may read high. Annualised value is an extrapolation, not a forecast.</p>
+  <footer><span>A scenario for discussion, not an accounting return</span><span>03 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/consumption/*; queries/consumption/*;
+     docs/METHODOLOGY.md section 8.1. -->
+<section class="page" data-page="Consumption">
+  <p class="eyebrow">03 / Credits and cost</p>
+  <h2>Consumption</h2>
+  <p class="lead">Read quantity, price and coverage separately.</p>
+  <dl>
+    <dt>All products</dt><dd>Compare the same dates. Credit costs are in US dollars; Azure stays in its billing currency. Do not add unlike currencies. This optional page needs Consumption Central.</dd>
+    <dt>Budget runway</dt><dd>Spend to the newest data date, projected in a straight line to month end. It uses the latest loaded month, not necessarily today. Weekly Cowork cost is spread over seven days. It ignores seasonality, pack exhaustion and future price changes.</dd>
+    <dt>Cowork / Work IQ</dt><dd>Weekly credits by group or person. The selected period uses Capacity Pack credits first at the prepaid rate, then pay-as-you-go. Blank or zero limits mean no limit set, not zero allowance.</dd>
+    <dt>Copilot Studio</dt><dd>Read credits by agent, model, feature and user alongside the source note. Agent/user costs use pay-as-you-go rates; they need not reconcile to a tenant total with a prepaid split. Concentration describes who uses credits, not who creates value.</dd>
+    <dt>Azure</dt><dd>Solution and Foundry spend, trends, services, models and resources come from cost exports. Read the cost basis and billing currency. Resource inventory is not evidence of spend.</dd>
+  </dl>
+  <h3>Not every cost is an invoice</h3>
+  <p>Credit cost is calculated from recorded credits and <strong>Rates &amp; packs</strong>. Azure cost comes from the billing export. Budgets are optional comparison limits.</p>
+  <p class="note">Studio exports take precedence over API coverage. The API sees only environments with allocated credits; a user-only roll-up misses unattributed credits. Missing feature/model detail is not zero use. Cowork is weekly; exports and billing can lag.</p>
+  <footer><span>Read each card's dates and filtering exceptions</span><span>04 / 09</span></footer>
+</section>
+
+<!-- Grounding: lib/grading-method.ts; screens/efficiency/*; screens/readiness/*;
+     queries/licensing/*; queries/agents/cowork-*.dax; docs/METHODOLOGY.md section 6. -->
+<section class="page" data-page="Efficiency and Readiness">
+  <p class="eyebrow">04 / Fit and next steps</p>
+  <h2>Efficiency<br>and Readiness</h2>
+  <p class="lead">Find candidates for a closer look, not automatic decisions.</p>
+  <h3>Efficiency</h3>
+  <dl>
+    <dt>Cowork fit</dt><dd>Grades the session's recorded work: Strong fit spans apps, builds a file or draws on many sources; Fair fit has some sources or one-app work; Worth a look is chat-only. Too light to grade is excluded from shares.</dd>
+    <dt>Model fit</dt><dd>Compares work weight with the dearest logged model tier. Frontier on light work suggests a lighter model; Workhorse on strong-fit work suggests trying stronger. Missing models are not judged; a segment needs five judged sessions for a verdict.</dd>
+  </dl>
+  <h3>Readiness</h3>
+  <dl>
+    <dt>License readiness</dt><dd>Prioritises unlicensed Copilot users by task intensity and active days; Microsoft 365 workload breadth contributes when available. Check weeks of evidence and roster matching. Dormant seats are inactive for 30+ days before the newest audit date, not necessarily today.</dd>
+    <dt>Heavy users without a licence</dt><dd>Last full month's habit bands split by licence. Shares need at least five people. This identifies demand; it does not predict what buying a licence would change.</dd>
+    <dt>Cowork readiness</dt><dd>Ranks Copilot users yet to try Cowork by breadth of app use, prompts per session and agent use. Equal depth leaves breadth and agent use to separate candidates.</dd>
+  </dl>
+  <p class="note">Grades read metadata, not prompt or answer quality. There are no per-call token costs here. Fit and readiness thresholds are design choices; licence status is a snapshot, not historical entitlement. Do not treat rankings as employee performance assessments.</p>
+  <footer><span>Use Appendix / How grading works for the exact rules</span><span>05 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/leaderboards/*; screens/work-patterns/*;
+     docs/METHODOLOGY.md sections 8.4 and 8.6; app/README.md bounded-detail-lists. -->
+<section class="page" data-page="Leaderboards and Work patterns">
+  <p class="eyebrow">05 / People and working context</p>
+  <h2>Leaderboards<br>and Work patterns</h2>
+  <p class="lead">Understand concentration and context, not individual worth.</p>
+  <h3>Leaderboards</h3>
+  <dl>
+    <dt>Leaderboard</dt><dd>People ranked by sessions under the page filters, with their task mix. Concentration shows the top 1%, 5% and 25% shares; a slice needs five people. Security Copilot automated sessions are excluded.</dd>
+    <dt>Agents</dt><dd>Users, sessions and spread across functions and organisations show reach. Registry descriptions and lifecycle add context when loaded. No matched usage can mean an identifier/coverage gap, not an unused agent.</dd>
+  </dl>
+  <h3>Work patterns</h3>
+  <dl>
+    <dt>Microsoft 365 activity</dt><dd>People active, workload reach, meetings, emails and calls. Weekly rates use loaded days, not missing days counted as zero.</dd>
+    <dt>Apps and devices</dt><dd>App reach, apps used and platform reach. A person can use several platforms, so shares can overlap. No app use reported means no apps-report entry, not no Microsoft 365 activity.</dd>
+    <dt>Copilot in the flow of work</dt><dd>Copilot reach and licensed people not using it, plus comparisons with other Microsoft 365 users. A ratio above 1x means more recorded activity per person, not a causal productivity gain.</dd>
+  </dl>
+  <p class="note">Work patterns is optional. Microsoft 365 reports arrive about 2-3 days late; history builds from available reports. Concealed names prevent org, licence and Copilot matching. Small organisations are pooled as Smaller groups.</p>
+  <p class="small">Open Show lists for detail. Person and registry lists return at most 1,000 rows; grid sorting/searching acts on those rows. Use page filters to change the underlying selection.</p>
+  <footer><span>High recorded activity is not a quality score</span><span>06 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/agent-evaluation/*; queries/agent-evaluation/*;
+     screens/feedback/*; lib/filter-profiles.ts; docs/METHODOLOGY.md sections 6 and 8.2. -->
+<section class="page" data-page="Agent Evaluation and Feedback">
+  <p class="eyebrow">06 / Quality signals</p>
+  <h2>Agent Evaluation<br>and Feedback</h2>
+  <p class="lead">Start with outcomes; check the denominator.</p>
+  <h3>Agent Evaluation</h3>
+  <dl>
+    <dt>Performance</dt><dd>Conversations, resolution, failure, abandonment, errors, hand-offs and satisfaction. Resolved is the agent-resolved share of all conversations; true failure uses conversations that actually started. Implied success is an orchestration signal, not a user's rating.</dd>
+    <dt>Conversations &amp; topics</dt><dd>Inspect themes and topic health, answer archetypes, knowledge sources and gaps. Grounded means an internal source was used, not that the answer was correct. Friction runs from 0 to 100; higher is worse.</dd>
+  </dl>
+  <p>Use this page's Date, Department and Agent choices alongside applicable top-bar filters. CSAT is thumbs up / (up + down), per turn; sparse feedback is not representative of everyone. Response time is a latency signal, not time saved. Hours lost is an estimate.</p>
+  <h3>Feedback</h3>
+  <p>Reads the optional Microsoft 365 product feedback export: trend, theme/category, surface or agent and comments. Satisfaction is thumbs up / all feedback items, so it is not the same denominator as Agent Evaluation CSAT.</p>
+  <p>Date and agent filters apply; organisation and licence do not. Categories use English keyword rules and can misclassify comments. More complaints may reflect more use or a change in response volume.</p>
+  <p class="note">Agent Evaluation needs its own model from Copilot Studio transcripts. The app shows aggregates and feedback comments, not full conversations. Feedback comments can still be sensitive; share exports only with authorised readers. Neither source proves answer quality across all use.</p>
+  <footer><span>Do not compare unlike satisfaction measures</span><span>07 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/governance/*; queries/governance/*; lib/filter-profiles.ts;
+     docs/METHODOLOGY.md Governance and Shadow AI sections. -->
+<section class="page" data-page="Governance">
+  <p class="eyebrow">07 / Ownership and exposure</p>
+  <h2>Governance</h2>
+  <p class="lead">A review queue, not a compliance verdict.</p>
+  <dl>
+    <dt>Estate health</dt><dd>Agent inventory, lifecycle and review flags. Governance reviews tenant-built, unblocked agents; catalogue listings are not the same population.</dd>
+    <dt>Exposure</dt><dd>Compare sharing scope, declared data access and sign-in requirement. Org-wide access to org content deserves review; it is not evidence that data was leaked.</dd>
+    <dt>Accountability</dt><dd>Check owners and account state at the last load. Disabled, not found, absent and not checked mean different things. Not found can also mean the recorded owner ID is not a user account.</dd>
+    <dt>Review queue</dt><dd>Flags include departed/missing owners, org-wide org data, shared agents with no recorded use and no sign-in requirement. Weighted flags order the queue; they do not measure actual harm.</dd>
+    <dt>Shadow AI</dt><dd>Defender observations distinguish tools run, domains reached, software installed and Cloud Discovery. Device and people counts are different units. Cloud Discovery people cannot be added across apps.</dd>
+  </dl>
+  <h3>Know which estate you are seeing</h3>
+  <p>With Agent 365, the page reads the registry. Without it, Azure Resource Graph can provide Copilot Studio agents only, at the latest load. Read the coverage note above each tab.</p>
+  <p>These are snapshots, not historical views; date and org filters do not narrow them. Agent filters apply where supported. Shadow AI does not follow the page filters.</p>
+  <p class="note">Registry details can be up to a week old. Sign-in settings are reported configuration, not a test. Defender covers only onboarded devices, watched tools and available feeds: a floor, not a census. Missing data must not be read as a clean bill of health.</p>
+  <footer><span>Validate a flag with the owner before acting</span><span>08 / 09</span></footer>
+</section>
+
+<!-- Grounding: screens/assumptions/*, screens/appendix/*, screens/ask/*;
+     components/report-*, lib/report-*; app/README.md Settings and Reports. -->
+<section class="page" data-page="Assumptions, Appendix, Ask and Reports">
+  <p class="eyebrow">08 / Explain and share</p>
+  <h2>Reference and reporting</h2>
+  <dl>
+    <dt>Assumptions / Time per task</dt><dd>Changes the behaviour minutes behind Copilot and agent hours. Use research restores defaults. Cowork keeps its separate task-category bands; the Power BI report keeps model times. These edits, prices and credit rates are shared settings, not private experiments.</dd>
+    <dt>Appendix / Glossary</dt><dd>Search the definitions. Read units and denominators before comparing cards.</dd>
+    <dt>Appendix / Signal → Impact</dt><dd>See how audit signals become inferred tasks and assumed human time.</dd>
+    <dt>Appendix / How grading works</dt><dd>Check fit rules, model tiers, research and model-setting caveats. Thresholds belong to the app's method, not the cited studies.</dd>
+    <dt>Ask</dt><dd>State the period and groups in the question; page filters do not apply. Azure answers inline using the app's named queries and shows those used. Fabric opens the data agent. Check scope, dates and missing sources before relying on an answer.</dd>
+    <dt>Reports</dt><dd>Built-in packs are Exec pre-read, Finance weekly and Adoption review. Save a copy or assemble sections. Missing optional pages are skipped and listed. Packs follow the same definitions and filtering exceptions as pages.</dd>
+  </dl>
+  <h3>Export with context</h3>
+  <p>Page/pack PDF and PowerPoint exports include filters and data dates; chart CSVs hold returned rows, not the entire source. Download PDF uses browser printing, with an HTML fallback where printing is blocked.</p>
+  <p class="note">Viewer access limits the data queried. People lists, comments and downloaded files can contain personal data; exports leave the app's access controls. Some small-group shares are suppressed, but this is not universal anonymisation. Retention and deletion of extracted data remain your organisation's responsibility.</p>
+  <p class="small">More detail: <a href="https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/METHODOLOGY.md">Methodology</a> · <a href="https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/APP-GUIDE.md">Page reference</a>. This guide contains no tenant data.</p>
+  <footer><span>Read the evidence, then make the decision</span><span>09 / 09</span></footer>
+</section>
+</body>
+</html>

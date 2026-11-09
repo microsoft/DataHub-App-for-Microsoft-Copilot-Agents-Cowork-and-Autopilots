@@ -8,6 +8,9 @@ short run of sections, top to bottom. The sidebar jumps to any of them.
 
 Screenshots use synthetic data. Every name in them is invented.
 
+For a concise reading guide to the full app, see **[How to read the DataHub App (PDF)](DataHub-App-Guide.pdf)**.
+It is also linked above the tabs' content on **Appendix**, in every tab.
+
 - **Filters** sit in the bar at the top. A page uses only the ones that apply to it.
 - **Optional** pages appear only once their data has loaded.
 - **How each figure is worked out** is in the [methodology](METHODOLOGY.md). Table and column names
@@ -235,3 +238,20 @@ prefers Power BI or wants to build their own. See
 | Adoption, value and governance. The app's main model. | Credits and cost. The *Credit consumption* add-on. | Copilot Studio agent quality. The *Agent Evaluator* add-on. |
 
 To read the ValueLens report, see the [report guide (PDF)](ValueLens-Report-Interpretation-Guide.pdf).
+
+## Rebuild the app reading guide
+
+Edit [DataHub-App-Guide.html](DataHub-App-Guide.html), then from the repository root run:
+
+```powershell
+python -m pip install playwright pypdf
+python -m playwright install chromium
+python scripts\build_datahub_guide.py
+```
+
+Alternatively, pass `--browser "C:\path\to\msedge.exe"` to use an installed Chromium-based browser.
+The script rejects overflowing pages and writes `docs/DataHub-App-Guide.pdf` and an identical
+`app/src/assets/DataHub-App-Guide.pdf`. Commit both PDFs with the source. The app imports the
+bundled copy as a Vite asset, so Fabric and Azure builds use the deployed asset URL, including
+the configured base path; no GitHub main-branch publish is needed for the link to work.
+App builds use the committed PDF and do not need Python or a browser.

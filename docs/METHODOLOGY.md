@@ -1010,9 +1010,13 @@ set on the stage before. The effort scenario is shared by both stages and can be
 either; it starts at Typical. Credit costs come from Consumption Central
 ([§8.1](#81-consumption)).
 
-**Dates.** The days ValueLens holds activity for, inside the date filter. With Consumption Central
-connected, only the days both models hold, so cost and value cover the same days. Costs are
-tenant-wide, so the other filters don't apply to this stage.
+**Dates and scope.** The days ValueLens holds activity for, inside the date filter. With Consumption
+Central connected and overlapping dates, only the days both models hold, so cost and value cover
+the same days. The organisation filter narrows value and licence counts too; licence, activity
+and agent filters don't apply to this stage. Costs that cannot follow the organisation filter
+are left out rather than set against only that organisation's value: Copilot Studio tenant
+billing is left out, and Cowork cost is left out if Consumption Central has no matching org
+attribute. The stage shows the reasons in its filtering notes.
 
 **Costs.** Licences and credits are billed in US dollars.
 
