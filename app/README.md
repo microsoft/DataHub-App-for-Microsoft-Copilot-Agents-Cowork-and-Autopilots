@@ -51,6 +51,11 @@ Defender findings or Resource Graph configuration; those pages explicitly disclo
 sources. Unset monthly budgets remain unset and can be tried in memory. Registry checks use
 only the evidence present in the sample; unavailable authentication checks are not reported clear.
 
+The Appendix uses the app's current source-page glossary presentation and grading explanation.
+Signal → Impact displays the packaged model's **Human Baseline** reference minutes, not measured
+time saved or the Typical effort scenario. Assumptions overrides affect estimated hours and value,
+not this reference. The Appendix guide link bundles the existing app PDF unchanged.
+
 The self-contained static bundle is written to `dist-demo`. Serve that directory from any static
 file host; `index.html`, its local assets, the MIT `LICENSE.txt`, and the generated
 `THIRD_PARTY_NOTICES.txt`, `SOURCE_PROVENANCE.json` and `SHA256SUMS.txt` travel together.

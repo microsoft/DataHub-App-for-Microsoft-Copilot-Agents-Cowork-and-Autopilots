@@ -203,6 +203,9 @@ describe("published synthetic sample adapter", () => {
             const reference = samples.times.find(time => time.Behavior === row["AI Tasks"]);
             expect(row["Human Equivalent (Minutes)"]).toBe(reference ? Number(reference["Human Baseline (min)"]) : null);
         }
+        const drafting = baseline.find(row => row["AI Tasks"] === "Document Drafting");
+        expect(drafting?.["Human Equivalent (Minutes)"]).toBe(60);
+        expect(Number(samples.times.find(row => row.Behavior === "Document Drafting")?.["Min Typical"])).toBe(42);
     });
 
     it("serves glossary definitions from the packaged model reference without rewriting them", () => {
