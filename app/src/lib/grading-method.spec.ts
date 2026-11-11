@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 import { describe, expect, it } from "vitest";
-import { MODEL_VERDICTS, RESEARCH_GROUPS, WORK_WEIGHT_GRADES, workWeightGrade } from "./grading-method";
+import { MODEL_TIERS, MODEL_VERDICTS, RESEARCH_GROUPS, WORK_WEIGHT_GRADES, workWeightGrade } from "./grading-method";
 
 const sources = RESEARCH_GROUPS.flatMap((group) => group.sources);
 
@@ -24,6 +24,13 @@ describe("grading method", () => {
             "Try stronger",
             "Not judged",
         ]);
+    });
+
+    it("lists Astra with the existing Frontier model tier", () => {
+        expect(MODEL_TIERS).toContainEqual({
+            name: "Frontier (premium cost)",
+            models: "Claude Opus, GPT-6, Astra",
+        });
     });
 
     it("links every source over https, once", () => {

@@ -1243,7 +1243,7 @@ def _slim(f: Frame):
     mdl = E(f"lower({s_(col('AI_Model'))})")
     f.with_col("Model Cost Tier Sort", big(chain([
         (or_(f"{col('AI_Model')} IS NULL", contains(mdl, "no model logged")), _n(8)),
-        (has(mdl, ["opus", "gpt-6"]), _n(0)),
+        (has(mdl, ["opus", "gpt-6", "astra"]), _n(0)),
         (has(mdl, ["sonnet", "claude", "gpt-5", "gpt-4"]), _n(1)),
     ], _n(9))))
     mts = col("Model Cost Tier Sort")

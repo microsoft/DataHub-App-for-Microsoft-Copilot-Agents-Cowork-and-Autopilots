@@ -19,6 +19,8 @@ import zipfile
 from collections import defaultdict
 from pathlib import Path
 
+import pandas as pd
+
 from valuelens_core import processor
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,7 +132,7 @@ def tier_sort(model):
     if model is None or "no model logged" in model.lower():
         return 8
     m = model.lower()
-    if has(m, "opus", "gpt-6"):
+    if has(m, "opus", "gpt-6", "astra"):
         return 0
     if has(m, "sonnet", "claude", "gpt-5", "gpt-4"):
         return 1
@@ -325,6 +327,36 @@ class DaxReferenceTests(unittest.TestCase):
                         self.assertEqual(row[column], ref[column])
             checked += len(rows)
         self.assertGreater(checked, 300)
+
+    def test_astra_only_model_names_use_the_existing_frontier_tier(self):
+        source = json.loads((GOLDEN / "modern_keep_agents.json").read_text(encoding="utf-8"))
+        names = [column[0] for column in source["columns"]]
+        base = dict(zip(names, source["rows"][0]))
+        base = {name: value for name, value in base.items() if name not in processor.SLIM_COLS}
+        models = ["Astra", "GPT-6 Astra"]
+        rows = []
+        for index, model in enumerate(models):
+            row = base.copy()
+            row.update({"AI_Model": model, "ThreadId": f"astra-thread-{index}",
+                        "Message_Id": f"astra-message-{index}"})
+            rows.append(row)
+
+        con = processor.duckdb.connect()
+        try:
+            con.from_df(pd.DataFrame(rows)).create("astra_input")
+            frame = processor.Frame(con, '"astra_input"', "astra_test")
+            processor._slim(frame)
+            actual = frame.rel.project(
+                '"AI_Model", "Model Cost Tier Sort", "Model Cost Tier", "Session Model Tier"'
+            ).fetchall()
+        finally:
+            con.close()
+
+        expected = [
+            (model, 0, "Frontier (premium cost)", "Frontier (premium cost)")
+            for model in models
+        ]
+        self.assertEqual(actual, expected)
 
     def test_goldens_cover_every_branch(self):
         data = json.loads((GOLDEN / "modern_keep_agents.json").read_text(encoding="utf-8"))
