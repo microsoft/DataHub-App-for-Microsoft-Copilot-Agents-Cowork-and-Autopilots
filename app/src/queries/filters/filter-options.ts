@@ -74,7 +74,7 @@ export function toFilterOptions(table: QueryTable): FilterOptions {
 
 /**
  * Attributes loaded from the source, including columns not declared in the
- * fixed org model table. Counts stop at two populated values per attribute.
+ * fixed org model table, including constant and entirely blank source fields.
  */
 export function orgAttributeOptions(modelConnection = connection) {
     return { connection: modelConnection, query: orgAttributesQuery };

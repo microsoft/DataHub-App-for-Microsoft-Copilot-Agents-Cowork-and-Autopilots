@@ -14,6 +14,7 @@ import {
     defaultProfile,
     EVALUATOR,
     FEEDBACK,
+    LICENSE_ROSTER,
     groupNotFiltered,
     notApplied,
     REGISTRY,
@@ -60,6 +61,18 @@ describe("resolveFilters", () => {
 });
 
 describe("profiles", () => {
+    it("projects custom org membership onto license inventory without treating it as dated activity", () => {
+        const { expressions, notFilteredBy } = resolveFilters(
+            LICENSE_ROSTER, { ...ACTIVE, orgAttribute: "CustomBand" }, ["dateRange", "organizations"],
+        );
+        expect(expressions).toHaveLength(1);
+        expect(expressions[0]).toContain("'Org Attribute Source'[Attribute] = \"CustomBand\"");
+        expect(expressions[0]).toContain("'Copilot Licensed'[UPN_Normalized]");
+        expect(expressions[0]).not.toContain("REMOVEFILTERS");
+        expect(notFilteredBy).toEqual([{ key: "dateRange", reason: expect.stringContaining("current snapshot") }]);
+        expect(resolveFilters(LICENSE_ROSTER, defaultFilters, ["organizations"]).expressions).toEqual([]);
+    });
+
     it("say for every filter either how it applies or why it can't", () => {
         for (const profile of [
             VALUE_LENS,

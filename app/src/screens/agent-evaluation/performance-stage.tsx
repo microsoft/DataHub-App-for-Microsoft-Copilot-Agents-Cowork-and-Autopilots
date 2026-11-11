@@ -27,7 +27,6 @@ import { formatCell, totalsRow, TREE_GRID } from "@/lib/tree-grid";
 import {
     GROUP_BY_COLUMNS,
     evaluationOrgAttributes,
-    evaluationOrgGroupOptions,
     groupByChoices,
     OUTCOMES,
     performanceByGroup,
@@ -36,7 +35,6 @@ import {
     performanceWeekly,
     readableErrors,
     readableGroups,
-    readEvaluationOptions,
     readEvaluationOrgAttributes,
     type EvaluationOptions,
 } from "@/queries/agent-evaluation";
@@ -136,14 +134,9 @@ export function PerformanceStage({ options, extra }: PerformanceStageProps) {
         () => inventory.data?.status === "success" ? readEvaluationOrgAttributes(inventory.data.table) : [],
         [inventory.data],
     );
-    const orgSource = useMemo(() => evaluationOrgGroupOptions(orgColumns), [orgColumns]);
-    const orgGroups = useTableQuery(orgSource);
     const choices = useMemo(
-        () => groupByChoices({
-            ...options?.groupCounts,
-            ...(orgGroups.table ? readEvaluationOptions(orgGroups.table).groupCounts : {}),
-        }, orgColumns),
-        [options?.groupCounts, orgGroups.table, orgColumns],
+        () => groupByChoices(options?.groupCounts ?? {}, orgColumns),
+        [options?.groupCounts, orgColumns],
     );
     const [groupId, setGroupId] = useState<string>();
     const group = choices.find((choice) => choice.id === groupId) ?? choices[0] ?? GROUP_BY_COLUMNS[0];
@@ -185,14 +178,12 @@ export function PerformanceStage({ options, extra }: PerformanceStageProps) {
                     onOpen={() => {
                         setGroupingRequested(true);
                         if (inventory.error) void inventory.refetch();
-                        if (orgGroups.error) orgGroups.refetch();
                     }}
                 />
             }
         >
             {groupingRequested && inventory.isLoading && <p role="status">Loading org groupings…</p>}
-            {groupingRequested && orgSource.query && orgGroups.isLoading && <p role="status">Checking org groupings…</p>}
-            {groupingRequested && (inventory.error || orgGroups.error) && (
+            {groupingRequested && inventory.error && (
                 <p role="status">Org groupings could not be loaded. Open Group by to try again.</p>
             )}
             <NotFilteredHint from={[summary.notFilteredBy]} />

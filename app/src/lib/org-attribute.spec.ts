@@ -12,7 +12,7 @@ import { modelFitByOrganization } from "@/queries/efficiency/model-fit-by-organi
 import { executiveDepartments } from "@/queries/executive/executive-departments";
 import { withTaskTimes } from "@/queries/assumptions/task-times";
 import { licensePriorityByOrg } from "@/queries/licensing/license-priority-by-org";
-import { describeOrgAttribute, isOrgAttribute, orgColumnRef, orgValueFilter, pickOrgAttributes, withIndefiniteArticle, withOrgAttribute } from "./org-attribute";
+import { describeOrgAttribute, isOrgAttribute, orgColumnRef, orgValueFilter, pickOrgAttributes, USER_ID_ATTRIBUTE, withIndefiniteArticle, withOrgAttribute } from "./org-attribute";
 
 describe("describeOrgAttribute", () => {
     it.each([
@@ -22,6 +22,7 @@ describe("describeOrgAttribute", () => {
         ["Country", "Country", "country", "countries"],
         ["Business Unit", "Business unit", "business unit", "business units"],
         ["BU", "BU", "BU", "BUs"],
+        [USER_ID_ATTRIBUTE, "User ID", "user ID", "user IDs"],
     ])("names %s for display", (column, label, noun, plural) => {
         expect(describeOrgAttribute(column)).toEqual({ column, label, noun, plural });
     });
@@ -58,27 +59,28 @@ describe("pickOrgAttributes", () => {
         { column: "Location", cardinality: 5, maxLength: 9 },
     ];
 
-    it("keeps groupings, drops identifiers, and leads with Organization", () => {
-        expect(pickOrgAttributes(live)).toEqual(["Organization", "Function", "Location", "officeLocation"]);
+    it("keeps source identifiers and the explicit user ID, hides plumbing, and leads with Organization", () => {
+        expect(pickOrgAttributes(live)).toEqual(["Organization", "Function", "Location", "officeLocation", "PersonId", USER_ID_ATTRIBUTE]);
     });
 
-    it("keeps high-cardinality and non-text business attributes, but drops constants", () => {
+    it("keeps high-cardinality and non-text business attributes, constants and blank columns", () => {
         const stats = [
             { column: "Country", cardinality: 1, maxLength: 2 },
             { column: "JobTitle", cardinality: 9000, maxLength: 40 },
             { column: "Region", cardinality: 4, maxLength: 6 },
             { column: "Headcount", cardinality: 3, maxLength: undefined },
+            { column: "Blank", cardinality: 0, maxLength: undefined },
         ];
-        expect(pickOrgAttributes(stats)).toEqual(["Headcount", "JobTitle", "Region"]);
+        expect(pickOrgAttributes(stats)).toEqual(["Blank", "Country", "Headcount", "JobTitle", "Region"]);
     });
 
-    it("recognises identifiers without catching ordinary words", () => {
+    it("retains supplied identity and manager attributes as well as ordinary words", () => {
         const stats = ["ManagerId", "manager_id", "UserPrincipalName", "mail", "Paid", "Grid"].map((column) => ({
             column,
             cardinality: 5,
             maxLength: 10,
         }));
-        expect(pickOrgAttributes(stats)).toEqual(["Grid", "Paid"]);
+        expect(new Set(pickOrgAttributes(stats))).toEqual(new Set(stats.map((stat) => stat.column)));
     });
 
     it("does not mistake business IDs or name fragments for person identifiers", () => {
@@ -87,11 +89,11 @@ describe("pickOrgAttributes", () => {
         expect(new Set(pickOrgAttributes(stats))).toEqual(new Set(columns));
     });
 
-    it.each(["PersonId", "User Key", "managerUPN", "Org Join Key", "Hierarchy Path", "OrgPath", "displayName", "TotalEmployees", "Level5_User Key"])(
-        "excludes person/internal field %s", (column) => expect(isOrgAttribute(column)).toBe(false),
+    it.each(["User Key", "Org Join Key", "Hierarchy Path", "OrgPath", "TotalEmployees", "Level5_User Key", "UserId_Normalized"])(
+        "excludes internal field %s", (column) => expect(isOrgAttribute(column)).toBe(false),
     );
 
-    it.each(["IsManager", "DirectReports", "OrgLevel", "Level2_Name", "TopOfChain_Name", "StartDate"])(
+    it.each(["PersonId", "managerUPN", "displayName", "IsManager", "DirectReports", "OrgLevel", "Level2_Name", "TopOfChain_Name", "StartDate"])(
         "keeps meaningful typed/hierarchy field %s", (column) => expect(isOrgAttribute(column)).toBe(true),
     );
 
@@ -116,6 +118,17 @@ describe("withOrgAttribute", () => {
     it("leaves Organization queries untouched", () => {
         const config = activationByOrg();
         expect(withOrgAttribute(config, describeOrgAttribute("Organization"))).toBe(config);
+    });
+
+    it("groups individual users through the normalized-key bridge without bypassing org filters", () => {
+        const rebound = withOrgAttribute(activationByOrg(), describeOrgAttribute(USER_ID_ATTRIBUTE));
+        expect(rebound.query).toContain("'Org Attribute Source'[Value]");
+        expect(rebound.query).toContain(`'Org Attribute Source'[Attribute] = "${USER_ID_ATTRIBUTE}"`);
+        expect(rebound.columnMetadata["Org Attribute Source[Value]"].displayName).toBe("User ID");
+        const filter = orgValueFilter(USER_ID_ATTRIBUTE, ["normalized-user"]);
+        expect(filter).toContain("'Chat + Agent Org Data'[PersonId_Normalized]");
+        expect(filter).not.toContain("REMOVEFILTERS");
+        expect(filter).not.toMatch(/\bALL\(/);
     });
 
     it("rebinds the DAX, the result key and every Organization label", () => {

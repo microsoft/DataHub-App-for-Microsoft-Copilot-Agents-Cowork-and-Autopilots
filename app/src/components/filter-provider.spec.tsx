@@ -62,10 +62,10 @@ function table(columns: Record<string, unknown[]>): Answer {
     };
 }
 
-/** The org columns' statistics, with `Organization` worth grouping by only if it has more than one value. */
+/** A missing Organization column makes the provider select Department instead. */
 function orgColumns(organizations: number): Answer {
     return table({
-        "[Column]": [DEFAULT_ORG_ATTRIBUTE, "Department"],
+        "[Column]": organizations ? [DEFAULT_ORG_ATTRIBUTE, "Department"] : ["Department"],
         "[Cardinality]": [organizations, 12],
         "[Max Length]": [8, 20],
         "[People]": [100, 100],
@@ -152,8 +152,8 @@ describe("FilterProvider", () => {
         mocks.answers.set(ORG_VALUES, values("Org A", "Org B"));
         rerender();
 
-        // `Organization` has a single value here, so the breakdowns group by department instead.
-        mocks.answers.set(ORG_COLUMNS, orgColumns(1));
+        // Organization is absent from the source, so the breakdowns group by department instead.
+        mocks.answers.set(ORG_COLUMNS, orgColumns(0));
         rerender();
         expect(context.current.orgAttribute.column).toBe("Department");
         expect(asked(DEPARTMENT_VALUES)).toBe(true);
@@ -205,7 +205,7 @@ describe("FilterProvider", () => {
         expect(orgColumnsInBackground()).toBe(true);
     });
 
-    it("never offers a blank-plus-one grouping returned by discovery", () => {
+    it("offers a blank-plus-one grouping returned by discovery", () => {
         const candidates = ["Organization", "Band"];
         mocks.answers.set(ORG_COLUMNS, table({
             "[Column]": candidates, "[Cardinality]": [1, 2],
@@ -213,8 +213,8 @@ describe("FilterProvider", () => {
         const { context } = renderProvider();
         act(() => context.current.requestFilterChoices?.());
         expect(context.current.orgValues).toBeUndefined();
-        expect(context.current.orgAttributes).toEqual(["Band"]);
-        expect(context.current.orgAttribute.column).toBe("Band");
+        expect(context.current.orgAttributes).toEqual(["Organization", "Band"]);
+        expect(context.current.orgAttribute.column).toBe("Organization");
     });
 
     it("does not reapply a stale column's selected values to its replacement", () => {
@@ -226,12 +226,12 @@ describe("FilterProvider", () => {
         expect(context.current.filters.organizations).toEqual([]);
     });
 
-    it("offers no grouping when the loaded org columns are all constants", () => {
+    it("offers supplied columns even when they are constants", () => {
         mocks.answers.set(ORG_COLUMNS, table({
             "[Column]": ["Organization"], "[Cardinality]": [1], "[Max Length]": [10],
         }));
         const { context } = renderProvider();
-        expect(context.current.orgAttributes).toEqual([]);
+        expect(context.current.orgAttributes).toEqual(["Organization"]);
     });
 
     it("discovers Evaluator compatibility against its own model only when a filter is active", () => {
@@ -245,7 +245,7 @@ describe("FilterProvider", () => {
             "[Column]": ["CustomBand", "PersonId"], "[Cardinality]": [20000, 20000], "[Max Length]": [undefined, 30],
         }));
         rerender();
-        expect(context.current.evaluatorOrgAttributes).toEqual(["CustomBand"]);
+        expect(context.current.evaluatorOrgAttributes).toEqual(["CustomBand", "PersonId"]);
     });
 
     it("surfaces discovery failures instead of offering unverified groupings", () => {

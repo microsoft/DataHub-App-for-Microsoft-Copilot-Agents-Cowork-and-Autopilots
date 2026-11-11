@@ -11,7 +11,6 @@ import { VegaVisual } from "@/components/vega-visual";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import type { DataTable } from "@microsoft/fabric-visuals-core";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { GradeMark } from "@/components/grade-mark";
 import { KpiCard } from "@/components/kpi-card";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
@@ -23,7 +22,6 @@ import { useFilteredQuery } from "@/hooks/use-filtered-query";
 import { useOutcomeColors } from "@/hooks/use-palette-theme";
 import { gridHeight, rowChartHeight } from "@/lib/chart-height";
 import { outcomePalette, withColorScale } from "@/lib/color-scale";
-import type { FilterKey } from "@/lib/filters";
 import { formatKpi } from "@/lib/format-kpi";
 import { MODEL_VERDICTS } from "@/lib/grading-method";
 import { heatRenderer, type HeatDomain } from "@/lib/heat";
@@ -51,8 +49,6 @@ function viewOptions(orgLabel: string): readonly { id: ModelFitView; label: stri
         { id: "person", label: "User" },
     ];
 }
-
-const ACTIVITY_FILTER: FilterKey[] = ["audience"];
 
 const OUTCOME_DOMAIN = ["Good match", "Lighter model may do", "Try stronger", "Not judged"] as const;
 
@@ -173,7 +169,6 @@ export function ModelFitStage() {
     const match = modelMatchByTool();
     const matchResult = useFilteredQuery(
         { connection: match.connection, query: match.query, columnMetadata: match.columnMetadata },
-        { ignore: ACTIVITY_FILTER },
     );
     const verdicts = useMemo(() => verdictQuery(view, org), [view, org]);
     const verdictResult = useFilteredQuery({
@@ -328,10 +323,6 @@ export function ModelFitStage() {
                 </div>
 
                 <div className="flex flex-col gap-200">
-                    <FilterNote
-                        ignored={ACTIVITY_FILTER}
-                        reason="this chart already splits sessions by Copilot and Agents."
-                    />
                     <div
                         className="h-[340px]"
                         style={

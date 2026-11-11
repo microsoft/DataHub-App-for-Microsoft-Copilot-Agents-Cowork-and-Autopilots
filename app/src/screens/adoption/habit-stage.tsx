@@ -9,7 +9,6 @@ import { useMemo, useState } from "react";
 import { VegaVisual } from "@/components/vega-visual";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
 import { Section } from "@/components/section";
 import { SegmentedControl } from "@/components/segmented-control";
@@ -17,16 +16,12 @@ import { useFilterContext } from "@/hooks/filter.context";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
 import { LADDER_VARS, useLadderColors } from "@/hooks/use-palette-theme";
-import type { FilterKey } from "@/lib/filters";
 import { formatKpi } from "@/lib/format-kpi";
 import { readNumber, readText, toSummaryRow } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
 import { habitStages, habitSummary, habitThresholds, habitTrend, habitTrendMonths, inactiveNotMeasuredFor } from "@/queries/adoption";
 import { formatMonth } from "./habit-month";
 import { habitMixHeadline } from "./headlines";
-
-/** Stages place every licensed person, so narrowing to one agent would call everyone else inactive. */
-const AGENT_FILTERS: FilterKey[] = ["agentTypes", "agentNames"];
 
 /** Whether the monthly mix is plotted as a share of users or as a headcount. */
 const habitScales = [
@@ -47,11 +42,10 @@ export function HabitStage() {
     const { filters, applicable } = useFilterContext();
     const ladderColors = useLadderColors();
 
-    const summary = useFilteredQuery(habitSummary(), { ignore: AGENT_FILTERS });
+    const summary = useFilteredQuery(habitSummary());
     const trend = useMemo(() => habitTrend({ scale, colors: ladderColors }), [scale, ladderColors]);
     const trendResult = useFilteredQuery(
         { connection: trend.connection, query: trend.query, columnMetadata: trend.columnMetadata },
-        { ignore: AGENT_FILTERS },
     );
 
     const summaryRow = useMemo(
@@ -81,10 +75,6 @@ export function HabitStage() {
             description="Where people sit on the ladder from licensed but idle to relying on Copilot nearly every day, judged by how many days they used it in a month."
             actions={<SegmentedControl label="Trend scale" options={habitScales} value={scale} onChange={setScale} />}
         >
-            <FilterNote
-                ignored={AGENT_FILTERS}
-                reason="habit stages place every licensed person, so narrowing to one agent would count everyone else as inactive."
-            />
             {summary.data?.status === "error" ? (
                 <QueryError message={summary.data.error.message} onRetry={summary.refetch} />
             ) : summary.isLoading || !summary.data ? (

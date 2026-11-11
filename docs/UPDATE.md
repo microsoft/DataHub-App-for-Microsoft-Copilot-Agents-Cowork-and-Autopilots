@@ -23,7 +23,7 @@ What changed in each version is in the [release notes](../CHANGELOG.md).
 
 ### Update an existing installation for the expanded Group by
 
-This change needs the **new installer, updated semantic models and updated app** together.
+For installer-managed installations, this change needs the **new installer, updated semantic models and updated app** together.
 Running an older downloaded installer again, refreshing an older model, or choosing only
 **Redeploy the app** does not install the new model definition.
 
@@ -43,10 +43,11 @@ Running an older downloaded installer again, refreshing an older model, or choos
 5. **Wait for the model reloads and app deployment to finish.** Do not treat "refresh started" or
    a failed reload as a completed update. If newly imported org fields are not yet in the source
    tables, choose **Run now** and wait for ingestion and model refresh to finish.
-6. **Reopen the app and check Group by.** A custom attribute with at least two populated values
-   should appear. Person identifiers and internal fields stay hidden. Agent Evaluator also
-   needs two groups with conversations. An attribute missing from a separate model's org source
-   cannot appear in that model.
+6. **Reopen the app and check Group by.** Supplied custom attributes should appear, including
+   constant and blank fields, together with **User ID** for normalized individual identities.
+   Generated internal fields stay hidden and existing access restrictions still apply.
+   Agent Evaluator does not require multiple populated conversation groups for org attributes.
+   An attribute missing from a separate model's org source cannot appear in that model.
 
 For a source-checkout installation, get the released source and dependencies first, then run
 from its `installer` folder with your original record:

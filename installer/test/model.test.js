@@ -125,7 +125,9 @@ test('Fabric and Azure retain the refresh-owned arbitrary org attribute bridge a
       const source = table.partitions[0].source.expression.join('\n');
       assert.ok(source.includes('FabricTable("copilot_org_data")'));
       assert.ok(source.includes('Table.ColumnNames(Base)'));
-      assert.ok(source.includes('DistinctPopulated(_) >= 2'));
+      assert.ok(source.includes('Live = Attrs & {Key}'), 'constant and blank attributes retain their memberships');
+      assert.ok(source.includes('each if c = Key then "PersonId_Normalized" else c'), 'User ID reuses the normalized join key');
+      assert.ok(!source.includes('DistinctPopulated'), 'attribute eligibility does not depend on populated group counts');
       assert.ok(!source.includes('__lean'), 'extra source fields are not projected away');
       const relation = /** @type {any} */ (bim).model.relationships.find((/** @type {any} */ r) => r.fromTable === ORG_ATTRIBUTE_SOURCE);
       assert.equal(relation.toColumn, key);

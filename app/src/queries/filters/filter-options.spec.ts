@@ -31,25 +31,33 @@ describe("filter options' tenant size", () => {
                     ["HireDate", 9000, null], ["IsManager", 2, null], ["PersonId", 20000, 40],
                     ["Constant", 1, 8],
                 ],
-            })).toEqual(["Organization", "CostCenterId", "HireDate", "IsManager", "OrgLevel"]);
+            })).toEqual(["Organization", "Constant", "CostCenterId", "HireDate", "IsManager", "OrgLevel", "PersonId"]);
         });
 
-        it("checks two populated values per attribute without activity scans or fixed schema discovery", () => {
+        it("reads attribute metadata without value or activity scans or fixed schema discovery", () => {
             const { query, connection } = orgAttributeOptions();
             expect(connection).toBe("vl");
             expect(query).toContain("'Org Attribute Source'[Attribute]");
-            expect(query).toMatch(/TOPN\(\s*2,/);
-            expect(query).toContain("LEN(TRIM('Org Attribute Source'[Value])) > 0");
+            expect(query).toContain("VALUES('Org Attribute Source'[Attribute])");
+            expect(query).not.toMatch(/TOPN|COUNTROWS/);
+            expect(query).not.toContain("'Org Attribute Source'[Value]");
             expect(query).not.toContain("Audit Logs");
             expect(query).not.toContain("COLUMNSTATISTICS");
             expect(query).not.toMatch(/__[A-Z_]+__/);
         });
 
-        it("keeps arbitrary source names and excludes blank-plus-single-value attributes", () => {
+        it("keeps arbitrary source names and constant and entirely blank attributes", () => {
             expect(toOrgAttributes({
                 columns: ["[Column]", "[Cardinality]"].map(column),
                 rows: [["Team $&", 2], ["__COLUMN__", 2], ["Constant", 1], ["Empty", 0]],
-            })).toEqual(["__COLUMN__", "Team $&"]);
+            })).toEqual(["__COLUMN__", "Constant", "Empty", "Team $&"]);
+        });
+
+        it("offers User ID and blank fields from inventory even without statistics", () => {
+            expect(toOrgAttributes({
+                columns: [column("[Column]")],
+                rows: [["PersonId_Normalized"], ["Blank"], ["Org Join Key"], ["displayName"]],
+            })).toEqual(["Blank", "displayName", "PersonId_Normalized"]);
         });
 
         it("round-trips model-serialized typed values without dropping zero or false", () => {

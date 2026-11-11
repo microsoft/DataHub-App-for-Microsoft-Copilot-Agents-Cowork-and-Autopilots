@@ -33,6 +33,10 @@ export const liveColumns = {
         "[Agent Active]",
         "[Agent NotUsing]",
         "[Agent Active Pct]",
+        // Authored additions using the model's existing Cowork user measure.
+        "[Cowork Active]",
+        "[Cowork NotUsing]",
+        "[Cowork Active Pct]",
     ],
     activationByOrg: [
         "Chat + Agent Org Data[Organization]",
@@ -44,6 +48,8 @@ export const liveColumns = {
         "[All Inactive]",
         "[Agent Active]",
         "[Agent NotUsing]",
+        "[Cowork Active]",
+        "[Cowork NotUsing]",
     ],
     adoptionSummary: [
         "[Overall Users]",

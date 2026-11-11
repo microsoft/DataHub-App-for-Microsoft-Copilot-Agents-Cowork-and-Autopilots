@@ -191,22 +191,21 @@ optional module choices. A deploy from this folder uses `fabric.yaml` instead. S
 
 ### Group by
 
-**Group by** offers the meaningful attributes in your org data, including custom columns,
-business codes, hierarchy levels, numbers, booleans and dates. It does not impose a maximum
-number of distinct groups. Person identifiers, individual names, full hierarchy paths and
-internal processing fields stay out, as do attributes with fewer than two populated values.
-A blank plus one real value is still a single-value attribute.
+**Group by** offers the supplied attributes in your org data, including custom columns,
+business codes, hierarchy levels, numbers, booleans and dates, even constant or entirely blank
+columns. **User ID** groups by the existing normalized person key. Supplied identity fields
+and names are eligible; generated hierarchy paths and internal processing fields stay out.
+There is no maximum number of distinct groups, and existing viewer access restrictions still apply.
 
 The main app and Agent Evaluator discover their own model's attributes rather than sharing a
-fixed field list. The Evaluator keeps Agent and Topic choices and offers an org grouping only
-when at least two populated groups have conversations. Its grouping eligibility loads when
-you open **Group by**, not with the landing page. Cowork and Studio read their model's org
-attributes, including sparsely populated ones, while retaining their product-specific usage
-intensity choices and per-person exclusions.
+fixed field list. The Evaluator keeps its eligible Agent and Topic choices and loads its org
+attribute inventory when you open **Group by**, not with the landing page. Cowork and Studio
+read their model's org attributes, including individual-user and sparsely populated groupings,
+while retaining their product-specific usage intensity choices.
 
 Attribute discovery does not fetch every attribute's value list. The main app reads the
-model's `Org Attribute Source` membership table, checking at most two populated distinct
-values per attribute in one query; only the selected attribute's values load when a filter
+model's `Org Attribute Source` membership table for its attribute inventory in one query;
+only the selected attribute's values load when a filter
 menu opens. Numbers, booleans and dates are serialized by the model into invariant text for
 grouping and filtering, without changing source column types.
 

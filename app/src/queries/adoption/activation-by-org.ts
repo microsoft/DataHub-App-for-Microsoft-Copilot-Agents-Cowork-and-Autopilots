@@ -26,10 +26,12 @@ const columnMetadata: ColumnMetadataMap = {
     "[All Inactive]": { name: "All Inactive", displayName: "Inactive users", format: FORMAT_WHOLE },
     "[Agent Active]": { name: "Agent Active", displayName: "Users with agent activity", format: FORMAT_WHOLE },
     "[Agent NotUsing]": { name: "Agent NotUsing", displayName: "Not using agents", format: FORMAT_WHOLE },
+    "[Cowork Active]": { name: "Cowork Active", displayName: "Users with Cowork activity", format: FORMAT_WHOLE },
+    "[Cowork NotUsing]": { name: "Cowork NotUsing", displayName: "Not using Cowork", format: FORMAT_WHOLE },
 };
 
-/** The four activation cohorts the report breaks organizations down by. */
-export type ActivationCohort = "licensed" | "unlicensed" | "all" | "agents";
+/** The five activation cohorts the app breaks organizations down by. */
+export type ActivationCohort = "licensed" | "unlicensed" | "all" | "agents" | "cowork";
 
 /** Every count column; each adds up across organizations. */
 export const ACTIVATION_COUNT_COLUMNS = [
@@ -41,6 +43,8 @@ export const ACTIVATION_COUNT_COLUMNS = [
     "All Inactive",
     "Agent Active",
     "Agent NotUsing",
+    "Cowork Active",
+    "Cowork NotUsing",
 ] as const;
 
 const fieldsByCohort: Record<ActivationCohort, { active: string; inactive: string }> = {
@@ -48,6 +52,7 @@ const fieldsByCohort: Record<ActivationCohort, { active: string; inactive: strin
     unlicensed: { active: "Unlicensed Active", inactive: "Unlicensed Inactive" },
     all: { active: "All Active", inactive: "All Inactive" },
     agents: { active: "Agent Active", inactive: "Agent NotUsing" },
+    cowork: { active: "Cowork Active", inactive: "Cowork NotUsing" },
 };
 
 interface ActivationByOrgParams {
@@ -57,7 +62,7 @@ interface ActivationByOrgParams {
 
 /**
  * Active versus inactive users per organization, drawn as a diverging bar so
- * the two halves share a baseline. One query serves all four cohorts; the
+ * the two halves share a baseline. One query serves all five cohorts; the
  * cohort parameter only selects which columns the spec binds to. Every
  * organization comes back, so the screen can rank the cohort's own active
  * users and fold the rest into Other; the spec draws rows in the order given.

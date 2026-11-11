@@ -215,6 +215,7 @@ describe("consumption slicers", () => {
             ["Group by", "Usage Intensity (Studio)", 0],
             ["Group by", "User", 0],
             ["Group by", "User Id", 0],
+            ["Group by", "User ID", 0],
             ["Group by", "User Key", 0],
             ["Group by", "employee Id", 0],
             ["Group by", "Hierarchy Path", 0],
@@ -232,10 +233,11 @@ describe("consumption slicers", () => {
         expect(options.costBases).toEqual(["Actual"]);
     });
 
-    it("offers each product its own usage intensity and hides per-person groupings", () => {
+    it("offers every supplied org field and individual user ID, but hides internal keys and other product intensities", () => {
         expect(groupByChoices(options.groupBy, "Cowork")).toEqual([
             { value: "City", label: "City" },
             { value: "Department", label: "Department" },
+            { value: "id", label: "id" },
             { value: "Job Family", label: "Job family" },
             { value: "Level2_Name", label: "Org level 2" },
             { value: "Level2_User Key", label: "Level2_User Key" },
@@ -243,7 +245,12 @@ describe("consumption slicers", () => {
             { value: "Level5_Name", label: "Org level 5" },
             { value: "Level12_Name", label: "Org level 12" },
             { value: "Manager", label: "Manager" },
+            { value: "Manager_User Id", label: "Manager_User Id" },
             { value: "Usage Intensity (Cowork)", label: "Usage intensity" },
+            { value: "User", label: "User" },
+            { value: "User Id", label: "User Id" },
+            { value: "User ID", label: "User ID" },
+            { value: "employee Id", label: "employee Id" },
         ]);
         expect(groupByChoices(options.groupBy, "Studio").map((choice) => choice.value)).toContain(
             "Usage Intensity (Studio)",

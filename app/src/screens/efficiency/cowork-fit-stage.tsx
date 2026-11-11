@@ -10,7 +10,6 @@ import { ArrowRight } from "lucide-react";
 import { VegaVisual } from "@/components/vega-visual";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { GradeMark } from "@/components/grade-mark";
 import { KpiCard } from "@/components/kpi-card";
 import { OnDemand } from "@/components/on-demand";
@@ -23,7 +22,7 @@ import { useFilteredQuery } from "@/hooks/use-filtered-query";
 import { useOutcomeColors } from "@/hooks/use-palette-theme";
 import { rowChartHeight } from "@/lib/chart-height";
 import { outcomePalette, withColorScale } from "@/lib/color-scale";
-import { type FilterKey, unlicensedOnly } from "@/lib/filters";
+import { unlicensedOnly } from "@/lib/filters";
 import { parseFitNotice } from "@/lib/fit-notice";
 import { readNumber, readText, toSummaryRow, type SummaryRow } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
@@ -31,9 +30,6 @@ import { coworkFitSummary } from "@/queries/agents";
 import { COWORK_GRADE_DOMAIN, coworkFitByTask, withGradeNames } from "@/queries/efficiency";
 import { PeopleTable, WorkShapeTable } from "./cowork-fit-tables";
 import { COWORK_TASK_HEADLINE } from "./headlines";
-
-/** Cowork fit reads Cowork sessions by definition, so activity and agent filters would only blank it. */
-const COWORK_ONLY: FilterKey[] = ["audience", "agentTypes", "agentNames"];
 
 /** Room for the VegaVisual header, a top legend and the share axis. */
 const LEGEND_CHART = { perRow: 44, chrome: 190 };
@@ -66,7 +62,6 @@ function FitByTaskChart() {
     const source = coworkFitByTask();
     const result = useFilteredQuery(
         { connection: source.connection, query: source.query, columnMetadata: source.columnMetadata },
-        { ignore: COWORK_ONLY },
     );
     const table = useMemo(
         () =>
@@ -175,7 +170,7 @@ function FitRules({ notice }: { notice: string | undefined }) {
 export function CoworkFitStage() {
     const { filters, applicable } = useFilterContext();
     const org = useOrgAttribute();
-    const summary = useFilteredQuery(coworkFitSummary(), { ignore: COWORK_ONLY });
+    const summary = useFilteredQuery(coworkFitSummary());
     const unlicensed = unlicensedOnly(filters, applicable);
 
     const row = useMemo(
@@ -193,7 +188,6 @@ export function CoworkFitStage() {
             title="Cowork fit"
             description="Whether the work people hand to Cowork suits it, judged by the apps and sources each session touched."
         >
-            <FilterNote ignored={COWORK_ONLY} reason="Cowork fit always reads every Cowork session." />
             {unlicensed ? (
                 <QueryEmpty
                     title="No Cowork sessions for unlicensed people"
@@ -228,13 +222,13 @@ export function CoworkFitStage() {
                         <FitRules notice={notice} />
                     </div>
 
-                    <WorkShapeTable ignore={COWORK_ONLY} />
+                    <WorkShapeTable />
                     <OnDemand
                         id="cowork-fit-people"
                         label={`Show by ${org.noun} and person`}
                         note={`Graded sessions and the fit mix for each ${org.noun}, opening to its people.`}
                     >
-                        <PeopleTable ignore={COWORK_ONLY} />
+                        <PeopleTable />
                     </OnDemand>
                 </>
             )}

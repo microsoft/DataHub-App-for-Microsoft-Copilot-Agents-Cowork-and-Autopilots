@@ -9,7 +9,6 @@ import { useMemo, useState } from "react";
 import { VegaVisual } from "@/components/vega-visual";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { KpiCard, KpiStat } from "@/components/kpi-card";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
 import { Section } from "@/components/section";
@@ -17,7 +16,7 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useFilterContext } from "@/hooks/filter.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
-import { selectedCohort, unshownActivity, type FilterKey } from "@/lib/filters";
+import { selectedCohort } from "@/lib/filters";
 import { readNumber, readText } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
 import { adoptionTrend, type AdoptionTrendMeasure } from "@/queries/adoption";
@@ -33,8 +32,6 @@ const surfaces = [
     { id: "cowork", label: "Cowork", usersColumn: "[Cowork Users]", rateColumn: "[Cowork SPUW]" },
 ] as const;
 
-/** Every card and trend line here is already one surface, so these filters pick the card to highlight instead. */
-const SURFACE_FILTERS: FilterKey[] = ["licence", "audience"];
 const PICKABLE = ["licensed", "unlicensed", "agents", "cowork"] as const;
 
 const trendMeasures: { id: AdoptionTrendMeasure; label: string }[] = [
@@ -55,16 +52,10 @@ export function AdoptionStage() {
     const { filters, applicable } = useFilterContext();
     const cohort = selectedCohort(filters, applicable, PICKABLE);
     const highlighted = surfaces.find((surface) => surface.id === cohort) ?? surfaces[0];
-    const unshown = unshownActivity(filters, applicable, PICKABLE);
-    const surfaceReason = unshown
-        ? `${unshown} has no card of its own, so ${highlighted.label} is highlighted.`
-        : `each activity has its own card, so ${highlighted.label} is highlighted. The trend measure switches the chart below.`;
-
-    const summary = useAdoptionSummary(SURFACE_FILTERS);
+    const summary = useAdoptionSummary();
     const trend = useMemo(() => adoptionTrend({ measure }), [measure]);
     const trendResult = useFilteredQuery(
         { connection: trend.connection, query: trend.query, columnMetadata: trend.columnMetadata },
-        { ignore: SURFACE_FILTERS },
     );
 
     const summaryRow = summary.row;
@@ -108,7 +99,6 @@ export function AdoptionStage() {
                 />
             }
         >
-            <FilterNote ignored={SURFACE_FILTERS} reason={surfaceReason} />
             {summary.error ? (
                 <QueryError message={summary.error} onRetry={summary.refetch} />
             ) : !summary.loaded ? (

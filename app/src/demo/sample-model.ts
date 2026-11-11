@@ -119,12 +119,12 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
         ];
         return project(columns, options.map((option, Sort) => ({ ...option, Sort })));
     }
-    if (has("Column", "Cardinality")) return output(
-        ...(["Organization", "country", "JobTitle"] as const).map((Column, i) => {
-            const field = (["org", "country", "job"] as const)[i];
+    if (has("Column")) return output(
+        ...(["Organization", "country", "JobTitle", "PersonId_Normalized"] as const).map((Column, i) => {
+            const field = (["org", "country", "job", "user"] as const)[i];
             return { Column, Cardinality: unique(samples.people, row => row[field]), "Max Length": Math.max(...samples.people.map(row => row[field].length)) };
         }));
-    if (names.length === 1 && has("Attribute")) return output(...["Organization", "country", "JobTitle"].map(Attribute => ({ Attribute })));
+    if (names.length === 1 && has("Attribute")) return output(...["Organization", "country", "JobTitle", "PersonId_Normalized"].map(Attribute => ({ Attribute })));
     if (names.length === 1 && has("Value")) return output(...[...new Set(people.map(person => person[orgAttribute(query)]))].sort().map(Value => ({ Value })));
     if (has("Activity", "Source", "Status", "Reason")) return output(...[
         "Audit log", "Copilot licensed users", "Agent 365 registry", "Product feedback", "Consumption Central",
@@ -196,9 +196,9 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
     }
     if (has("All Tasks", "All Users")) {
         const result: RecordRow = { "Licensed Utilisation": ratio(distinct(licensed), seats.length) };
-        for (const [prefix, values] of [["All", rows], ["Licensed", licensed], ["Unlicensed", unlicensed], ["Agent", agents]] as const) {
+        for (const [prefix, values] of [["All", rows], ["Licensed", licensed], ["Unlicensed", unlicensed], ["Agent", agents], ["Cowork", cowork]] as const) {
             result[`${prefix} Tasks`] = prompt(values).length; result[`${prefix} Users`] = distinct(values);
-            result[`${prefix} Rate`] = ratio(prompt(values).length, distinct(values) * weeks(values));
+            result[`${prefix} Rate`] = ratio(prompt(values).length, distinct(values));
         }
         return output(result);
     }
@@ -249,6 +249,7 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
             const used = distinct(values.filter(row => row.licensed));
             const unlic = distinct(values.filter(row => !row.licensed));
             const agentUsers = distinct(values.filter(row => row.audience === "Agents"));
+            const coworkUsers = distinct(values.filter(row => row.cowork));
             const all = distinct(values);
             return { "Licensed Active": used, "Licensed Inactive": lic.length - used, "Licensed Total": lic.length,
                 "Licensed Active Pct": ratio(used, lic.length), "Unlicensed Active": unlic,
@@ -256,11 +257,12 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
                 "Unlicensed Total": members.filter(person => !person.licensed).length,
                 "Unlicensed Active Pct": ratio(unlic, members.filter(person => !person.licensed).length),
                 "All Active": all, "All Inactive": members.length - all, "All Total": members.length,
-                "All Active Pct": ratio(all, members.length), "Agent Active": agentUsers, "Agent NotUsing": members.length - agentUsers,
-                "Agent Active Pct": ratio(agentUsers, members.length) };
+                "All Active Pct": ratio(all, members.length), "Agent Active": agentUsers, "Agent NotUsing": Math.max(0, all - agentUsers),
+                "Agent Active Pct": ratio(agentUsers, all), "Cowork Active": coworkUsers,
+                "Cowork NotUsing": Math.max(0, all - coworkUsers), "Cowork Active Pct": ratio(coworkUsers, all) };
         };
         return columns.some(column => /Organization|Org Attribute (?:Source|Values)\[Value\]/.test(column))
-            ? output(...groups(people, person => person.org).map(([label, members]) => ({ [groupColumn]: label,
+            ? output(...groups(people, person => person[orgAttribute(query)]).map(([label, members]) => ({ [groupColumn]: label,
                 ...population(members, rows.filter(row => members.some(person => person.user === row.user))) })))
             : output(population(people, rows));
     }

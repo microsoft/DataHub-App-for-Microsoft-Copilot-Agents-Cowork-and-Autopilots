@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 import type { ColumnMetadataMap } from "@/lib/to-data-table";
+import { LICENSE_ROSTER } from "@/lib/filter-profiles";
 import { connection, FORMAT_HOURS, FORMAT_WHOLE } from "../shared";
 import query from "./license-estate-summary.dax?raw";
 
@@ -33,9 +34,9 @@ const columnMetadata: ColumnMetadataMap = {
 /**
  * License roster totals and the model's evidence notes.
  *
- * The roster has no date grain and no independent organization dimension, so
- * the stage deliberately lets these figures describe the whole license estate.
+ * The roster has no date grain. Org membership is projected onto its normalized
+ * user key so the selected organization narrows the estate as well as demand.
  */
 export function licenseEstateSummary() {
-    return { connection, query, columnMetadata };
+    return { connection, query, columnMetadata, filters: LICENSE_ROSTER };
 }

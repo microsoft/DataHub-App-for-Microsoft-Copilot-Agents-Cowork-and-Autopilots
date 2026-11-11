@@ -9,7 +9,6 @@ import { useMemo, useState } from "react";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import { VegaVisual } from "@/components/vega-visual";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { KpiCard, KpiStat } from "@/components/kpi-card";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
 import { Section } from "@/components/section";
@@ -17,7 +16,7 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { useFilterContext } from "@/hooks/filter.context";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
-import { selectedCohort, unshownActivity, type FilterKey } from "@/lib/filters";
+import { selectedCohort } from "@/lib/filters";
 import { rowChartHeight } from "@/lib/chart-height";
 import { readNumber, readText, toSummaryRow } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
@@ -37,11 +36,10 @@ const cards = [
         rate: "[Unlicensed Rate]",
     },
     { id: "agents", label: "Agents", tasks: "[Agent Tasks]", users: "[Agent Users]", rate: "[Agent Rate]" },
+    { id: "cowork", label: "Cowork", tasks: "[Cowork Tasks]", users: "[Cowork Users]", rate: "[Cowork Rate]" },
 ] as const;
 
-/** Each card is already one cohort, so these filters pick the card to highlight instead. */
-const COHORT_FILTERS: FilterKey[] = ["licence", "audience"];
-const PICKABLE = ["licensed", "unlicensed", "agents"] as const;
+const PICKABLE = ["licensed", "unlicensed", "agents", "cowork"] as const;
 
 /**
  * The Value destination's task breakdown: how much got done, and what kind of
@@ -58,12 +56,7 @@ export function TasksStage() {
     const { filters, applicable } = useFilterContext();
     const cohort = selectedCohort(filters, applicable, PICKABLE);
     const highlighted = cards.find((card) => card.id === cohort) ?? cards[0];
-    const unshown = unshownActivity(filters, applicable, PICKABLE);
-    const cohortReason = unshown
-        ? `${unshown} has no card of its own, so ${highlighted.label} is highlighted.`
-        : `every group is shown side by side, so ${highlighted.label} is highlighted.`;
-
-    const summary = useFilteredQuery(workSummary(), { ignore: COHORT_FILTERS });
+    const summary = useFilteredQuery(workSummary());
     const outcome = useFilteredQuery(topOutcome());
     const breakdown = useMemo(() => taskBreakdown({ dimension }), [dimension]);
     const breakdownResult = useFilteredQuery({
@@ -117,11 +110,10 @@ export function TasksStage() {
             title="Task breakdown"
             description="How much work Copilot was asked to do, by whom, and what kind of work it was."
         >
-            <FilterNote ignored={COHORT_FILTERS} scope="to the cards" reason={cohortReason} />
             {summary.data?.status === "error" ? (
                 <QueryError message={summary.data.error.message} onRetry={summary.refetch} />
             ) : summary.isLoading || !summary.data ? (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {cards.map((card) => (
                         <QueryLoading key={card.id} />
                     ))}
@@ -132,7 +124,7 @@ export function TasksStage() {
                     description="The semantic model returned no rows. Check that the model has been refreshed since the last data load."
                 />
             ) : (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {cards.map((card) => (
                         <KpiCard
                             key={card.id}

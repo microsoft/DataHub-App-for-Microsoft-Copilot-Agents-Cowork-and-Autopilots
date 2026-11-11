@@ -9,10 +9,23 @@ short run of sections, top to bottom. The sidebar jumps to any of them.
 Screenshots use synthetic data. Every name in them is invented.
 
 - **Filters** sit in the bar at the top. A page uses only the ones that apply to it.
+  Cohort KPI cards and their charts use the same applicable selections, including Activity = Cowork;
+  selecting a cohort no longer only highlights its card. Clearing filters restores the default view.
+- **Cowork** appears alongside Licensed, Unlicensed and Agents in Activation and Task breakdown,
+  and retains its Adoption card. Activation shows existing Cowork users as a share of active users,
+  like the Agents card, not as licensed Cowork seats. Task breakdown uses existing Cowork tasks and users.
+- **Group by** discovers the supplied org-data attributes, including constant, blank and custom
+  columns, plus **User ID** for individual normalized user identifiers. No extra directory properties
+  are collected. Existing viewer access restrictions still apply. New attributes become available
+  after ingestion and semantic-model refresh; existing installations need the updated model templates.
+  Current inventory and tenant-level billing retain their original definitions: filters that cannot
+  apply to a source are identified on the page rather than recasting inventory as dated activity.
 - **Optional** pages appear only once their data has loaded.
 - **How each figure is worked out** is in the [methodology](METHODOLOGY.md). Table and column names
   are in the [data dictionary](DATA-DICTIONARY.md).
 - **Prefer Power BI?** See [Power BI reports](#power-bi-reports).
+- **Manual source-code fix for existing KPI cards:** see [Manual KPI update](MANUAL-KPI-UPDATE.md)
+  for exact edits and the rebuild/redeploy path without GitHub or the installer.
 
 | Page | Answers |
 |---|---|
