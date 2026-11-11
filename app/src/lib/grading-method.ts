@@ -87,7 +87,7 @@ export interface ModelTier {
 }
 
 export const MODEL_TIERS: readonly ModelTier[] = [
-    { name: "Frontier (premium cost)", models: "Claude Opus, GPT-6" },
+    { name: "Frontier (premium cost)", models: "Claude Opus, GPT-6, Astra" },
     { name: "Workhorse (mid cost)", models: "Claude Sonnet and other Claude models, GPT-5, GPT-4" },
 ];
 

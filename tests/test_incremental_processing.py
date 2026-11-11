@@ -410,6 +410,7 @@ PROCESSOR_NB = ROOT / "fabric" / "notebooks" / "Copilot_Audit_Log_Processor.ipyn
 PROCESSOR_LOGIC_HASHES = {
     1: "e10f273b3ab216ebdacbb5b04e8b7e5eb933504fa26b0c7887e48dffbe3fe09d",
     2: "bfe5e2dca281c8bb305092ffe9f7ca6bc3a84b009cbf4889873de99f0e20b96e",
+    3: "a9389f98b1a9a1749ac24bde832980ac1eda47c93c6cee6870a048b467f5d19a",
 }
 
 

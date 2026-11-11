@@ -867,7 +867,7 @@ the licensed-only restriction applies to the prioritisation list.
 
 | Logged model | Cost tier |
 |---|---|
-| Opus, GPT-6 | Frontier (premium cost) |
+| Opus, GPT-6, Astra | Frontier (premium cost) |
 | Sonnet, other Claude, GPT-5, GPT-4 | Workhorse (mid cost) |
 | None logged | Not attributed |
 
