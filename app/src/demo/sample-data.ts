@@ -57,11 +57,12 @@ export function dateRange(query: string, column = "'Calendar'[Date]") {
     return match ? { from: iso(1), to: iso(4) } : undefined;
 }
 
-export function orgAttribute(query: string): "org" | "country" | "job" {
+export function orgAttribute(query: string): "org" | "country" | "job" | "user" {
     const attribute = literals(query, "Org Attribute Values", "Attribute")?.[0]
         ?? literals(query, "Org Attribute Source", "Attribute")?.[0]
         ?? /'Org Attribute Source'\[Attribute\]\s*=\s*"((?:[^"]|"")*)"/i.exec(query)?.[1] ?? "Organization";
-    return /country/i.test(attribute) ? "country" : /job/i.test(attribute) ? "job" : "org";
+    return attribute === "PersonId_Normalized" ? "user"
+        : /country/i.test(attribute) ? "country" : /job/i.test(attribute) ? "job" : "org";
 }
 
 export function selectedPeople(query: string) {

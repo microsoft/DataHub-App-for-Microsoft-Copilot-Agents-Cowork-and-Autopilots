@@ -64,12 +64,11 @@ vi.mock("@/hooks/use-semantic-model-query", () => ({
     useSpeculativeQuery: () => undefined,
 }));
 
-const IGNORED: readonly FilterKey[] = ["licence", "audience"];
 const STATE: FilterState = {
     ...defaultFilters,
     dateRange: { preset: "custom", from: "2026-01-01", to: "2026-03-31" },
     licence: "licensed",
-    audience: "copilot",
+    audience: "cowork",
     agentNames: ["Helper"],
 };
 const APPLICABLE: readonly FilterKey[] = ["dateRange", "licence", "audience", "agentNames"];
@@ -138,7 +137,7 @@ const latest = (part: string) => model.sent.filter((query) => model.partOf(query
 const statement = (query: string) => lf(query).slice(lf(query).search(/^EVALUATE\b/m));
 
 function open() {
-    return renderHook(() => useAdoptionSummary(IGNORED), { wrapper: Wrapper });
+    return renderHook(() => useAdoptionSummary(), { wrapper: Wrapper });
 }
 
 describe("useAdoptionSummary", () => {
@@ -154,11 +153,9 @@ describe("useAdoptionSummary", () => {
         times.saved = SAVED;
         open();
         const [core, spuw] = [latest("core"), latest("spuw")];
-        renderHook(() => useFilteredQuery({ connection: valueLens, query: WHOLE }, { ignore: IGNORED }), { wrapper: Wrapper });
-        const whole = latest("whole");
         renderHook(() => useFilteredQuery({ connection: valueLens, query: WHOLE }), { wrapper: Wrapper });
-        const unignored = latest("whole");
-        if (!core || !spuw || !whole || !unignored) throw new Error("A part was never asked.");
+        const whole = latest("whole");
+        if (!core || !spuw || !whole) throw new Error("A part was never asked.");
 
         expect(whole).toMatch(/^DEFINE\n/);
         expect(whole).toContain('"Email Drafting", SWITCH(');
@@ -171,10 +168,12 @@ describe("useAdoptionSummary", () => {
         expect(statement(spuw)).toContain(FILTER_COLUMNS.agentName);
 
         for (const column of [FILTER_COLUMNS.licence, FILTER_COLUMNS.audience]) {
-            expect(statement(unignored)).toContain(column);
-            expect(statement(whole)).not.toContain(column);
-            expect(statement(spuw)).not.toContain(column);
+            expect(statement(whole)).toContain(column);
+            expect(statement(core)).toContain(column);
+            expect(statement(spuw)).toContain(column);
         }
+        expect(core).toContain('TREATAS({"Cowork"}');
+        expect(spuw).toContain('TREATAS({"Cowork"}');
     });
 
     it("shows nothing until both parts answer, then the whole query's fifteen figures", () => {

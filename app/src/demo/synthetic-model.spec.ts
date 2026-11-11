@@ -16,6 +16,8 @@ import { withTaskTimes } from "@/queries/assumptions/task-times";
 import { describeOrgAttribute, orgValueFilter, withOrgAttribute } from "@/lib/org-attribute";
 import { glossary, signalImpact } from "@/queries/appendix";
 import { coworkCandidates, coworkReadinessSummary, coworkReadinessByOrg } from "@/queries/agents";
+import { activationSummary, activationByOrg } from "@/queries/adoption";
+import { workSummary } from "@/queries/work";
 
 type Query = { query: string; columnMetadata?: ColumnMetadataMap };
 function answer(source: Query, filters: string[] = []) {
@@ -30,6 +32,29 @@ const objects = (source: Query, filters: string[] = []) => {
 };
 
 describe("published synthetic sample adapter", () => {
+    it("uses the existing Cowork tasks and users for the new cohort cards and user-ID grouping", () => {
+        const filter = treatAs("'Chat + Agent Interactions (Audit Logs)'[Agent Filter (Normalized)]", ["Cowork"]);
+        const cowork = samples.activity.filter(row => row.cowork);
+        const users = new Set(cowork.map(row => row.user)).size;
+        const work = objects(workSummary(), [filter])[0];
+        expect(work["Cowork Tasks"]).toBe(cowork.filter(row => row.prompt).length);
+        expect(work["Cowork Users"]).toBe(users);
+        expect(work["Cowork Rate"]).toBe(Number(work["Cowork Tasks"]) / users);
+        expect(work["All Tasks"]).toBe(work["Cowork Tasks"]);
+        expect(work["Agent Tasks"]).toBe(0);
+        const activation = objects(activationSummary(), [filter])[0];
+        expect(activation["Cowork Active"]).toBe(users);
+        expect(activation["Cowork Active Pct"]).toBe(1);
+        const source = withOrgAttribute(activationByOrg({ cohort: "cowork" }), describeOrgAttribute("PersonId_Normalized"));
+        const grouped = objects(source, [filter]);
+        expect(grouped.every(row => samples.people.some(person => person.user === row.Value))).toBe(true);
+        expect(sum(grouped, row => Number(row["Cowork Active"]))).toBe(users);
+        const person = cowork[0].user;
+        const single = objects(workSummary(), [filter, orgValueFilter("PersonId_Normalized", [person])])[0];
+        expect(single["Cowork Users"]).toBe(1);
+        expect(single["Cowork Tasks"]).toBe(cowork.filter(row => row.user === person && row.prompt).length);
+    });
+
     it("ranks only licensed candidates before normalization and counts without narrowing readiness summaries", () => {
         const original = samples.activity;
         const base = original.find(row => !row.cowork && row.prompt && row.observed)!;

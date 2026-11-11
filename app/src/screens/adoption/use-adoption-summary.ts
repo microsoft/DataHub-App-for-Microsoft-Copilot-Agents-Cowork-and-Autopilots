@@ -9,7 +9,6 @@ import { useCallback, useMemo, useState } from "react";
 import type { CachedQueryResult } from "@microsoft/fabric-app-data";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
 import type { SummaryResult } from "@/hooks/use-table-query";
-import type { FilterKey } from "@/lib/filters";
 import { toSummaryRow } from "@/lib/summary-row";
 import { adoptionSummary, adoptionSummarySpuw } from "@/queries/adoption";
 
@@ -36,9 +35,9 @@ function pending(part: Part): boolean {
  * answer while it asks again, so no card mixes new figures with old ones.
  * "Try again" asks only the part that failed.
  */
-export function useAdoptionSummary(ignore?: readonly FilterKey[]): SummaryResult {
-    const core = useFilteredQuery(adoptionSummary(), { ignore });
-    const spuw = useFilteredQuery(adoptionSummarySpuw(), { ignore });
+export function useAdoptionSummary(): SummaryResult {
+    const core = useFilteredQuery(adoptionSummary());
+    const spuw = useFilteredQuery(adoptionSummarySpuw());
 
     const settled = !pending(core) && !pending(spuw);
     const [held, setHeld] = useState<Answers>([core.data, spuw.data]);

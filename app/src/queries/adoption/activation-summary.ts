@@ -29,10 +29,13 @@ const columnMetadata: ColumnMetadataMap = {
     "[Agent Active]": { name: "Agent Active", displayName: "Users with agent activity", format: FORMAT_WHOLE },
     "[Agent NotUsing]": { name: "Agent NotUsing", displayName: "Copilot users not using agents", format: FORMAT_WHOLE },
     "[Agent Active Pct]": { name: "Agent Active Pct", displayName: "% using agents", format: FORMAT_PERCENT },
+    "[Cowork Active]": { name: "Cowork Active", displayName: "Users with Cowork activity", format: FORMAT_WHOLE },
+    "[Cowork NotUsing]": { name: "Cowork NotUsing", displayName: "Active users not using Cowork", format: FORMAT_WHOLE },
+    "[Cowork Active Pct]": { name: "Cowork Active Pct", displayName: "% using Cowork", format: FORMAT_PERCENT },
 };
 
 /**
- * Every activation figure for all four cohorts in a single query.
+ * Every activation figure for all five cohorts in a single query.
  *
  * The equivalent Power BI page fires roughly thirty queries to populate the
  * same cards; consolidating into one `ROW()` keeps the screen to one round

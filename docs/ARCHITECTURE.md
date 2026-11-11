@@ -114,8 +114,8 @@ app opens on the **Executive summary**, it sends only what that page's first vie
   viewer can see.
 
 That's eight queries, or nine with org-scoped access. Load status and org attribute discovery
-load in the background. Discovery checks at most two populated distinct values per attribute
-in the model's `Org Attribute Source` membership table in one query; it does not scan activity
+load in the background. Discovery reads the attribute inventory from
+the model's `Org Attribute Source` membership table in one query; it does not scan activity
 or conversations. The resulting attributes are what a breakdown by org can group by, and what
 **Group by** lists, so **Group by** appears once they've loaded. These queries move on
 screen when a filter menu other than the dates opens, or when a breakdown by org shows; the
@@ -123,7 +123,7 @@ Executive summary's first tab has none. What only a filter menu shows loads when
 than the dates first opens: the org values, and Consumption Central's org attributes, which also
 load once an org filter is set. The Agent Evaluator checks its own model's org attributes only
 when an org filter is set, so a custom attribute is not assumed to exist in both models.
-The org menu lists values only once discovery and its eligibility check have settled
+The org menu lists values only once discovery has settled
 which column is in use, so it never lists one column's values under another's name. Its first open
 takes about a second as the values load, or longer if the org attributes are still loading: until
 they settle the column, the values of the column in use load beside them.

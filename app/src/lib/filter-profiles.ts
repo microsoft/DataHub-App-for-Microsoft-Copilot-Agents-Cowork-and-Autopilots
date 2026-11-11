@@ -17,7 +17,7 @@ import {
     type FilterKey,
     type FilterState,
 } from "./filters";
-import { describeOrgAttribute, orgValueFilter } from "./org-attribute";
+import { describeOrgAttribute, orgValueFilter, USER_ID_ATTRIBUTE } from "./org-attribute";
 
 /**
  * How one query takes the filter bar. For each filter it either gives the
@@ -109,6 +109,14 @@ export const VALUE_LENS: FilterProfile = {
     audience: valueLens("audience"),
     agentTypes: valueLens("agentTypes"),
     agentNames: valueLens("agentNames"),
+};
+
+/** A current license inventory, narrowed to the selected org membership rather than dated usage. */
+export const LICENSE_ROSTER: FilterProfile = {
+    ...VALUE_LENS,
+    dateRange: notApplied("the license roster is a current snapshot, not dated activity."),
+    organizations: (state) =>
+        `TREATAS(CALCULATETABLE(VALUES('Chat + Agent Org Data'[PersonId_Normalized]), ${orgValueFilter(state.orgAttribute, state.organizations)}), 'Copilot Licensed'[UPN_Normalized])`,
 };
 
 /**
@@ -246,6 +254,7 @@ const CONSUMPTION_ORG_ALIASES: readonly (readonly [string, readonly string[]])[]
  * attributes, split into words as the model's `Pretty` step does.
  */
 export function consumptionOrgAttribute(column: string): string {
+    if (column === USER_ID_ATTRIBUTE) return "User ID";
     const key = column.replace(/[ _-]/g, "").toLowerCase();
     const canonical =
         CONSUMPTION_ORG_ALIASES.find(([name, aliases]) => name.toLowerCase() === key || aliases.includes(key))?.[0] ??

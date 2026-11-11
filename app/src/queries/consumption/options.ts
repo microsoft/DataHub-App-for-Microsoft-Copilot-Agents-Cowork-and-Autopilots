@@ -57,10 +57,8 @@ export function readConsumptionOptions(table: DataTable): ConsumptionOptions {
 export const ALL_USERS = "All users";
 
 /**
- * Group By attributes worth offering. Per-person groupings put each person in
- * a group of one, so they repeat the people table, and on a large tenant they
- * take one to two and a half minutes. Each product only offers its own usage
- * intensity.
+ * Source org attributes, including individual users. Each product only offers
+ * its own usage intensity.
  */
 const ATTRIBUTE_LABELS: Record<string, string> = {
     "Job Family": "Job family",

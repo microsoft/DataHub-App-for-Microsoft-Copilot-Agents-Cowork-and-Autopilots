@@ -138,7 +138,7 @@ describe("agent evaluation query contract", () => {
                 ["displayName", 100000], ["Hierarchy Path", 100000],
             ]);
             expect(columns.map((column) => column.id)).toEqual([
-                "department", "org:accountEnabled", "org:Budget", "org:CostCenterId", "org:StartDate",
+                "department", "org:accountEnabled", "org:Budget", "org:CostCenterId", "org:displayName", "org:PersonId", "org:StartDate",
             ]);
         });
 
@@ -200,11 +200,12 @@ describe("agent evaluation query contract", () => {
             }
         });
 
-        it("requires two populated groups with conversations rather than two inventory values", () => {
-            const columns = inventory([["Organization", 5], ["CostCenterId", 10000], ["Sparse", 2]]);
+        it("offers every discovered org field, including sparse, constant, blank and normalized user ID", () => {
+            const columns = inventory([["Organization", 5], ["CostCenterId", 10000], ["Sparse", 2],
+                ["Constant", 1], ["Blank", 0], ["PersonId_Normalized", 10000]]);
             const counts = { agent: 2, theme: 2, topic: 2, department: 2, "org:CostCenterId": 2, "org:Sparse": 1 };
             expect(groupByChoices(counts, columns).map(({ id }) => id)).toEqual([
-                "agent", "department", "theme", "topic", "org:CostCenterId",
+                "agent", "department", "theme", "topic", "org:Blank", "org:Constant", "org:CostCenterId", "org:Sparse", "org:PersonId_Normalized",
             ]);
         });
 

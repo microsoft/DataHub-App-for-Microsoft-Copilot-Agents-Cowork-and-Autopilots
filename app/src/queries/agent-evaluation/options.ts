@@ -161,7 +161,7 @@ export function hasEvaluationData(options: EvaluationOptions): boolean {
     return options.firstDate !== undefined || options.agents.length > 0;
 }
 
-/** Group by columns worth offering: one group would only repeat the total. */
+/** Org metadata is sufficient even with no populated conversation groups. */
 export function groupByChoices(
     groupCounts: Record<string, number>,
     orgColumns: readonly GroupByColumn[] = [],
@@ -169,7 +169,7 @@ export function groupByChoices(
     const department = orgColumns.filter((column) => column.id === "department");
     const others = orgColumns.filter((column) => column.id !== "department");
     return [GROUP_BY_COLUMNS[0], ...department, ...GROUP_BY_COLUMNS.slice(1), ...others]
-        .filter((column) => (groupCounts[column.id] ?? 0) >= 2);
+        .filter((column) => column.attribute !== undefined || (groupCounts[column.id] ?? 0) >= 2);
 }
 
 export type EvaluationPreset = Exclude<DatePreset, "custom">;
