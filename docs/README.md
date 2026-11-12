@@ -48,6 +48,8 @@ rest are optional cards on the installer's **Data sources** screen, or extra ste
 | [Troubleshooting](TROUBLESHOOTING.md) · [FAQ](FAQ.md) | Error messages, known issues and short answers |
 | [Architecture and costs](ARCHITECTURE.md) | What it collects and creates, and what it costs |
 | [App guide](APP-GUIDE.md) | Every page, and the [Power BI reports](APP-GUIDE.md#power-bi-reports) |
+| [Customise DataHub](CUSTOMISE.md) | Common app settings, source changes and the planned single Power BI report |
+| [Security and privacy setup](CUSTOMIZATION-AND-SECURITY.md) | Set up RLS; identity privacy limits and future pseudonymization contract |
 | [How the value is calculated](METHODOLOGY.md) · [Data dictionary](DATA-DICTIONARY.md) | The numbers, and every table and column |
 | [Model slimming](MODEL-SLIMMING.md) | What changed in the main model for a large tenant, and the order to deploy it |
 | [Running the Viva Insights query](VIVA-QUERY.md) | For Copilot Cowork credits |

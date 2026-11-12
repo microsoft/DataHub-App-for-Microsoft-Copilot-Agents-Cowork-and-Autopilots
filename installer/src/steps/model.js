@@ -8,7 +8,7 @@ import { enabledModules, MODEL_MODULES } from '../catalog.js';
 import { servicePrincipalCredentials, semanticModelDefinition, sqlConnectionBody } from '../clients/fabric.js';
 import { HttpError } from '../http.js';
 import { commandLine } from '../launch.js';
-import { EVERYONE_ROLE, rlsSettings, SCOPED_ROLE } from '../transform/access.js';
+import { rlsSettings } from '../transform/access.js';
 import { buildModel, datasourcePath, loadTemplateModel, PBISM } from '../transform/model.js';
 import { formatDuration } from '../ui.js';
 import { createItem, modelKey } from './fabric.js';
@@ -66,32 +66,6 @@ export async function waitForSqlEndpoint(ctx) {
  */
 export const modelSignature = (server, database, modules) =>
   `${server.toLowerCase()};${database};${enabledModules(modules).filter((m) => /** @type {readonly string[]} */ (MODEL_MODULES).includes(m)).join(',')}`;
-
-/** Roles each model was deployed with in this run, by model ID. */
-const DEPLOYED_ROLES = new WeakMap();
-
-/**
- * The org-scoped access roles (without members) of the models deployed in this run, by model ID.
- * @param {Ctx} ctx
- * @returns {Map<string, any[]>}
- */
-export function deployedRoles(ctx) {
-  let roles = DEPLOYED_ROLES.get(ctx);
-  if (!roles) DEPLOYED_ROLES.set(ctx, (roles = new Map()));
-  return roles;
-}
-
-/**
- * The org-scoped access roles in a semantic model definition; none when access is off.
- * @param {{ parts?: { path: string, payload: string }[] }} definition
- * @returns {any[]}
- */
-export function definitionRoles(definition) {
-  const part = definition?.parts?.find((p) => p.path === 'model.bim');
-  if (!part) return [];
-  const bim = JSON.parse(Buffer.from(part.payload, 'base64').toString('utf8'));
-  return (bim.model?.roles ?? []).filter((/** @type {any} */ r) => r.name === EVERYONE_ROLE || r.name === SCOPED_ROLE);
-}
 
 /** @param {unknown} definition */
 export const definitionHash = (definition) => createHash('sha256').update(JSON.stringify(definition)).digest('hex').slice(0, 16);
@@ -236,8 +210,9 @@ async function replaceDefinition(ctx, ws, m, definition) {
  * Creates a semantic model item, or updates it when its inputs or its definition changed, or
  * `force` is set. The definition's hash is part of the signature, so running the installer again
  * from a newer checkout redeploys a model whose template changed. An update clears the model's
- * connection binding and any role members. Fabric keeps its data where it can; when it can't, it
- * clears the data only once the user agrees. Either way the model is owed a reload (see pendingReloads).
+ * connection binding and role members. After deployment, an administrator must review and restore
+ * role membership in Power BI Service. Fabric keeps its data where it can; when it can't, it clears
+ * the data only once the user agrees. Either way the model is owed a reload (see pendingReloads).
  * @param {Ctx} ctx
  * @param {import('../config.js').ModelConfig} m
  * @param {{ signature: string, definition: () => any, force?: boolean }} o
@@ -276,8 +251,6 @@ export async function deployModel(ctx, m, o) {
     const rls = ctx.config.access?.rls;
     if (rls?.applied) rls.applied = rls.applied.filter((id) => id !== m.id);
   }
-  const roles = definitionRoles(definition);
-  if (roles.length) deployedRoles(ctx).set(/** @type {string} */ (m.id), roles);
   m.signature = signature;
   ctx.save();
 }

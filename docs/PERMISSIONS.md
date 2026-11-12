@@ -241,16 +241,22 @@ A person can have several scopes; they see the union. People without a scope of 
 
 **How it works.** Scopes are kept outside the models, so redeploys never lose them: `Files/analytics_hub_access/access_scope.csv` in the Lakehouse on Fabric, `access/access_scope.csv` in the landing container on Azure (loaded into `dbo.access_scope`). When it's on, each model gets two hidden tables (**Access Scope** and **Access People**) and two roles:
 
-- **Everyone** filters nothing but the scope table. Its members are the people with an `all` scope.
-- **Scoped viewers** has the viewer group as its member and filters the model's org table (and the person-level tables it doesn't reach) to the person's scopes. Tenant-wide tables (Azure and pay-as-you-go spend, agent inventory, Defender, Resource Graph, product feedback) show only to `all`, so those pages drop out of a scoped viewer's sidebar.
+- **Scoped viewers** filters the model's org table (and the person-level tables it doesn't reach) to each viewer's scopes. Assign the viewer group to this role in Power BI Service. Tenant-wide tables (Azure and pay-as-you-go spend, agent inventory, Defender, Resource Graph, product feedback) show only to viewers with an `all` scope, so those pages drop out of a scoped viewer's sidebar.
+- **Everyone** filters nothing but the scope table. It is optional and must be assigned only to individually approved all-data readers, never to the whole viewer group.
 
-A model definition deploy drops role members, so after every deploy the installer runs the **AnalyticsHub_Access_Scope** notebook, which applies the members through the XMLA endpoint, and then checks the result by querying as a seeded viewer.
+A model definition deploy can drop role members. The installer reloads scope data and refreshes the models, but does not assign members. After every model deploy, an administrator must review or restore role membership from the semantic model's **Security** page in Power BI Service.
+
+On an existing installation, remove any viewer-group or other broad assignment from **Everyone**
+before assigning viewers to **Scoped viewers**. A person assigned to both roles gets their combined
+access, so scoped membership alone will not narrow an existing all-data assignment.
+Removing or narrowing an `all` scope in the CSV does not revoke **Everyone** role membership;
+review and remove that membership explicitly in Power BI Service.
 
 | What | Role / requirement |
 |---|---|
 | Turn it on, change scopes | A workspace **Admin** or **Member** running the installer. On Azure also **Storage Blob Data Contributor** on the storage account (the installer assigns it if you can) |
-| Apply role members | The tenant setting **Allow XMLA endpoints**, and a Fabric, Premium or Premium Per User capacity with the XMLA endpoint set to **Read Write**. A Pro workspace can't have role members applied, so the installer won't turn it on there |
-| Azure | The Power BI workspace on a capacity, as above. The notebook runs in that workspace. Installs with private networking aren't supported yet, because the notebook can't reach the storage account |
+| Assign role members | A Power BI administrator, in Power BI Service > semantic model > **Security**. Add the viewer group to **Scoped viewers**; add individual all-data readers to **Everyone** only when explicitly approved |
+| Azure | With private networking, the installer machine cannot read or write the scope CSV through the private storage endpoint, so this installer scope-file flow is not supported |
 | "Below a person" scopes | Manager data in the org data. The installer warns when fewer than half the people have a manager |
 | Who skips it | Workspace **Admins, Members and Contributors** see every row whatever their scope. The installer lists them when you turn it on, and the app shows them "Showing: everyone (your workspace role)" |
 | Who can give scopes | DataHub App admins, from the installer's `access` command. On Azure also from **Share** in the app: see below |
@@ -260,8 +266,8 @@ A model definition deploy drops role members, so after every deploy the installe
 | Situation | What happens |
 |---|---|
 | Upgrade or Repair, org-scoped access off (the default) | Nothing changes. The models deploy exactly as before, with no roles and no access tables. On Azure the database gets an empty `access_scope` table. The org data gains an `OrgPath` column, which models without org-scoped access ignore |
-| You turn it on | Everyone in the viewer group now, and you, get an `all` scope, so nobody loses anything. The models are redeployed with the roles, the members are applied, the models refresh and the installer checks a seeded person sees everyone |
-| Upgrade or Repair with it on | Any model redeploy is followed by applying the members again and checking. The scopes are untouched |
+| You turn it on | If no saved scopes exist, the current viewer group and installer operator get an `all` scope. The models are redeployed with the roles and refreshed; an administrator then assigns the viewer group to **Scoped viewers** in Power BI Service and verifies the totals |
+| Upgrade or Repair with it on | Scope data is reloaded after a model deploy. An administrator must review or restore role membership in Power BI Service; the scopes are untouched. Until then, viewers outside the workspace roles can't read the redeployed models. On Azure, an `AnalyticsHub_Access_Scope` notebook that an earlier installer left in the Power BI workspace is no longer used or updated, and can be deleted |
 | Someone joins the viewer group later | They see nothing until you give them a scope (or you add a default `*` scope) |
 | You turn it off | The models are redeployed without the roles or access tables. The scopes are kept for if you turn it on again |
 
@@ -273,7 +279,7 @@ A model definition deploy drops role members, so after every deploy the installe
 | A leader: someone with a **can share** scope | Give someone **My org**: the people below themselves. Only when that sits inside a scope they were given with can share (an `all` scope, or a **Below a person** scope for themselves or someone above them). They can't pass on can share, and they take back only what they gave |
 | Everyone else | Sees "Only a DataHub App admin can choose what people see", with who to ask |
 
-- Nobody gives **Everyone** (`all`) from the app. That changes the Everyone role's members, so it stays in the installer's `access` command.
+- Nobody gives **Everyone** (`all`) from the app. Admins can add an `all` scope through the installer's `access` command; membership in the optional **Everyone** role remains a separate Power BI Service decision.
 - A delegate also needs to be in the viewer group. The app adds them as the signed-in person, so it only works for owners of the group and directory admins. For anyone else the scope is saved as **Waiting for an admin** and has no effect until an admin approves it in the Share panel, which adds them to the group. No extra Graph permissions are needed.
 - The web app writes scopes to `dbo.access_scope` (marked `share`) as its managed identity. The jobs' scheduled load replaces only the installer's scopes from the CSV, so these stay. Remove them in the app, not the CSV.
 - After a change the app refreshes the models' **Access Scope** table as the managed identity, so it usually applies within a few minutes. Changes close together share a refresh. When Power BI is busy or won't take another refresh, the change applies at the next scheduled refresh. Org-scoped access needs a capacity, so Pro's 8 refreshes a day don't apply, but these refreshes count towards the capacity's load.
@@ -282,8 +288,11 @@ A model definition deploy drops role members, so after every deploy the installe
 On Fabric, scopes are given only by admins, from the installer. The Share panel says so, and who to ask.
 
 Caveats:
-- Scopes other than `all` change at the next scheduled load. **Apply now** in `access` reloads and refreshes straight away; a new `all` scope needs it, since it changes role members.
+- Scope changes apply at the next scheduled load. **Apply now** in `access` reloads scope data and refreshes straight away; it does not change role membership.
 - Totals on a scoped viewer's pages, licence counts included, are for the people they can see.
+- Even an `all` scope in **Scoped viewers** can exclude activity without matching org data.
+  Compare totals before rollout; the optional **Everyone** role is reserved for explicitly
+  approved all-data readers, not a way to repair missing joins for ordinary viewers.
 - Hiding names from scoped viewers isn't part of this. The app's minimum-group-size rules still apply.
 
 ---

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 const TEXT = "text-[length:var(--text-200)] leading-200";
 const LINK = cn(TEXT, "text-primary underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring");
 const BUTTON = "flex items-center justify-center gap-200 rounded-md border border-border px-300 py-100 transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60";
+const SECURITY_GUIDE_URL = "https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/CUSTOMIZATION-AND-SECURITY.md";
 
 /**
  * Sharing from inside the app: copy a link (on Azure, to the view on screen), see who it is shared
@@ -48,9 +49,42 @@ export function SharePanel() {
                     <CopyLink />
                     {config.host === "azure" ? <AzureAccess access={config.access} /> : <FabricAccess access={config.access} />}
                     {config.host === "azure" && config.access?.rlsOrgAttribute && <ScopedDelegation contact={config.access.contact} />}
+                    <SecurityGuidance access={config.access} />
                 </section>
             )}
         </div>
+    );
+}
+
+function SecurityGuidance({ access }: { access?: AccessInfo }) {
+    const rlsEnabled = Boolean(access?.rlsOrgAttribute);
+
+    return (
+        <details className="rounded-md border border-border p-300">
+            <summary className={cn(TEXT, "cursor-pointer font-semibold text-foreground")}>Security and privacy setup</summary>
+            <div className="mt-200 flex flex-col gap-100">
+                <p className={cn(TEXT, "text-muted-foreground")}>
+                    App access controls who can open DataHub App. Power BI row-level security controls which rows a viewer can query.
+                    Page filters are not access controls.
+                </p>
+                <p className={cn(TEXT, "text-muted-foreground")}>
+                    Org-scoped access is {rlsEnabled ? `on for ${access?.rlsOrgAttribute}` : "not enabled or not reported by this install"}.
+                    The installer loads scope data but does not assign Power BI role members.
+                </p>
+                <p className={cn(TEXT, "text-muted-foreground")}>
+                    In Power BI Service, remove any existing viewer-group assignment from <strong>Everyone</strong> before using scoped access:
+                    a person in both roles gets their combined access. Add the viewer group only to <strong>Scoped viewers</strong> and add only
+                    individually approved all-data readers to <strong>Everyone</strong>. Check assignments again after model deployments.
+                </p>
+                <p className={cn(TEXT, "text-muted-foreground")}>
+                    User-ID pseudonymization is not currently supported end to end. Do not enable upstream identity masking as a substitute:
+                    it can break joins to organization and license data. The setup guide explains the limitation and safe migration requirements.
+                </p>
+                <a href={SECURITY_GUIDE_URL} target="_blank" rel="noreferrer" className={LINK}>
+                    Open the RLS and privacy setup guide
+                </a>
+            </div>
+        </details>
     );
 }
 

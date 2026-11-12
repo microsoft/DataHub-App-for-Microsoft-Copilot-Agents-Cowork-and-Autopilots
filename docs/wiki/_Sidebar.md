@@ -32,6 +32,8 @@
 - [Architecture and costs](../ARCHITECTURE.md)
 - [Permissions](../PERMISSIONS.md)
 - [App guide](../APP-GUIDE.md)
+- [Customise DataHub](../CUSTOMISE.md)
+- [Security and privacy setup](../CUSTOMIZATION-AND-SECURITY.md)
 - [How the value is calculated](../METHODOLOGY.md)
 - [Data dictionary](../DATA-DICTIONARY.md)
 - [Viva Insights query](../VIVA-QUERY.md)

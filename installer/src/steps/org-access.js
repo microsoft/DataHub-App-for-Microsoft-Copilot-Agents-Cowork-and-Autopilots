@@ -3,19 +3,15 @@
  * Org-scoped access: opt-in row-level security on the semantic models. Who sees what lives in a
  * scope list (a CSV the installer writes: in the Lakehouse on Fabric, in the landing container on
  * Azure), never in the models, so it survives redeploys. Each model gets two roles when it's on;
- * their members are applied over XMLA by the Access Scope notebook after every deploy, because a
- * definition deploy drops role members.
+ * an administrator assigns role members in Power BI Service after model deployments.
  */
-import { NOTEBOOKS } from '../catalog.js';
 import { notebookJobParameters } from '../clients/fabric.js';
 import { HttpError } from '../http.js';
 import { commandLine } from '../launch.js';
-import { ACCESS_INVENTORY, ACCESS_PEOPLE_TABLE, ORG_ATTRIBUTES, rlsOn, roleDefinitions } from '../transform/access.js';
-import { prepareNotebook, serialiseNotebook } from '../transform/notebook.js';
+import { ACCESS_INVENTORY, ACCESS_PEOPLE_TABLE, ORG_ATTRIBUTES, rlsOn } from '../transform/access.js';
 import { ensureViewerGroup } from './access.js';
 import { azureConsumptionModelDeployed, grantLandingWrite, isPrivate, onceRunFinished, startAndWaitJob } from './azure/index.js';
-import { createdId } from './fabric.js';
-import { deployedRoles, refreshModel } from './model.js';
+import { refreshModel } from './model.js';
 import { BUSY_RETRIES, BUSY_WAIT_MS, capacityBusy, waitForJob } from './run.js';
 import { azureAgentEvaluatorModelDeployed } from './azure/agent-evaluator.js';
 
@@ -46,14 +42,12 @@ const SCOPE_TYPES = ['all', 'hierarchy', 'org'];
 const MANAGED_VIA = ['seed', 'installer'];
 const STATUSES = ['active', 'pending_group'];
 
-/** Where the files go: in the Lakehouse (Fabric) and the landing container (Azure). */
+/** Where the scope file goes: in the Lakehouse (Fabric) and the landing container (Azure). */
 export const FABRIC_SCOPE_FILE = 'Files/analytics_hub_access/access_scope.csv';
-export const FABRIC_ROLES_FILE = 'Files/analytics_hub_access/roles.json';
 export const AZURE_CONTAINER = 'landing';
 export const AZURE_SCOPE_FILE = 'access/access_scope.csv';
-export const AZURE_ROLES_FILE = 'access/roles.json';
 
-/** A new role assignment takes a few minutes to reach storage. */
+/** A new storage role assignment can take a few minutes to reach the account. */
 export const STORAGE_ATTEMPTS = 8;
 export const STORAGE_RETRY_MS = 30_000;
 
@@ -269,7 +263,7 @@ export function rlsModels(config) {
 }
 
 /**
- * Reads and writes the scope list and the roles file.
+ * Reads and writes the scope list.
  * @param {Ctx} ctx
  */
 function store(ctx) {
@@ -281,16 +275,13 @@ function store(ctx) {
     if (isPrivate(config.azure)) {
       // Private networking: the account takes no public traffic, so calls from this machine would only get 403s.
       const blocked = () => Promise.reject(new Error(`The storage account ${account} only accepts traffic from its private endpoints, so the installer can't read or write it from this machine.`));
-      return { where: `${account}/${AZURE_CONTAINER}/${AZURE_SCOPE_FILE}`, readScope: blocked, readRoles: blocked, writeScope: blocked, writeRoles: blocked, rolesPath: `abfss://${AZURE_CONTAINER}@${account}.dfs.core.windows.net/${AZURE_ROLES_FILE}` };
+      return { where: `${account}/${AZURE_CONTAINER}/${AZURE_SCOPE_FILE}`, readScope: blocked, writeScope: blocked };
     }
     const lake = api.dataLake(account);
     return {
       where: `${account}/${AZURE_CONTAINER}/${AZURE_SCOPE_FILE}`,
       readScope: () => lake.readText(AZURE_CONTAINER, AZURE_SCOPE_FILE),
-      readRoles: () => lake.readText(AZURE_CONTAINER, AZURE_ROLES_FILE),
       writeScope: (/** @type {string} */ text) => lake.writeFile(AZURE_CONTAINER, AZURE_SCOPE_FILE, encode(text)),
-      writeRoles: (/** @type {string} */ text) => lake.writeFile(AZURE_CONTAINER, AZURE_ROLES_FILE, encode(text)),
-      rolesPath: `abfss://${AZURE_CONTAINER}@${account}.dfs.core.windows.net/${AZURE_ROLES_FILE}`,
     };
   }
   const ws = /** @type {string} */ (config.fabric.workspaceId);
@@ -299,10 +290,7 @@ function store(ctx) {
   return {
     where: `${config.fabric.lakehouseName ?? 'the Lakehouse'}/${FABRIC_SCOPE_FILE}`,
     readScope: () => api.oneLake.readText(ws, lh, FABRIC_SCOPE_FILE),
-    readRoles: () => api.oneLake.readText(ws, lh, FABRIC_ROLES_FILE),
     writeScope: (/** @type {string} */ text) => api.oneLake.writeFile(ws, lh, FABRIC_SCOPE_FILE, encode(text)),
-    writeRoles: (/** @type {string} */ text) => api.oneLake.writeFile(ws, lh, FABRIC_ROLES_FILE, encode(text)),
-    rolesPath: FABRIC_ROLES_FILE,
   };
 }
 
@@ -406,8 +394,7 @@ export function rlsBlockers(ctx) {
   if (!rlsModels(config).length) out.push(`No semantic model is deployed yet. Run "${commandLine('install')}" with the semantic model first.`);
   if (config.target === 'azure') {
     const az = config.azure;
-    if (isPrivate(az)) out.push('This install uses private networking. The notebook that applies the roles can\'t reach the storage account, so org-scoped access isn\'t supported here yet.');
-    if (!az?.powerBi?.capacityId) out.push('The Power BI workspace is on a Pro licence. Roles with members are applied through the XMLA endpoint, which needs a Fabric, Premium or Premium Per User capacity.');
+    if (isPrivate(az)) out.push('This install uses private networking. The installer cannot read or write the scope file from this machine, so org-scoped access is not supported here yet.');
   }
   return out;
 }
@@ -433,51 +420,6 @@ async function showBypass(ctx) {
 }
 
 /**
- * The roles each model should have, members included, for the notebook.
- * @param {Ctx} ctx
- * @param {ScopeRow[]} rows
- * @returns {Promise<{ items: { dataset: string, datasetId: string, role: any }[], missing: RlsModel[] }>}
- */
-export async function roleItems(ctx, rows) {
-  const { config, user } = ctx;
-  const groupId = config.access?.groupId;
-  if (!groupId) throw new Error('There is no viewer group. Run "access" to choose one.');
-  /** @type {{ dataset: string, datasetId: string, role: any }[]} */
-  let stored = [];
-  /** @type {{ dataset: string, datasetId: string, role: any }[]} */
-  const items = [];
-  /** @type {RlsModel[]} */
-  const missing = [];
-  let read = false;
-  for (const m of rlsModels(config)) {
-    let roles = deployedRoles(ctx).get(m.datasetId);
-    if (!roles) {
-      // Not deployed in this run: the roles applied last time, without their members.
-      if (!read) {
-        read = true;
-        const text = await store(ctx).readRoles().catch(() => null);
-        try {
-          stored = text ? JSON.parse(text) : [];
-        } catch {
-          stored = [];
-        }
-      }
-      roles = stored.filter((i) => i.datasetId === m.datasetId).map(({ role }) => {
-        const { members, ...rest } = role;
-        return rest;
-      });
-    }
-    if (!roles?.length) {
-      missing.push(m);
-      continue;
-    }
-    const defs = roleDefinitions(/** @type {any} */ ({ roles }), { groupId, tenantId: user.tenantId, everyone: everyoneUpns(rows), defaultAll: defaultAll(rows) });
-    for (const role of defs) items.push({ dataset: m.name, datasetId: m.datasetId, role });
-  }
-  return { items, missing };
-}
-
-/**
  * Runs the Access Scope notebook, trying again while the capacity is busy.
  * @param {Ctx} ctx
  * @param {string} workspaceId
@@ -496,49 +438,17 @@ async function runAccessNotebook(ctx, workspaceId, notebookId, params) {
     await ctx.sleep(BUSY_WAIT_MS);
   }
   if (job?.status === 'Completed') return true;
-  ui.fail(`The roles weren't applied: ${job?.failureReason?.message ?? `the notebook ended as ${job?.status ?? 'unknown'}`}`);
-  ui.info('Check that the tenant setting "Allow XMLA endpoints" is on and the workspace capacity\'s XMLA endpoint is Read Write. Then try again from "access".');
+  ui.fail(`The scope data wasn't applied: ${job?.failureReason?.message ?? `the notebook ended as ${job?.status ?? 'unknown'}`}`);
+  ui.info(`Then try again from "${commandLine('access')}".`);
   return false;
 }
 
 /**
- * The Access Scope notebook in the Azure Power BI workspace, which applies role members there.
- * @param {Ctx} ctx
- */
-async function ensureAzureAccessNotebook(ctx) {
-  const { config, api, ui, sources } = ctx;
-  const pbi = /** @type {NonNullable<import('../config.js').AzureConfig['powerBi']>} */ (config.azure?.powerBi);
-  const ws = /** @type {string} */ (pbi.workspaceId);
-  const nb = /** @type {import('../catalog.js').NotebookInfo} */ (NOTEBOOKS.find((n) => n.key === 'accessScope'));
-  const content = serialiseNotebook(
-    prepareNotebook(sources.notebooks.accessScope, { parameters: nb.parameters, values: { MODE: 'membership', ROLES_B64: '', ROLES_FILE: '', WORKSPACE_ID: ws } }),
-  );
-  const items = await api.fabric.listItems(ws, 'Notebook').catch(() => []);
-  if (pbi.accessNotebookId && items.some((i) => i.id === pbi.accessNotebookId)) {
-    await api.fabric.updateNotebook(ws, pbi.accessNotebookId, content);
-    return pbi.accessNotebookId;
-  }
-  const existing = items.find((i) => i.displayName === nb.displayName);
-  if (existing) {
-    await api.fabric.updateNotebook(ws, existing.id, content);
-    pbi.accessNotebookId = existing.id;
-  } else {
-    const created = await api.fabric.createNotebook(ws, nb.displayName, content);
-    pbi.accessNotebookId = await createdId(ctx, created, 'Notebook', nb.displayName);
-    ui.ok(`Created ${nb.displayName} in the Power BI workspace`);
-  }
-  ctx.save();
-  return /** @type {string} */ (pbi.accessNotebookId);
-}
-
-/**
- * Lands the scope list, applies each model's role members and, when asked, refreshes the models.
- * The install carries on whatever happens, and the models stay closed to scoped viewers until it's
- * applied.
+ * Lands the scope list and access tables, then refreshes the models when asked. Power BI role
+ * membership is assigned by an administrator in the service portal, never by the installer.
  * @param {Ctx} ctx
  * @param {{ refresh?: boolean }} [opts]
- * @returns {Promise<boolean | null>} true when applied; false when it failed, saying how to try again; null when it only
- *   warned: no model can take its roles yet, or on Azure a run was already going, or the job that loads them couldn't be followed.
+ * @returns {Promise<boolean | null>} true when scope data is applied; false on failure; null when an Azure run was already going or could not be followed.
  */
 export async function applyOrgAccess(ctx, opts = {}) {
   const { ui, config } = ctx;
@@ -551,36 +461,21 @@ export async function applyOrgAccess(ctx, opts = {}) {
   }
   const rows = await readScopes(ctx).catch((err) => storageRoleFailed(ctx, err));
   if (!rows) return false;
-  const { items, missing } = await roleItems(ctx, rows);
-  for (const m of missing) ui.warn(`${m.name} wasn't deployed with org-scoped access by this installer. Run "${commandLine('update')}" to redeploy it.`);
-  if (!items.length) return null;
 
   const s = store(ctx);
-  const written = await withStorageRole(ctx, async () => {
-    await s.writeScope(scopeCsv(rows));
-    await s.writeRoles(JSON.stringify(items, null, 2));
-    return true;
-  }).catch((err) => storageRoleFailed(ctx, err));
+  const written = await withStorageRole(ctx, () => s.writeScope(scopeCsv(rows))).then(() => true).catch((err) => storageRoleFailed(ctx, err));
   if (!written) return false;
 
   let ok;
   if (config.target === 'azure') {
-    const ws = /** @type {string} */ (config.azure?.powerBi?.workspaceId);
-    const id = await ensureAzureAccessNotebook(ctx);
-    ok = await runAccessNotebook(ctx, ws, id, { MODE: 'membership', ROLES_B64: '', ROLES_FILE: s.rolesPath, WORKSPACE_ID: ws });
-    // The jobs load the list into SQL, then refresh the models so it takes effect.
-    if (ok && opts.refresh !== false) {
-      const job = await startAndWaitJob(ctx, 'run', { wait: true, steps: 'access,refresh', timeoutMs: 30 * 60_000 });
-      // A run was already going. Scheduled runs load the list and refresh the models too, so the next one applies it.
-      if (!job.started) {
-        ui.note(onceRunFinished(`apply org-scoped access again from "${commandLine('access')}", or the next scheduled run does`));
-        return null;
-      }
-      // Started, but it couldn't be followed: that warns and says how to check it.
-      if (job.unfollowed) return null;
-      ok = job.ok;
-      if (!ok) ui.info(`Then try again from "${commandLine('access')}".`);
+    const job = await startAndWaitJob(ctx, 'run', { wait: true, steps: 'access,refresh', timeoutMs: 30 * 60_000 });
+    if (!job.started) {
+      ui.note(onceRunFinished(`apply org-scoped access data again from "${commandLine('access')}", or the next scheduled run does`));
+      return null;
     }
+    if (job.unfollowed) return null;
+    ok = job.ok;
+    if (!ok) ui.info(`Then try again from "${commandLine('access')}".`);
   } else {
     const ws = /** @type {string} */ (config.fabric.workspaceId);
     const id = config.fabric.notebooks.accessScope;
@@ -588,21 +483,22 @@ export async function applyOrgAccess(ctx, opts = {}) {
       ui.fail(`The Access Scope notebook isn't deployed. Run "${commandLine('update')}".`);
       return false;
     }
-    ok = await runAccessNotebook(ctx, ws, id, { MODE: 'all', ROLES_B64: '', ROLES_FILE: s.rolesPath, WORKSPACE_ID: ws });
+    ok = await runAccessNotebook(ctx, ws, id, { MODE: 'all' });
     if (ok && opts.refresh !== false) {
       for (const m of rlsModels(config)) if (m.model) await refreshModel(ctx, { model: m.model, wait: false });
     }
   }
   if (!ok) return false;
-  rls.applied = [...new Set(items.map((i) => i.datasetId))];
+  const models = rlsModels(config);
+  rls.applied = [...new Set(models.map((m) => m.datasetId))];
   ctx.save();
-  ui.ok(`Org-scoped access applied to ${[...new Set(items.map((i) => i.dataset))].join(', ')}`);
+  ui.ok(`Org-scoped access data applied to ${models.map((m) => m.name).join(', ')}`);
+  ui.note(`In Power BI Service, assign "${config.access?.groupName ?? 'the viewer group'}" to the Scoped viewers role for each model. Do not assign the whole viewer group to Everyone; use that role only for people explicitly approved to see all data. Role assignment isn't automated.`);
   return true;
 }
 
 /**
- * Whether org-scoped access is on and a deployed model still needs its role members applied, so
- * ensureOrgAccess applies them (and refreshes, when asked).
+ * Whether org-scoped access is on and a deployed model still needs its scope data loaded.
  * @param {import('../config.js').InstallConfig} config
  */
 export function orgAccessPending(config) {
@@ -613,8 +509,8 @@ export function orgAccessPending(config) {
 }
 
 /**
- * After a deploy: applies role members to any model that was redeployed since they were last
- * applied. Nothing to do when org-scoped access is off.
+ * After a deploy: loads scope data for any model that was redeployed. Role membership remains a
+ * portal step for an administrator.
  * @param {Ctx} ctx
  * @param {{ refresh?: boolean }} [opts]
  * @returns {Promise<boolean | null>} As applyOrgAccess: false when it failed; null when it only warned.
@@ -623,7 +519,8 @@ export async function ensureOrgAccess(ctx, opts = {}) {
   const { ui, config } = ctx;
   if (!rlsOn(config)) return true;
   if (!orgAccessPending(config)) {
-    ui.ok('Org-scoped access is in place');
+    ui.ok('Org-scoped access data is in place');
+    ui.note(`Check the "${config.access?.groupName ?? 'viewer group'}" membership in the Scoped viewers role in Power BI Service after model deployments.`);
     return true;
   }
   try {
@@ -639,15 +536,13 @@ export async function ensureOrgAccess(ctx, opts = {}) {
 const firstRow = (res) => res?.results?.[0]?.tables?.[0]?.rows?.[0];
 
 /**
- * Checks org-scoped access with test queries: how many people have a manager chain, and whether a
- * person with an `all` scope sees everyone. Reports what it finds; never fails the install.
+ * Checks manager-path coverage and reminds the administrator to verify effective RLS in the
+ * Power BI service with a least-privileged viewer. The installer never assigns role members.
  * @param {Ctx} ctx
  */
 export async function verifyOrgAccess(ctx) {
-  const { ui, config, api, user } = ctx;
+  const { ui, config, api } = ctx;
   if (!rlsOn(config)) return;
-  const rows = await readScopes(ctx).catch(() => []);
-  const probe = everyoneUpns(rows).find((u) => u !== user.upn.toLowerCase());
   for (const m of rlsModels(config)) {
     const org = ACCESS_INVENTORY[m.kind].org.table.replace(/'/g, "''");
     const query = `EVALUATE ROW("People", COUNTROWS('${org}'), "Paths", COUNTROWS('${ACCESS_PEOPLE_TABLE}'), "Managed", COUNTROWS(FILTER('${ACCESS_PEOPLE_TABLE}', CONTAINSSTRING('${ACCESS_PEOPLE_TABLE}'[OrgPath], "|"))))`;
@@ -669,15 +564,8 @@ export async function verifyOrgAccess(ctx) {
     if (paths && managed / paths < LOW_MANAGER_COVERAGE) {
       ui.warn(`${m.name}: only ${managed} of ${paths} people have a manager in the org data, so "below a person" scopes miss the rest. Org value scopes still work.`);
     }
-    if (!probe) continue;
-    const seen = await api.powerBi
-      .executeQueries(m.workspaceId, m.datasetId, `EVALUATE ROW("People", COUNTROWS('${org}'))`, { impersonatedUserName: probe })
-      .then((res) => Number(firstRow(res)?.['[People]'] ?? 0))
-      .catch(() => null);
-    if (seen === null) ui.note(`Couldn't query ${m.name} as ${probe} to check what they see.`);
-    else if (seen >= people) ui.ok(`${m.name}: ${probe} sees all ${people.toLocaleString('en-GB')} people`);
-    else ui.warn(`${m.name}: ${probe} has an "everyone" scope but sees ${seen.toLocaleString('en-GB')} of ${people.toLocaleString('en-GB')} people. The roles may not have applied: try "Apply now" from "access".`);
   }
+  ui.note(`Verify row-level security in Power BI Service: assign the viewer group to Scoped viewers, then test with a least-privileged viewer account. Role membership is not automated.`);
 }
 
 const isEmail = (/** @type {string} */ v) => (/^[^\s@]+@[^\s@]+$/.test(v.trim()) ? true : 'Enter an email address');
@@ -755,14 +643,15 @@ async function turnOn(ctx, redeploy) {
   ui.heading('Org-scoped access');
   ui.info('Each viewer then sees only the orgs you give them: everyone, everyone below a person, or one department or country.');
   ui.info('Pages for tenant-wide data (spend, agents, security) show only to people who see everyone.');
-  ui.info('People in the viewer group now keep seeing everything. Anyone added later sees nothing until you give them a scope.');
+  ui.info('With no saved scopes, current viewers start with an all-data scope. New viewers need a scope or an approved default scope.');
+  ui.note('Scoped viewers can exclude activity without matching org data, even with an all-data scope. Check totals before rollout.');
   const blockers = rlsBlockers(ctx);
   if (blockers.length) {
     for (const b of blockers) ui.fail(b);
     return false;
   }
   await showBypass(ctx);
-  ui.note('It needs the tenant setting "Allow XMLA endpoints" and a capacity whose XMLA endpoint is Read Write.');
+  ui.note('After the models are deployed, an administrator must assign the viewer group to the Scoped viewers role in Power BI Service. The installer does not change role membership.');
   const group = await ensureViewerGroup(ctx);
   if (!group) return false;
   const existing = await readScopes(ctx);
@@ -770,9 +659,9 @@ async function turnOn(ctx, redeploy) {
   let rows = existing;
   if (!existing.length) {
     const members = await api.graph.groupUsers(group.id).catch(() => null);
-    if (!members) ui.warn(`Couldn't list the members of ${group.displayName}, so only you keep seeing everything.`);
+    if (!members) ui.warn(`Couldn't list the members of ${group.displayName}, so only you get an initial all-data scope.`);
     rows = seedRows([...(members ?? []).map((m) => m.userPrincipalName ?? ''), user.upn], { grantedBy: user.upn, now: ctx.now() });
-    ui.info(`${rows.length} ${rows.length === 1 ? 'person keeps' : 'people keep'} seeing everything.`);
+    ui.info(`${rows.length} ${rows.length === 1 ? 'person starts' : 'people start'} with an all-data scope.`);
   } else ui.info(`Using the ${existing.length} scope${existing.length === 1 ? '' : 's'} saved from before.`);
   if (!(await ui.confirm('Turn on org-scoped access? The models are redeployed and refreshed.', false))) return false;
   await writeScopes(ctx, rows);
@@ -809,7 +698,7 @@ export async function orgAccessCommand(ctx, redeploy) {
       [
         { name: 'Give someone a scope', value: 'add' },
         ...(rows.length ? [{ name: 'Remove a scope', value: 'remove' }] : []),
-        { name: changed ? 'Apply the changes now' : 'Apply now', value: 'apply', description: 'Reloads the scopes, re-applies the roles and refreshes the models. Takes a few minutes.' },
+        { name: changed ? 'Apply the changes now' : 'Apply now', value: 'apply', description: 'Reloads the scope data and refreshes the models. Role membership is managed separately in Power BI Service.' },
         { name: `Match org scopes on ${attribute === 'department' ? 'country' : 'department'} instead`, value: 'attribute', description: 'Redeploys the models.' },
         { name: 'Turn off org-scoped access', value: 'off', description: 'Everyone in the viewer group sees everything again. The scopes are kept.' },
         { name: 'Done', value: 'done' },
@@ -817,7 +706,7 @@ export async function orgAccessCommand(ctx, redeploy) {
       changed ? 'apply' : 'done',
     );
     if (action === 'done') {
-      if (changed) ui.warn('The changes are saved but not applied yet. They take effect when you apply them, or for scopes other than "everyone", at the next scheduled load.');
+      if (changed) ui.warn('The changes are saved but not applied yet. They take effect when you apply them or the next scheduled load.');
       return;
     }
     if (action === 'add') {

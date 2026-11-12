@@ -11,7 +11,7 @@ import {
   azureUninstall, azureViewerModels, enabledAzureModuleIds, installAzure,
 } from '../src/steps/azure/index.js';
 import { MODEL_UPDATE_NOTE, pendingReloads } from '../src/steps/model.js';
-import { AZURE_ROLES_FILE, rlsModels } from '../src/steps/org-access.js';
+import { rlsModels } from '../src/steps/org-access.js';
 import { buildAgentEvaluatorModel, loadTemplateModel, mParameter } from '../src/transform/model.js';
 import { fakeArm, fakeAzureGraph, fakeCtx, fakeFabric, fakePowerBi, fakeTranscriptEnvironment, fakeUi, httpError, PLATFORM_PRIVILEGES, realSources } from './fakes.js';
 
@@ -338,7 +338,7 @@ test('Azure: a replaced Agent Evaluator model is refreshed, and owed a reload un
   assert.deepEqual(pendingReloads(t.config), []);
 });
 
-test('Azure install with Agent Evaluator and org-scoped access: its model gets the roles, and the roles file covers it', async () => {
+test('Azure install with Agent Evaluator and org-scoped access: deploys role definitions and leaves membership to the portal', async () => {
   const t = await aeInstall();
   const id = t.az.powerBi.agentEvaluatorDatasetId;
   t.config.access = /** @type {any} */ ({ ...t.config.access, groupId: 'group-1', groupName: 'Analytics Hub Viewers', rls: { enabled: true, orgAttribute: 'department', applied: [] } });
@@ -359,10 +359,13 @@ test('Azure install with Agent Evaluator and org-scoped access: its model gets t
   assert.equal(await installAzure(t.ctx, { wait: true }), true);
   assert.ok(t.fabric.calls.includes(`updateSemanticModel ${AE_MODEL}`), 'updated to add the roles');
   assert.ok(deployedBim(t.fabric, id).model.roles?.length, 'with roles');
-  const items = JSON.parse(files.get(`landing/${AZURE_ROLES_FILE}`) ?? '[]');
-  assert.ok(items.some((/** @type {any} */ i) => i.datasetId === id && i.dataset === AE_MODEL), 'in the roles file');
+  const roles = deployedBim(t.fabric, id).model.roles;
+  assert.deepEqual(roles?.map((/** @type {any} */ r) => r.name).sort(), ['Everyone', 'Scoped viewers']);
+  assert.ok(roles?.every((/** @type {any} */ r) => !r.members), 'the installer does not assign members');
+  assert.doesNotMatch(t.fabric.calls.join('\n'), /execute_tmsl|ROLE_MEMBERSHIP/);
   assert.deepEqual([...(t.config.access?.rls?.applied ?? [])].sort(), [t.az.powerBi.datasetId, id].sort());
-  assert.match(t.ui.text(), new RegExp(`Org-scoped access applied to .*${AE_MODEL}`));
+  assert.match(t.ui.text(), new RegExp(`Org-scoped access data applied to .*${AE_MODEL}`));
+  assert.match(t.ui.text(), /In Power BI Service, assign .* to the Scoped viewers role/);
 });
 
 /** An environment where whoever runs the installer can't add application users. */

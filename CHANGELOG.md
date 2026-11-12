@@ -20,6 +20,26 @@ Deployment instructions do **not** live here. They live in the READMEs:
 
 ## Unreleased
 
+**Org-scoped access: Power BI role membership is now an administrator step.** The installer and
+the Access Scope notebook no longer assign Power BI role members. They load the scope data and
+refresh the models, and an administrator assigns membership in Power BI Service > semantic model >
+**Security**. Assign the viewer group to **Scoped viewers** only. Use **Everyone** only for people
+explicitly approved to see all data: someone in both roles gets their combined access, and removing
+an `all` scope from the CSV does not revoke **Everyone** membership.
+
+A model deploy drops role members, so an existing installation with org-scoped access on needs its
+membership reviewed or restored after Upgrade or Repair; until then, viewers outside the workspace
+roles can't read the redeployed models. Saved scopes are untouched. On Azure, an
+`AnalyticsHub_Access_Scope` notebook left in the Power BI workspace by an earlier installer is no
+longer used and can be deleted.
+
+New guides: [Customise](docs/CUSTOMISE.md) lists the common changes in a few steps each, and
+[Row-level security and user-ID privacy setup](docs/CUSTOMIZATION-AND-SECURITY.md) has the
+step-by-step row-level security (RLS) setup, how to verify and reverse it, and what DataHub App and
+ValueLens do and don't do for user IDs. There is no user-ID hashing switch: the guide records the
+planned tenant-scoped keyed hash and its prerequisites, and says pseudonymisation is not anonymity.
+The Share panel links to the guide.
+
 **DataHub App naming.** Current documentation, app branding, installer wording, Teams
 titles and future release titles now use DataHub App. Existing resource names,
 authorization values, download names and links remain compatible; released entries below retain

@@ -70,6 +70,9 @@ only with people who should.
   **Use research** puts them back.
 
 The app saves these in a small SQL database under its item. The Power BI report doesn't see them.
+See the [customisation guide](../docs/CUSTOMISE.md) for common changes and the
+[security and privacy guide](../docs/CUSTOMIZATION-AND-SECURITY.md) for access boundaries, RLS and
+identity-privacy limitations.
 
 ## Reports
 
