@@ -86,14 +86,14 @@ def build_rows(rows, kinds=None, key="PersonId_Normalized"):
 class OrgAttributeRowsTests(unittest.TestCase):
     def test_new_arbitrary_fields_appear_on_next_refresh_without_new_columns(self):
         first = [{"PersonId_Normalized": f"p{i}", "Organization": "Org"} for i in range(1000)]
-        self.assertEqual(build_rows(first), [])
+        self.assertEqual({r["Attribute"] for r in build_rows(first)}, {"Organization", "PersonId_Normalized"})
         later = copy.deepcopy(first)
         later[0].update({"BusinessUnitId": "A", 'Odd "] field': "North"})
         later[1].update({"BusinessUnitId": "B", 'Odd "] field': "South"})
         rows = build_rows(later)
-        self.assertEqual({r["Attribute"] for r in rows}, {"BusinessUnitId", 'Odd "] field'})
-        self.assertEqual(len(rows), 2002)
-        self.assertEqual(sum(r["Value"] is None for r in rows), 1998)
+        self.assertEqual({r["Attribute"] for r in rows}, {"Organization", "PersonId_Normalized", "BusinessUnitId", 'Odd "] field'})
+        self.assertEqual(len(rows), 4004)
+        self.assertEqual(sum(r["Value"] is None for r in rows), 2000)
         self.assertEqual({r["PersonId_Normalized"] for r in rows}, {None} | {f"p{i}" for i in range(1000)})
 
     def test_scalar_types_and_high_cardinality_are_not_dropped(self):
@@ -103,55 +103,61 @@ class OrgAttributeRowsTests(unittest.TestCase):
         kinds = {"PersonId_Normalized": "text", "Budget": "number", "Enabled": "logical",
                  "Since": "date", "Value": "text", "Attribute": "text"}
         rows = build_rows(source, kinds)
-        self.assertEqual(len(rows), 105)
+        self.assertEqual(len(rows), 126)
         self.assertEqual({r["ValueType"] for r in rows}, {"string", "number", "boolean", "date"})
         self.assertIn({"PersonId_Normalized": "p0", "Value": "false", "Attribute": "Enabled",
                        "ValueType": "boolean"}, rows)
         self.assertEqual(next(r["Value"] for r in rows if r["Attribute"] == "Since"), "2026-01-01")
 
-    def test_blank_plus_one_value_is_not_meaningful(self):
+    def test_metadata_retains_blank_and_constant_fields_with_all_memberships(self):
         rows = build_rows([{"PersonId_Normalized": str(i), "Single": v, "Blank": None}
                            for i, v in enumerate([None, "", " ", "One", "ONE "])])
-        self.assertEqual(rows, [])
+        self.assertEqual({r["Attribute"] for r in rows}, {"Single", "Blank", "PersonId_Normalized"})
+        self.assertEqual(len(rows), 18)
+        self.assertTrue(all(r["Value"] is None for r in rows if r["Attribute"] == "Blank"))
+        empty = build_rows([], {"PersonId_Normalized": "text", "FutureField": "text"})
+        self.assertEqual({r["Attribute"] for r in empty}, {"FutureField", "PersonId_Normalized"})
 
     def test_evaluator_join_key_and_source_column_name_collisions(self):
         rows = build_rows([{"Org Join Key": "p1", "PersonId_Normalized": "one", "Value": "A"},
                            {"Org Join Key": "p2", "PersonId_Normalized": "two", "Value": "B"}],
                           key="Org Join Key")
-        self.assertEqual(len(rows), 3)
+        self.assertEqual(len(rows), 6)
         self.assertEqual({r["PersonId_Normalized"] for r in rows}, {"p1", "p2", None})
-        self.assertEqual({r["Attribute"] for r in rows}, {"Value"})
+        self.assertEqual({r["Attribute"] for r in rows}, {"Value", "PersonId_Normalized"})
+        self.assertEqual({r["Value"] for r in rows if r["Attribute"] == "PersonId_Normalized"},
+                         {"p1", "p2", None})
 
-    def test_lean_identity_fields_are_excluded_but_raw_account_enabled_is_available(self):
+    def test_internal_fields_are_excluded_but_supplied_identity_and_flags_are_available(self):
         source = [
             {"PersonId_Normalized": f"p{i}", "accountEnabled": bool(i),
+             "displayName": f"Person {i}", "managerUPN": "manager", "PersonId": f"raw-{i}",
              **{c: f"{c}-{i}" for c in UPDATE.EXCLUDED if c != "PersonId_Normalized"}}
             for i in range(2)
         ]
         rows = build_rows(source, {**dict.fromkeys(source[0], "text"), "accountEnabled": "logical"})
-        self.assertEqual({r["Attribute"] for r in rows}, {"accountEnabled"})
-        self.assertEqual({r["Value"] for r in rows}, {"true", "false", None})
-        self.assertEqual({r["ValueType"] for r in rows}, {"boolean"})
+        self.assertEqual({r["Attribute"] for r in rows},
+                         {"accountEnabled", "displayName", "managerUPN", "PersonId", "PersonId_Normalized"})
+        self.assertEqual({r["Value"] for r in rows if r["Attribute"] == "accountEnabled"}, {"true", "false", None})
+        self.assertEqual({r["ValueType"] for r in rows if r["Attribute"] == "accountEnabled"}, {"boolean"})
 
     def test_non_scalar_is_an_explicit_failure(self):
         with self.assertRaisesRegex(ValueError, "Non-scalar"):
             build_rows([{"PersonId_Normalized": "p1", "Unexpected": {"nested": "value"}}])
 
-    def test_consumption_accepts_sparse_fields_but_not_blank_plus_constant(self):
+    def test_consumption_accepts_sparse_constant_and_blank_fields_from_metadata(self):
         source = [{"Rare": None, "Single": None} for _ in range(1000)]
         source[0] = {"Rare": "North", "Single": "Only"}
         source[1]["Rare"] = "South"
-        function = "(Base as table) => let\n" + UPDATE.CREDIT_LIVE.strip() + "\nin Live"
-        # CREDIT_LIVE is a let binding prefix, so remove its final comma.
-        function = function.replace(">= 2),\nin", ">= 2)\nin")
+        function = "(Base as table) => let\n" + UPDATE.CREDIT_LIVE.strip().removesuffix(",") + "\nin Live"
         live = evaluate(function, {
-            "Attrs": ["Rare", "Single"],
+            "Attrs": ["Rare", "Single", "Blank"],
             "Blank": lambda v: v is None or not str(v).strip(),
             "Table.Column": lambda table, col: [row[col] for row in table],
             "List.Count": len, "List.Distinct": distinct,
             "Comparer.OrdinalIgnoreCase": "ignore-case", "Text.From": text,
         })(source)
-        self.assertEqual(live, ["Rare"])
+        self.assertEqual(live, ["Rare", "Single", "Blank"])
 
     def test_consumption_pretty_label_collisions_retain_distinct_source_names(self):
         code = UPDATE.CREDIT_PRETTY.strip().removesuffix(",")
@@ -248,7 +254,7 @@ class OrgAttributeTemplatesTests(unittest.TestCase):
         # Relationship unknown member represents fact users absent from org.
         facts[None] = 1234
         grouped = {}
-        for membership in rows:
+        for membership in (r for r in rows if r["Attribute"] == "Sparse"):
             grouped.setdefault(membership["Value"], []).append(membership["PersonId_Normalized"])
         totals = {value: sum(facts[key] for key in keys) for value, keys in grouped.items()}
         full = sum(facts.values())
@@ -312,7 +318,22 @@ class OrgAttributeTemplatesTests(unittest.TestCase):
             self.assertNotIn("__lean", query)
             self.assertNotIn("each Table.RowCount", query)
             self.assertIn("Table.ColumnNames(Base)", query)
-            self.assertIn("DistinctPopulated(_) >= 2", query)
+            self.assertIn("Live = Attrs & {Key}", query)
+            self.assertNotIn("DistinctPopulated", query)
+
+    def test_consumption_user_id_uses_existing_key_without_security_changes(self):
+        with zipfile.ZipFile(ROOT / UPDATE.TEMPLATES[-1]) as archive:
+            model = json.loads(archive.read("DataModelSchema").decode("utf-16-le").lstrip("\ufeff"))["model"]
+        bridge = next(t for t in model["tables"] if t["name"] == UPDATE.BRIDGE)
+        query = "\n".join(bridge["partitions"][0]["source"]["expression"])
+        self.assertIn('Attrs = Table.ColumnNames(Base)', query)
+        self.assertIn('if c = "UserPrincipalName" then "User ID"', query)
+        self.assertIn('Live = Attrs,', query)
+        self.assertNotIn("DistinctPopulated", query)
+        before = copy.deepcopy(model)
+        document = {"model": model}
+        UPDATE.edit_model(document)
+        self.assertEqual(model, before)
 
 
 if __name__ == "__main__":

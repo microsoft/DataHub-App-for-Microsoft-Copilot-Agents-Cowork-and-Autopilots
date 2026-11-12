@@ -131,7 +131,7 @@ export function CoworkReadinessStage() {
             <OnDemand
                 id="cowork-candidates"
                 label="Show the people"
-                note="Everyone yet to try Cowork, readiest first."
+                note="Licensed Microsoft 365 Copilot users yet to try Cowork, ranked among licensed users only."
             >
                 <CoworkCandidates />
             </OnDemand>
@@ -143,7 +143,11 @@ function CoworkReadinessByOrg() {
     const { theme } = useThemeContext();
     const org = useOrgAttribute();
     const byOrg = useMemo(() => withOrgAttribute(coworkReadinessByOrg(), org), [org]);
-    const byOrgResult = useFilteredQuery({ connection: byOrg.connection, query: byOrg.query });
+    const byOrgResult = useFilteredQuery({
+        connection: byOrg.connection,
+        query: byOrg.query,
+        columnMetadata: byOrg.columnMetadata,
+    });
     const byOrgTable = useMemo(
         () =>
             byOrgResult.data?.status === "success"
@@ -194,7 +198,11 @@ function CoworkCandidates() {
     const { theme } = useThemeContext();
     const org = useOrgAttribute();
     const candidates = useMemo(() => withOrgAttribute(coworkCandidates(), org), [org]);
-    const candidatesResult = useFilteredQuery({ connection: candidates.connection, query: candidates.query });
+    const candidatesResult = useFilteredQuery({
+        connection: candidates.connection,
+        query: candidates.query,
+        columnMetadata: candidates.columnMetadata,
+    });
     const candidatesTable = useMemo(
         () =>
             candidatesResult.data?.status === "success"
@@ -227,7 +235,7 @@ function CoworkCandidates() {
                     <QueryEmpty
                         className="h-full"
                         title="Nobody to rank"
-                        description="Everyone with recorded Copilot use has already tried Cowork, or nobody has used Copilot in this period."
+                        description="No licensed Microsoft 365 Copilot users with recorded use are yet to try Cowork in this selection."
                     />
                 ) : (
                     <DataGrid
@@ -237,13 +245,13 @@ function CoworkCandidates() {
                         theme={theme}
                         header={{
                             title: "Who to offer Cowork next",
-                            subtitle: `${formatKpi(listCount(candidatesTable), "whole")} people, readiest first`,
+                            subtitle: `${formatKpi(listCount(candidatesTable), "whole")} licensed users, readiest first`,
                         }}
                     />
                 )}
             </div>
             {candidatesTable && !candidatesResult.isLoading && candidatesResult.data?.status === "success" && (
-                <TruncationNote shown={candidatesTable.rows.length} total={listTotal(candidatesTable)} noun="people" by="by readiness" />
+                <TruncationNote shown={candidatesTable.rows.length} total={listTotal(candidatesTable)} noun="licensed users" by="by readiness" />
             )}
         </>
     );

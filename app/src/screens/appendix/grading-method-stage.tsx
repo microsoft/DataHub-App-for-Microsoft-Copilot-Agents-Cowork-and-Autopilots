@@ -144,10 +144,9 @@ function ResearchTable({ group }: { group: ResearchGroup }) {
 }
 
 /**
- * The method behind both Efficiency stages: the work weight grade Cowork fit
- * reports, the cost tiers Model fit sets against it, and the published
- * research that loosely informed where the lines sit. Static copy; the
- * semantic model does the grading.
+ * The method behind both Efficiency stages: the work-weight grade used for
+ * Cowork fit, the model-cost tier Model fit compares with it, and the research
+ * that informed the rules. Static copy; the semantic model does the grading.
  */
 export function GradingMethodStage() {
     const researchId = useId();
@@ -155,19 +154,19 @@ export function GradingMethodStage() {
         <Section
             id={stageAnchor("grading-method")}
             title="How grading works"
-            description="The rules behind Cowork fit and Model fit, which read what a session touched and never the prompt or the answer."
+            description="How Efficiency grades recorded session activity and compares the work with the logged model's cost tier. It never reads prompts or answers."
         >
             <div className="grid items-stretch gap-400 xl:grid-cols-2">
                 <RulePanel
                     title="Work weight"
-                    lead="One grade per session, from the apps and sources it touched. Cowork fit reports it for Cowork sessions; Model fit sets it against the cost of the model used."
+                    lead="One grade per session from the apps and sources it touched. Cowork fit shows it for Cowork sessions; Model fit compares it with the model's cost tier."
                     note={GRADING_SETTING_NOTE}
                 >
                     <RuleList rules={WORK_WEIGHT_GRADES} />
                 </RulePanel>
                 <RulePanel
                     title="Model cost"
-                    lead="Each logged model falls in a cost tier. A session's verdict compares that tier with its work weight."
+                    lead="The tier comes from the model logged in each session. The verdict compares it with the session's work-weight grade."
                     note={MODEL_TIER_NOTE}
                 >
                     <TierList />
@@ -181,8 +180,8 @@ export function GradingMethodStage() {
                         Research behind it
                     </h3>
                     <p className={`max-w-[80ch] ${BODY} text-muted-foreground`}>
-                        None of these sources grades Copilot sessions. They informed where the lines sit, and the
-                        thresholds are ValueLens's own.
+                        These sources inform the method, but none grades Copilot sessions. The thresholds are DataHub
+                        App rules, not study findings.
                     </p>
                 </div>
                 {RESEARCH_GROUPS.map((group) => (

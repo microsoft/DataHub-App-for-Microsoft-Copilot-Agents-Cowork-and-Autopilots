@@ -17,6 +17,8 @@ import { applyDaxFilters, daxString } from "./dax-filters";
  */
 export const ORG_TABLE = "Chat + Agent Org Data";
 export const DEFAULT_ORG_ATTRIBUTE = "Organization";
+/** Synthetic bridge attribute backed by the model's normalized person join key. */
+export const USER_ID_ATTRIBUTE = "PersonId_Normalized";
 export const ORG_ATTRIBUTE_TABLE = "Org Attribute Source";
 export const ORG_ATTRIBUTE_VALUE_REF = `'${ORG_ATTRIBUTE_TABLE}'[Value]`;
 
@@ -68,7 +70,7 @@ function pluralise(phrase: string): string {
 }
 
 export function describeOrgAttribute(column: string): OrgAttribute {
-    const label = humanise(column);
+    const label = column === USER_ID_ATTRIBUTE ? "User ID" : humanise(column);
     const noun = label
         .split(" ")
         .map((word) => (word.length > 1 && word === word.toUpperCase() ? word : word.toLowerCase()))
@@ -97,23 +99,20 @@ export interface OrgColumnStatistic {
     maxLength: number | undefined;
 }
 
-const PERSON_OR_INTERNAL_COLUMNS = new Set([
-    "id", "userid", "userkey", "personid", "personkey", "employeeid", "employeekey",
-    "objectid", "aadid", "aadobjectid", "entraid", "entraobjectid",
-    "upn", "userprincipalname", "principalname", "email", "emailaddress", "mail",
+const INTERNAL_COLUMNS = new Set([
+    "userkey", "personkey", "employeekey",
     "personidnormalized", "personidnormalised", "useridnormalized", "useridnormalised",
     "userprincipalnamenormalized", "userprincipalnamenormalised",
-    "managerid", "manageruserid", "manageruserkey", "managerupn", "manageruserprincipalname",
-    "displayname", "fullname", "preferredname", "firstname", "lastname", "givenname", "surname", "name", "user",
+    "manageruserkey",
     "hierarchypath", "managementpath", "orgpath", "orgjoinkey", "totalemployees", "hierarchyerror", "orgdatasource",
 ]);
 
-/** Business codes such as CostCenterId are attributes, not person identifiers. */
+/** Source fields are eligible regardless of type; only model plumbing is hidden. */
 export function isOrgAttribute(column: string): boolean {
+    if (column === USER_ID_ATTRIBUTE) return true;
     const key = column.replace(/[^a-z0-9]/gi, "").toLowerCase();
     return key.length > 0 &&
-        !PERSON_OR_INTERNAL_COLUMNS.has(key) &&
-        !/^(person|user|employee|manager)(id|key|upn|email|emailaddress|principalname)(normali[sz]ed)?$/.test(key) &&
+        !INTERNAL_COLUMNS.has(key) &&
         !/^rownumber-/i.test(column) &&
         key !== "level5userkey";
 }
@@ -128,15 +127,14 @@ export function orgValueFilter(column: string, values: readonly string[], keyCol
 }
 
 /**
- * Candidates from model statistics, regardless of type or cardinality.
- * A bounded value check subsequently excludes blank-plus-single-value columns.
+ * Candidates from the viewer-readable bridge inventory, regardless of type,
+ * cardinality or population. Source metadata makes blank fields meaningful too.
  * `Organization` leads; the rest are alphabetical by label.
  */
 export function pickOrgAttributes(stats: readonly OrgColumnStatistic[]): string[] {
     const picked = stats
         .filter(
             (stat) =>
-                stat.cardinality >= 2 &&
                 isOrgAttribute(stat.column),
         )
         .map((stat) => stat.column);
@@ -144,7 +142,7 @@ export function pickOrgAttributes(stats: readonly OrgColumnStatistic[]): string[
     return [...new Set(picked)].sort((a, b) => {
         if (a === DEFAULT_ORG_ATTRIBUTE) return -1;
         if (b === DEFAULT_ORG_ATTRIBUTE) return 1;
-        return humanise(a).localeCompare(humanise(b));
+        return describeOrgAttribute(a).label.localeCompare(describeOrgAttribute(b).label);
     });
 }
 

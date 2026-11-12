@@ -123,8 +123,9 @@ Azure needs nothing: its jobs write whole Parquet files and publish to Azure SQL
 1. **Update the processor**, on Fabric (`Repair or change`) or Azure (the jobs image, which runs
    migration V007).
 2. **Rebuild every curated month once.** On Fabric use `WRITE_MODE = "overwrite"`; on Azure use
-   `python -m valuelens_jobs process --full-rebuild`, then publish. Processor logic version 2
-   (Fabric) and the changed core fingerprint (Azure) also force this migration automatically.
+   `python -m valuelens_jobs process --full-rebuild`, then publish. The change to processor logic
+   version 3 (Fabric) and the changed core fingerprint (Azure) also trigger a one-time rebuild
+   automatically, including the Astra tier update.
    Check column types, nonblank required values, key mappings and row counts before continuing.
 3. **Deploy and refresh all partitions of the updated model**, then run paired old/new DAX
    equality checks on the same data. Do not rely on the ordinary seven-day refresh window.

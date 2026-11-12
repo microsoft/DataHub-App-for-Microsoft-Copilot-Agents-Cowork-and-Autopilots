@@ -692,6 +692,10 @@ user per week, expert-equivalent hours per week, and the top value outcome.
 
 - **Agent return rate:** people with two or more agent sessions ÷ people with at least one.
 - **Top value outcome** ranks outcomes by hours.
+- The Cowork adoption card uses the same sessions-per-user-per-week definition and selected
+  dates as the other activity cards. Activity = Cowork highlights that card. When Cowork
+  telemetry is absent, it shows **No activity**, not a fabricated zero. The Per user / Sessions /
+  Hours control changes the weekly trend; the cards retain their sessions-per-user-per-week metric.
 
 ### Habit Formation: has it become a habit?
 
@@ -852,11 +856,18 @@ against this value ([§8.3](#83-cost-vs-value)).
 These pages grade Cowork sessions and score who is ready for Cowork. Their method is being revised
 and isn't documented here yet.
 
+The app's **Who to offer Cowork next** list includes only Microsoft 365 Copilot licensed users
+with recorded use who have not tried Cowork in the selection. License eligibility is checked
+before score normalization, dense ranking, depth comparisons and the total count, not after
+ranking a mixed population. The existing breadth, depth and agent-use scoring is unchanged.
+The readiness overview cards and organisation breakdown still describe the wider population;
+the licensed-only restriction applies to the prioritisation list.
+
 ### Model Fit: was the model heavier than the task?
 
 | Logged model | Cost tier |
 |---|---|
-| Opus, GPT-6 | Frontier (premium cost) |
+| Opus, GPT-6, Astra | Frontier (premium cost) |
 | Sonnet, other Claude, GPT-5, GPT-4 | Workhorse (mid cost) |
 | None logged | Not attributed |
 

@@ -18,7 +18,6 @@ import { useOutcomeColors } from "@/hooks/use-palette-theme";
 import { useRowToggles } from "@/hooks/use-row-toggles";
 import { gridHeight } from "@/lib/chart-height";
 import { formatKpi } from "@/lib/format-kpi";
-import type { FilterKey } from "@/lib/filters";
 import { workWeightGrade } from "@/lib/grading-method";
 import { heatDomain, heatRenderer, type HeatDomain } from "@/lib/heat";
 import { leafCount, listTotal } from "@/lib/list-total";
@@ -37,11 +36,6 @@ import {
 /** Shares of graded sessions shade on one absolute scale, so 50% reads the same on every row. */
 const SHARE_HEAT: HeatDomain = { min: 0, max: 1 };
 
-interface CoworkTableProps {
-    /** Filters Cowork fit never applies. */
-    ignore: FilterKey[];
-}
-
 const SHAPE_TOTAL_COLUMNS = [
     { id: WORK_LABEL_COLUMN },
     { id: "Sessions", format: formatCell("whole") },
@@ -58,10 +52,12 @@ const SHAPE_TOTAL_COLUMNS = [
  * everyday tool that could have done Worth-a-look work, its share of all
  * graded work and the median sources a session touched.
  */
-export function WorkShapeTable({ ignore }: CoworkTableProps) {
+export function WorkShapeTable() {
     const { theme } = useThemeContext();
     const source = coworkWorkShape();
-    const result = useFilteredQuery({ connection: source.connection, query: source.query }, { ignore });
+    const result = useFilteredQuery(
+        { connection: source.connection, query: source.query, columnMetadata: source.columnMetadata },
+    );
     const tree = useMemo(
         () =>
             result.data?.status === "success"
@@ -174,12 +170,14 @@ function flagCell(value: CellValue, row: Row): ReactNode {
  * attribute, opening to its people, with graded sessions, the grade mix and
  * a flag for anyone with half or more of their sessions at Worth a look.
  */
-export function PeopleTable({ ignore }: CoworkTableProps) {
+export function PeopleTable() {
     const { theme } = useThemeContext();
     const org = useOrgAttribute();
     const outcomeColors = useOutcomeColors();
     const source = useMemo(() => coworkFitPeople(org), [org]);
-    const result = useFilteredQuery({ connection: source.connection, query: source.query }, { ignore });
+    const result = useFilteredQuery(
+        { connection: source.connection, query: source.query, columnMetadata: source.columnMetadata },
+    );
     const blankLabel = `Unassigned ${org.noun}`;
     const table = useMemo(
         () => (result.data?.status === "success" ? toDataTable(result.data.table, source.columnMetadata) : undefined),

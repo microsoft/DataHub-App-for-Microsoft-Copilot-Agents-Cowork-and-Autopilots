@@ -11,6 +11,82 @@ The app keeps no copy of your data. Each page queries the semantic model live, a
 viewing it, so row-level security applies. How each figure is worked out is in the
 [methodology](../docs/METHODOLOGY.md).
 
+## Static browser demo
+
+The standalone DataHub App browser demo at `demo.html` uses the real app screens with the published
+[synthetic sample CSVs](../samples/README.md). It does not read host configuration, ask you to sign in, or contact a model or app
+backend. Ask returns a local example answer; settings changes stay in memory for the current page
+session, and admin-only actions are disabled.
+
+The demo data build needs Python 3.10+ and the existing [core](../core/pyproject.toml)
+DuckDB dependency (`python -m pip install -e ..\core` from this folder).
+From this folder, install the app dependencies with `npm ci` and run:
+
+```powershell
+npm run build:demo
+```
+
+The build first runs `npm run demo:data`: CSV parsing and the shared core classifier produce
+the ignored `src/demo/sample-data.generated.json`. The classifier's ingestion exclusions are
+disabled because this is an already-curated published sample set: all 13,337 rows are retained.
+Dates are not shifted. Reference task times, behavior mappings and glossary entries come from
+the checked-in ValueLens template; default commercial terms are read, without executing it,
+from the checked-in consumption sample seeder. Tests regenerate the data first. For a direct
+typecheck or watch session, run `npm run demo:data` first.
+
+The original activity dates are **1 June–31 August 2026**, with **170 inventory people,
+13,337 tasks and 2,476.65 typical expert-equivalent hours** under the shipped template rules.
+The dated consumption exports total **162,222.8531 credits**: 44,750.8531 Cowork and 117,472
+Studio. These do **not** reproduce a separately transformed live installation's 2,690 hours
+or 153.3k credits. User snapshots (117,475 Studio credits) and agent/feature snapshots retain
+their own export grain; they are not rescaled to make dated tenant totals match. The consumption
+directory and interaction sample use separate synthetic cohorts, so they are not joined by
+invented identities. No live lakehouse data or private configuration is used.
+The CSV inputs are unchanged from public sample commit
+`b9c543d65ecfd406a8d74b33043fd5ff6162097c`
+(sample tree `8280b20447058886574903d87976da40edc809bb`).
+
+The completeness fixes replace query-hash numbers with native-schema adapters for Cowork/model
+fit, activity/adoption, leaderboards, readiness, value, consumption, feedback and registry
+governance. Percentages, rollup flags, full-list counts and concentration curves derive from
+source rows. Unknown queries fail visibly rather than receive plausible invented values.
+The public sample pack does not include Microsoft 365 telemetry, evaluation conversations,
+Defender findings or Resource Graph configuration; those pages explicitly disclose unavailable
+sources. Unset monthly budgets remain unset and can be tried in memory. Registry checks use
+only the evidence present in the sample; unavailable authentication checks are not reported clear.
+
+The Appendix uses the app's current source-page glossary presentation and grading explanation.
+Signal → Impact displays the packaged model's **Human Baseline** reference minutes, not measured
+time saved or the Typical effort scenario. Assumptions overrides affect estimated hours and value,
+not this reference. The Appendix guide link bundles the existing app PDF unchanged.
+
+The self-contained static bundle is written to `dist-demo`. Serve that directory from any static
+file host; `index.html`, its local assets, the MIT `LICENSE.txt`, and the generated
+`THIRD_PARTY_NOTICES.txt`, `SOURCE_PROVENANCE.json` and `SHA256SUMS.txt` travel together.
+Provenance records the source revision, sample tree, every input hash and build runtime.
+The checksum manifest lists every
+bundle file except itself. The build uses Vite's `demo` mode and relative asset paths so the bundle
+can live below a site subdirectory. Do not copy deployment settings or real identifiers into the
+demo bundle.
+
+The demo includes the Cross-vendor view (Portfolio, Adoption trends, Coding output,
+Spend & credits, Native usage, Cost & evidence, Source coverage and Methodology), plus
+comparison panels on Executive summary, Adoption, Consumption, Efficiency and Leaderboards.
+Its seeded 91-day comparison keeps a separate four-organization, 278-person scenario, not the
+170-person CSV sample or a Fabric export. Monthly active users cover their labelled month,
+not the app's all-date totals. Vendor counts can overlap; native units, credits and USD spend
+are not added together. The native-source evidence fixture is separately identified and is not
+a population total. The Microsoft Copilot snapshot uses the same seeded monthly active people
+and credits as the scenario charts, not a live export; GitHub usage remains deferred.
+The view's own vendor/product filters work locally; app-wide filters do
+not apply. `.env.demo` enables this view only for the static demo build; ordinary builds keep
+it disabled unless `VITE_CROSS_VENDOR_DEMO=true` is explicitly set.
+
+The demo build retains the compatibility flag `VITE_DATAHUB_PREVIEW=true` to use DataHub App in desktop and mobile
+navigation, cross-vendor copy and report exports. Its HTML title, description and bundled
+README use DataHub App too. Existing demo links remain unchanged. Ordinary builds also retain
+main's DataHub App branding; deployment identifiers and access-group names are unchanged.
+
 ## Deploy it by hand
 
 You need:
@@ -118,22 +194,21 @@ optional module choices. A deploy from this folder uses `fabric.yaml` instead. S
 
 ### Group by
 
-**Group by** offers the meaningful attributes in your org data, including custom columns,
-business codes, hierarchy levels, numbers, booleans and dates. It does not impose a maximum
-number of distinct groups. Person identifiers, individual names, full hierarchy paths and
-internal processing fields stay out, as do attributes with fewer than two populated values.
-A blank plus one real value is still a single-value attribute.
+**Group by** offers the supplied attributes in your org data, including custom columns,
+business codes, hierarchy levels, numbers, booleans and dates, even constant or entirely blank
+columns. **User ID** groups by the existing normalized person key. Supplied identity fields
+and names are eligible; generated hierarchy paths and internal processing fields stay out.
+There is no maximum number of distinct groups, and existing viewer access restrictions still apply.
 
 The main app and Agent Evaluator discover their own model's attributes rather than sharing a
-fixed field list. The Evaluator keeps Agent and Topic choices and offers an org grouping only
-when at least two populated groups have conversations. Its grouping eligibility loads when
-you open **Group by**, not with the landing page. Cowork and Studio read their model's org
-attributes, including sparsely populated ones, while retaining their product-specific usage
-intensity choices and per-person exclusions.
+fixed field list. The Evaluator keeps its eligible Agent and Topic choices and loads its org
+attribute inventory when you open **Group by**, not with the landing page. Cowork and Studio
+read their model's org attributes, including individual-user and sparsely populated groupings,
+while retaining their product-specific usage intensity choices.
 
 Attribute discovery does not fetch every attribute's value list. The main app reads the
-model's `Org Attribute Source` membership table, checking at most two populated distinct
-values per attribute in one query; only the selected attribute's values load when a filter
+model's `Org Attribute Source` membership table for its attribute inventory in one query;
+only the selected attribute's values load when a filter
 menu opens. Numbers, booleans and dates are serialized by the model into invariant text for
 grouping and filtering, without changing source column types.
 

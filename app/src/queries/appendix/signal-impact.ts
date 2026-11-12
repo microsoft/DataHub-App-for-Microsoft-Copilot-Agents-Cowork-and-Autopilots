@@ -47,8 +47,8 @@ export function withTaskDescriptions(table: DataTable): DataTable {
 }
 
 /**
- * The report's Signal → Impact appendix: each audit-log signal, the Task
- * Breakdown it is read as, and the human-time estimate and research behind its value.
+ * The app's Signal → Impact reference: each audit-log signal, the Task
+ * Breakdown it maps to, and the model's human-time baseline and research source.
  *
  * `Behavior Value Map` holds the signals and `Human Time Estimates` the
  * editable minutes; they are joined on Behavior with LOOKUPVALUE so the query

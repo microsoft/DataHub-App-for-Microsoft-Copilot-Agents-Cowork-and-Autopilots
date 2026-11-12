@@ -24,11 +24,12 @@ SPEC.loader.exec_module(ZIP)
 TEMPLATES = ZIP.TEMPLATES + (Path("fabric") / "Add Credit Consumption" / "Consumption Central - Fabric.pbit",)
 ORG = "Chat + Agent Org Data"
 BRIDGE = "Org Attribute Source"
-# Exact identity/internal names from the main model's lean projection, plus join
-# keys. accountEnabled is intentionally not excluded: it is a useful scalar flag.
+# Exclude generated plumbing, not supplied business or identity fields.
+# The effective normalized join key is projected once as the explicit User ID.
 EXCLUDED = (
-    "PersonId", "PersonId_Normalized", "Org Join Key", "TotalEmployees",
-    "displayName", "managerUPN", "id", "UserId", "Manager_UserId",
+    "PersonId_Normalized", "Org Join Key", "TotalEmployees",
+    "Hierarchy Path", "HierarchyPath", "ManagementPath", "OrgPath",
+    "HierarchyError", "OrgDataSource", "Level5_User Key",
 )
 
 # One buffered source scan, then one projection per attribute. Unlike unpivot, this
@@ -46,11 +47,8 @@ let
         else if Value.Is(v, type time) then Time.ToText(v, [Format="HH:mm:ss.fffffff", Culture="en-US"])
         else Text.From(v, "en-US"),
     Blank = (v as any) as logical => v = null or Text.Trim(ScalarText(v)) = "",
-    DistinctPopulated = (c as text) as number =>
-        List.Count(List.Distinct(
-            List.Transform(List.Select(Table.Column(Base, c), each not Blank(_)),
-                each Text.TrimEnd(ScalarText(_))), Comparer.OrdinalIgnoreCase)),
-    Live = List.Select(Attrs, each DistinctPopulated(_) >= 2),
+    // Schema is enough to offer constant, sparse and entirely blank fields.
+    Live = Attrs & {Key},
     Kind = (c as text) as text =>
         let k = Table.SelectRows(Schema, each [Name] = c){0}[Kind]
         in if k = "logical" then "boolean"
@@ -62,13 +60,14 @@ let
             Values = Table.FromColumns({Table.Column(Base, Key),
                 List.Transform(Table.Column(Base, c), each if Blank(_) then null else ScalarText(_))},
                 {"PersonId_Normalized", "Value"}),
-            Attribute = Table.AddColumn(Values, "Attribute", each c, type text),
+            Attribute = Table.AddColumn(Values, "Attribute",
+                each if c = Key then "PersonId_Normalized" else c, type text),
             ValueKind = Kind(c),
             Typed = Table.AddColumn(Attribute, "ValueType", each ValueKind, type text),
             // A null foreign key reaches org's unknown member, preserving activity
             // from people absent from the source roster in the blank-value group.
             Unknown = #table({"PersonId_Normalized", "Attribute", "Value", "ValueType"},
-                {{null, c, null, ValueKind}})
+                {{null, if c = Key then "PersonId_Normalized" else c, null, ValueKind}})
         in Table.Combine({Typed, Unknown}),
     Empty = #table({"PersonId_Normalized", "Attribute", "Value", "ValueType"}, {}),
     Out = if List.IsEmpty(Live) then Empty else Table.Combine(List.Transform(Live, One))
@@ -78,13 +77,16 @@ in
 
 CREDIT_START = "\t// An attribute only a handful of people"
 CREDIT_END = "\tPretty = (c as text) as text =>"
-CREDIT_LIVE = '''\t// Coverage and distinct-value ceilings hide useful sparse business attributes.
+LEGACY_CREDIT_LIVE = '''\t// Coverage and distinct-value ceilings hide useful sparse business attributes.
 \t// Blanks do not count as a second value.
 \tDistinctPopulated = (c as text) as number =>
 \t\tList.Count(List.Distinct(
 \t\t\tList.Transform(List.Select(Table.Column(Base, c), each not Blank(_)),
 \t\t\t\teach Text.TrimEnd(Text.From(_, "en-US"))), Comparer.OrdinalIgnoreCase)),
 \tLive = List.Select(Attrs, each DistinctPopulated(_) >= 2),
+'''
+CREDIT_LIVE = '''\t// Source metadata defines eligibility, not populated-value counts.
+\tLive = Attrs,
 '''
 CREDIT_PRETTY = '''\tPretty = (c as text) as text =>
 \t\tlet
@@ -129,6 +131,7 @@ def bridge_table(source):
 
 def credit_source(text):
     text = ZIP.joined(text)
+    text = text.replace(LEGACY_CREDIT_LIVE, CREDIT_LIVE)
     if CREDIT_LIVE not in text:
         if text.count(CREDIT_START) != 1 or text.count(CREDIT_END) != 1:
             raise ValueError("Consumption org eligibility query changed shape")
@@ -139,6 +142,15 @@ def credit_source(text):
             raise ValueError("Consumption org display labels changed shape")
         text = text.replace(CREDIT_END, "\tRawPretty = (c as text) as text =>")
         text = text.replace("\tOne = (c as text) as table =>", CREDIT_PRETTY + "\tOne = (c as text) as table =>")
+    # UserPrincipalName is already Consumption's resolved, normalized person key.
+    # Reuse it for grouping without changing identity resolution or relationships.
+    text = text.replace(
+        'Attrs = List.RemoveItems(Table.ColumnNames(Base), {"UserPrincipalName"})',
+        'Attrs = Table.ColumnNames(Base)')
+    if 'if c = "UserPrincipalName" then "User ID"' not in text:
+        text = text.replace(
+            'if c = "DisplayName" then "User"',
+            'if c = "UserPrincipalName" then "User ID"\n\t\telse if c = "DisplayName" then "User"')
     return text
 
 

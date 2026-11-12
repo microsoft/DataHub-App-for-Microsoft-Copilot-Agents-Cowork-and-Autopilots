@@ -68,7 +68,7 @@ describe("Evaluator grouping menu", () => {
         expect(state.semantic).toHaveBeenLastCalledWith(evaluationOrgAttributes());
     });
 
-    it("offers only discovered eligible columns and uses their actual Evaluator reference", () => {
+    it("offers every discovered column without eligibility scans and uses its actual Evaluator reference", () => {
         const view = render(<PerformanceStage options={OPTIONS} extra={[]} />);
         openGrouping();
         act(() => {
@@ -76,29 +76,24 @@ describe("Evaluator grouping menu", () => {
                 status: "success",
                 table: {
                     columns: [{ name: "[Column]" }],
-                    rows: [["CostCenterId"], ["Sparse"], ["PersonId"]],
+                    rows: [["CostCenterId"], ["Sparse"], ["PersonId_Normalized"], ["Blank"], ["Constant"]],
                 },
             };
         });
         view.rerender(<PerformanceStage options={OPTIONS} extra={[]} />);
-        const query = state.table.mock.calls.find(([source]) => source.query.includes('"Kind", "Group by"'))?.[0].query;
-        expect(query).toContain("'Org Attribute Source'[Value]");
-        expect(query).toContain('TREATAS({"CostCenterId"}, \'Org Attribute Source\'[Attribute])');
-        expect(query).not.toContain('"PersonId"');
-        expect(screen.queryByRole("button", { name: "Cost center id", hidden: true })).toBeNull();
-        act(() => {
-            state.eligibility = {
-                columns: [{ name: "Kind" }, { name: "Value" }, { name: "Sort" }],
-                rows: [["Group by", "org:CostCenterId", 2], ["Group by", "org:Sparse", 1]],
-            };
-        });
-        view.rerender(<PerformanceStage options={OPTIONS} extra={[]} />);
+        expect(state.table.mock.calls.some(([source]) => source.query.includes('"Kind", "Group by"'))).toBe(false);
+        for (const name of ["Sparse", "Blank", "Constant", "User ID"]) {
+            expect(screen.getByRole("button", { name, hidden: true })).toBeTruthy();
+        }
         fireEvent.click(screen.getByRole("button", { name: "Cost center id", hidden: true }));
-        expect(screen.queryByRole("button", { name: "Sparse", hidden: true })).toBeNull();
         expect(state.table.mock.calls.some(([source]) =>
             source.query.includes('"@Resolution"') &&
             source.query.includes("'Org Attribute Source'[Value],") &&
             source.query.includes('TREATAS({"CostCenterId"}, \'Org Attribute Source\'[Attribute])'),
+        )).toBe(true);
+        fireEvent.click(screen.getByRole("button", { name: "User ID", hidden: true }));
+        expect(state.table.mock.calls.some(([source]) =>
+            source.query.includes('TREATAS({"PersonId_Normalized"}, \'Org Attribute Source\'[Attribute])'),
         )).toBe(true);
     });
 

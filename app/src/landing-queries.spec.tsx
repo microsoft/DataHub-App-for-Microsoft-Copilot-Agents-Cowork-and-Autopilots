@@ -121,7 +121,7 @@ function answer(query: string, answers: ReadonlyMap<string, Columns>): ArrayBuff
 
 /** The org columns' statistics, with `Organization` worth grouping by only if it has more than one value. */
 const orgColumns = (organizations: number): Columns => ({
-    "[Column]": [DEFAULT_ORG_ATTRIBUTE, "Department"],
+    "[Column]": organizations ? [DEFAULT_ORG_ATTRIBUTE, "Department"] : ["Department"],
     "[Cardinality]": [organizations, 12],
     "[Max Length]": [8, 20],
     "[People]": [100, 100],
@@ -359,8 +359,8 @@ describe("The landing page's queries", () => {
     });
 
     it("hold the org values from a menu opened before the org columns load, so it never offers one column's values under another's name", async () => {
-        // `Organization` has a single value here, so the org columns settle on grouping by department.
-        const { sent, open } = setup(["c11 org columns"], orgAnswers(1));
+        // Organization is absent from the source, so discovery settles on department.
+        const { sent, open } = setup(["c11 org columns"], orgAnswers(0));
         renderApp();
         await tick(5000);
         expect(sent).toContain("c11 org columns");

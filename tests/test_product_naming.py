@@ -16,7 +16,8 @@ def text(path):
 
 def has_unbranded_datahub(source):
     source = source.replace(f'"{SECURITY_GUIDE_URL}"', '""')
-    return bool(re.search(r"\bDataHub\b(?! App)", source))
+    source = source.replace("DataHub-App-Guide.pdf", "")
+    return bool(re.search(r"\bDataHub\b(?! App)", " ".join(source.split())))
 
 
 def test_branding_check_excludes_only_the_security_guide_url_literal():
@@ -24,6 +25,9 @@ def test_branding_check_excludes_only_the_security_guide_url_literal():
     assert has_unbranded_datahub(f'const url = "{SECURITY_GUIDE_URL}"; const label = "DataHub";')
     assert has_unbranded_datahub('"https://example.com/DataHub"')
     assert not has_unbranded_datahub('"DataHub App"')
+    assert not has_unbranded_datahub('"DataHub\n  App"')
+    assert not has_unbranded_datahub('"DataHub-App-Guide.pdf"')
+    assert has_unbranded_datahub('"DataHub-App-Guide.pdf" + "DataHub"')
 
 
 def test_readme_branding_and_legacy_destinations():
@@ -63,7 +67,9 @@ def test_app_source_uses_requested_brand_and_keeps_named_flow():
         assert not has_unbranded_datahub(source), path.relative_to(ROOT)
     assert "Analytics Hub - Agent inventory" in text("app/src/queries/governance/governance-resource-graph.ts")
     assert "<title>DataHub App</title>" in text("app/index.html")
-    assert 'pptx.author = "DataHub App"' in text("app/src/lib/report-export.ts")
+    assert 'DEFAULT_APP_NAME = "DataHub App"' in text("app/src/lib/app-brand.ts")
+    assert 'PREVIEW_APP_NAME = "DataHub App"' in text("app/src/lib/app-brand.ts")
+    assert "pptx.author = appDisplayName()" in text("app/src/lib/report-export.ts")
 
 
 def test_public_descriptions_include_cowork_and_optional_credits():

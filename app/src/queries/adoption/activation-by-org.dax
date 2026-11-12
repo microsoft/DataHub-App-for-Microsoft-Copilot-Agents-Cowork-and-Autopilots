@@ -9,7 +9,9 @@ FILTER(
         "All Active", [All Active Users],
         "All Inactive", [Inactive Users (Filter-Aware)],
         "Agent Active", [Active Agent Users],
-        "Agent NotUsing", [Using Copilot / Not Using Agents]
+        "Agent NotUsing", [Using Copilot / Not Using Agents],
+        "Cowork Active", [Cowork Users],
+        "Cowork NotUsing", MAX(0, [All Active Users] - [Cowork Users])
     ),
     NOT ISBLANK('Chat + Agent Org Data'[Organization])
 )

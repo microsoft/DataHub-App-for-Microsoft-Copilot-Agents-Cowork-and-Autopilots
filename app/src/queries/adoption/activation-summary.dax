@@ -14,5 +14,8 @@ ROW(
     "All Active Pct", [% Active Users (of Total)],
     "Agent Active", [Active Agent Users],
     "Agent NotUsing", [Using Copilot / Not Using Agents],
-    "Agent Active Pct", [% Active Users Using Agents]
+    "Agent Active Pct", [% Active Users Using Agents],
+    "Cowork Active", [Cowork Users],
+    "Cowork NotUsing", MAX(0, [All Active Users] - [Cowork Users]),
+    "Cowork Active Pct", DIVIDE([Cowork Users], [All Active Users], 0)
 )

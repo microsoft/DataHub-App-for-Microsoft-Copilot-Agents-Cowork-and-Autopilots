@@ -8,7 +8,6 @@
 import { useMemo } from "react";
 import { CircleAlert, TriangleAlert } from "lucide-react";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { NotFilteredHint } from "@/components/not-filtered-hint";
 import { OpenDestinationLink } from "@/components/open-destination-link";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
@@ -17,7 +16,6 @@ import { Section } from "@/components/section";
 import { useFilterContext, useOrgAttribute } from "@/hooks/filter.context";
 import { useConsumptionSummary } from "@/hooks/use-consumption-query";
 import { useSummaryQuery, useTableQuery, type SummaryResult, type TableResult } from "@/hooks/use-table-query";
-import type { FilterKey } from "@/lib/filters";
 import { formatKpi } from "@/lib/format-kpi";
 import { departmentAdvice } from "@/lib/department-coverage";
 import { withIndefiniteArticle } from "@/lib/org-attribute";
@@ -34,8 +32,6 @@ import { attentionItems, type AttentionItem } from "./executive-attention";
 import { formatDay, tableRecords } from "./executive-data";
 import type { ExecutiveData } from "./use-executive-data";
 
-/** The license roster as it stands today, for the whole tenant. */
-const ESTATE_IGNORES: FilterKey[] = ["dateRange", "organizations"];
 const FEEDBACK_EXTRA = [FEEDBACK_ON_CALENDAR];
 const SKIP = { connection: "", query: "" };
 
@@ -118,8 +114,8 @@ export function AttentionStage({ data }: { data: ExecutiveData }) {
         [],
     );
 
-    const dormancy = useTableQuery(dormancySource, [], ESTATE_IGNORES);
-    const estate = useSummaryQuery(licenseEstateSummary(), [], ESTATE_IGNORES);
+    const dormancy = useTableQuery(dormancySource);
+    const estate = useSummaryQuery(licenseEstateSummary());
     const themes = useTableQuery(themesSource, FEEDBACK_EXTRA);
     const cowork = useConsumptionSummary(coworkSource);
     const creditDates = useConsumptionSummary(creditDatesSource);
@@ -155,13 +151,8 @@ export function AttentionStage({ data }: { data: ExecutiveData }) {
             title="What needs attention"
             description="Decisions the data points to, the most people or hours affected first."
         >
-            <FilterNote
-                ignored={ESTATE_IGNORES}
-                scope="to idle seats"
-                reason="they describe the license roster as it stands, for the whole tenant."
-            />
             <NotFilteredHint
-                from={[themes.notFilteredBy, CONSUMPTION_CONFIGURED ? cowork.notFilteredBy : undefined, registry.notFilteredBy]}
+                from={[estate.notFilteredBy, themes.notFilteredBy, CONSUMPTION_CONFIGURED ? cowork.notFilteredBy : undefined, registry.notFilteredBy]}
             />
             <div className="grid grid-cols-1 gap-500 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="min-w-0">

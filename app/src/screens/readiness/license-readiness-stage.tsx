@@ -10,7 +10,7 @@ import { DataGrid, type GridColumnDef } from "@microsoft/fabric-datagrid";
 import { VegaVisual } from "@/components/vega-visual";
 import type { DataTable } from "@microsoft/fabric-visuals-core";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
+import { NotFilteredHint } from "@/components/not-filtered-hint";
 import { HEADLINE_SPACE, Headlined } from "@/components/headlined";
 import { leaderHeadline } from "@/lib/headline";
 import { KpiCard, KpiStat } from "@/components/kpi-card";
@@ -22,7 +22,6 @@ import { useOrgAttribute } from "@/hooks/filter.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
 import { useM365Activity } from "@/hooks/use-m365-activity";
 import { rowChartHeight } from "@/lib/chart-height";
-import type { FilterKey } from "@/lib/filters";
 import { formatKpi } from "@/lib/format-kpi";
 import { listCount, listTotal } from "@/lib/list-total";
 import { columnFormat, columnHeat, heatRenderer } from "@/lib/heat";
@@ -40,8 +39,6 @@ import {
     licenseEstateSummary,
     licensePriorityByOrg,
 } from "@/queries/licensing";
-
-const LICENSE_ESTATE_IGNORES: FilterKey[] = ["dateRange", "organizations"];
 
 const BY_ORG_HEADLINE = leaderHeadline({
     label: "Organization",
@@ -86,9 +83,13 @@ export function LicenseReadinessStage() {
     const org = useOrgAttribute();
 
     const demand = useFilteredQuery(licenseDemandSummary());
-    const estate = useFilteredQuery(licenseEstateSummary(), { ignore: LICENSE_ESTATE_IGNORES });
+    const estate = useFilteredQuery(licenseEstateSummary());
     const byOrg = useMemo(() => withOrgAttribute(licensePriorityByOrg(), org), [org]);
-    const byOrgResult = useFilteredQuery({ connection: byOrg.connection, query: byOrg.query });
+    const byOrgResult = useFilteredQuery({
+        connection: byOrg.connection,
+        query: byOrg.query,
+        columnMetadata: byOrg.columnMetadata,
+    });
     // With Microsoft 365 activity matched to people, the score also weighs how widely they work across it.
     const m365 = useM365Activity();
     const withBreadth = m365.state === "ready" && !m365.concealed;
@@ -101,10 +102,7 @@ export function LicenseReadinessStage() {
         query: m365.state === "loading" ? "" : candidates.query,
     });
     const dormancy = licenseDormancy();
-    const dormancyResult = useFilteredQuery(
-        { connection: dormancy.connection, query: dormancy.query },
-        { ignore: LICENSE_ESTATE_IGNORES },
-    );
+    const dormancyResult = useFilteredQuery(dormancy);
 
     const demandRow = useMemo(
         () => (demand.data?.status === "success" ? toSummaryRow(demand.data.table) : undefined),
@@ -235,10 +233,7 @@ export function LicenseReadinessStage() {
                 </div>
             )}
 
-            <FilterNote
-                ignored={LICENSE_ESTATE_IGNORES}
-                reason="the estate card, dormancy chart and notices read the license roster, which is not dated and has no independent organization dimension."
-            />
+            <NotFilteredHint from={[estate.notFilteredBy]} />
 
             <div
                 className="h-[340px]"

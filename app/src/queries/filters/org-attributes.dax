@@ -1,19 +1,9 @@
 EVALUATE
 SELECTCOLUMNS(
-    SUMMARIZECOLUMNS(
-        'Org Attribute Source'[Attribute],
-        "Groups", COUNTROWS(
-            TOPN(
-                2,
-                FILTER(
-                    VALUES('Org Attribute Source'[Value]),
-                    LEN(TRIM('Org Attribute Source'[Value])) > 0
-                ),
-                'Org Attribute Source'[Value], ASC
-            )
-        )
+    FILTER(
+        VALUES('Org Attribute Source'[Attribute]),
+        LEN(TRIM('Org Attribute Source'[Attribute])) > 0
     ),
-    "Column", 'Org Attribute Source'[Attribute],
-    "Cardinality", [Groups]
+    "Column", 'Org Attribute Source'[Attribute]
 )
 ORDER BY [Column]

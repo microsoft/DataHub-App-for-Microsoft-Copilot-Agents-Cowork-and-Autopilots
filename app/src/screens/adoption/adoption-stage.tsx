@@ -9,7 +9,6 @@ import { useMemo, useState } from "react";
 import { VegaVisual } from "@/components/vega-visual";
 import { Headlined, HEADLINE_SPACE } from "@/components/headlined";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { KpiCard, KpiStat } from "@/components/kpi-card";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
 import { Section } from "@/components/section";
@@ -17,24 +16,23 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useFilterContext } from "@/hooks/filter.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
-import { selectedCohort, unshownActivity, type FilterKey } from "@/lib/filters";
+import { selectedCohort } from "@/lib/filters";
 import { readNumber, readText } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
 import { adoptionTrend, type AdoptionTrendMeasure } from "@/queries/adoption";
 import { adoptionTrendHeadline } from "./headlines";
 import { useAdoptionSummary } from "./use-adoption-summary";
 
-/** The four surfaces usage is reported across. */
+/** The surfaces usage is reported across, alongside the overall total. */
 const surfaces = [
     { id: "overall", label: "Overall", usersColumn: "[Overall Users]", rateColumn: "[Overall SPUW]" },
     { id: "licensed", label: "Licensed chat", usersColumn: "[Licensed Users]", rateColumn: "[Licensed SPUW]" },
     { id: "unlicensed", label: "Unlicensed chat", usersColumn: "[Unlicensed Users]", rateColumn: "[Unlicensed SPUW]" },
     { id: "agents", label: "Agents", usersColumn: "[Agent Users]", rateColumn: "[Agent SPUW]" },
+    { id: "cowork", label: "Cowork", usersColumn: "[Cowork Users]", rateColumn: "[Cowork SPUW]" },
 ] as const;
 
-/** Every card and trend line here is already one surface, so these filters pick the card to highlight instead. */
-const SURFACE_FILTERS: FilterKey[] = ["licence", "audience"];
-const PICKABLE = ["licensed", "unlicensed", "agents"] as const;
+const PICKABLE = ["licensed", "unlicensed", "agents", "cowork"] as const;
 
 const trendMeasures: { id: AdoptionTrendMeasure; label: string }[] = [
     { id: "sessionsPerUser", label: "Per user" },
@@ -54,14 +52,11 @@ export function AdoptionStage() {
     const { filters, applicable } = useFilterContext();
     const cohort = selectedCohort(filters, applicable, PICKABLE);
     const highlighted = surfaces.find((surface) => surface.id === cohort) ?? surfaces[0];
-    const unshown = unshownActivity(filters, applicable, PICKABLE);
-    const surfaceReason = unshown
-        ? `${unshown} has no card of its own, so ${highlighted.label} is highlighted.`
-        : `licensed chat, unlicensed chat and agents are each shown in their own card and line, so ${highlighted.label} is highlighted.`;
-
-    const summary = useAdoptionSummary(SURFACE_FILTERS);
+    const summary = useAdoptionSummary();
     const trend = useMemo(() => adoptionTrend({ measure }), [measure]);
-    const trendResult = useFilteredQuery({ connection: trend.connection, query: trend.query }, { ignore: SURFACE_FILTERS });
+    const trendResult = useFilteredQuery(
+        { connection: trend.connection, query: trend.query, columnMetadata: trend.columnMetadata },
+    );
 
     const summaryRow = summary.row;
 
@@ -104,11 +99,10 @@ export function AdoptionStage() {
                 />
             }
         >
-            <FilterNote ignored={SURFACE_FILTERS} reason={surfaceReason} />
             {summary.error ? (
                 <QueryError message={summary.error} onRetry={summary.refetch} />
             ) : !summary.loaded ? (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {surfaces.map((surface) => (
                         <QueryLoading key={surface.id} />
                     ))}
@@ -120,28 +114,40 @@ export function AdoptionStage() {
                 />
             ) : (
                 <>
-                    <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                         {surfaces.map((surface) => (
                             <KpiCard
                                 key={surface.id}
                                 label={surface.label}
                                 value={readNumber(summaryRow, surface.rateColumn)}
                                 format="rate"
+                                emptyValue={surface.id === "cowork" && coworkUsers === undefined ? "No activity" : undefined}
                                 emphasis={surface.id === highlighted.id}
                                 detail={
-                                    <div className="flex flex-col gap-100">
-                                        <span className="block pb-100">sessions per user per week</span>
-                                        <KpiStat
-                                            label="Active users"
-                                            value={readNumber(summaryRow, surface.usersColumn)}
-                                        />
-                                        {surface.id === "overall" && (
+                                    surface.id === "cowork" && coworkUsers === undefined ? (
+                                        "No Cowork activity in the selected period."
+                                    ) : (
+                                        <div className="flex flex-col gap-100">
+                                            <span className="block pb-100">sessions per user per week</span>
                                             <KpiStat
-                                                label="Sessions"
-                                                value={readNumber(summaryRow, "[Overall Sessions]")}
+                                                label="Active users"
+                                                value={readNumber(summaryRow, surface.usersColumn)}
                                             />
-                                        )}
-                                    </div>
+                                            {surface.id === "overall" && (
+                                                <KpiStat
+                                                    label="Sessions"
+                                                    value={readNumber(summaryRow, "[Overall Sessions]")}
+                                                />
+                                            )}
+                                            {surface.id === "cowork" && (
+                                                <KpiStat
+                                                    label="Hours per week"
+                                                    value={readNumber(summaryRow, "[Cowork Hours Wk]")}
+                                                    format="hours"
+                                                />
+                                            )}
+                                        </div>
+                                    )
                                 }
                             />
                         ))}

@@ -23,7 +23,7 @@ credit consumption and cost.
 
 <br>
 
-**[Before you start](#before-you-start)** &nbsp;·&nbsp; **[Installer](#installer)** &nbsp;·&nbsp; **[Manual](#manual)** &nbsp;·&nbsp; **[After setup](#after-setup)**
+**[Before you start](#before-you-start)** &nbsp;·&nbsp; **[Installer](#installer)** &nbsp;·&nbsp; **[Manual](#manual)** &nbsp;·&nbsp; **[After setup](#after-setup)** &nbsp;·&nbsp; **[Explainer](https://ai-datalab.github.io/#/watch/datahub-explainer)**
 
 <br>
 

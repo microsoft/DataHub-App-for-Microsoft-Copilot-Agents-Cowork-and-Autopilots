@@ -8,7 +8,6 @@
 import { useMemo } from "react";
 import { VegaVisual } from "@/components/vega-visual";
 import { stageAnchor } from "@/components/destinations";
-import { FilterNote } from "@/components/filter-note";
 import { KpiCard, KpiStat } from "@/components/kpi-card";
 import { OnDemand } from "@/components/on-demand";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
@@ -16,7 +15,7 @@ import { Section } from "@/components/section";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useFilterContext, useOrgAttribute } from "@/hooks/filter.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
-import { selectedCohort, unshownActivity, type FilterKey } from "@/lib/filters";
+import { selectedCohort } from "@/lib/filters";
 import { rowChartHeight } from "@/lib/chart-height";
 import { withIndefiniteArticle, withOrgAttribute } from "@/lib/org-attribute";
 import { readNumber, toSummaryRow } from "@/lib/summary-row";
@@ -25,18 +24,10 @@ import { toDataTable } from "@/lib/to-data-table";
 import { topNote, topWithOther } from "@/lib/top-n";
 import { ACTIVATION_COUNT_COLUMNS, activationByOrg, activationSummary, type ActivationCohort } from "@/queries/adoption";
 
-/**
- * The cohort cards already split licensed, unlicensed and agent use, so these
- * filters pick the card to highlight and chart rather than blank the others out.
- */
-const COHORT_FILTERS: FilterKey[] = ["licence", "audience"];
-/** Activation counts people who haven't used anything yet, so narrowing to an agent would call everyone else inactive. */
-const AGENT_FILTERS: FilterKey[] = ["agentTypes", "agentNames"];
-const IGNORED: FilterKey[] = [...COHORT_FILTERS, ...AGENT_FILTERS];
 /** The cards License and Activity can pick; every other selection highlights Everyone. */
-const PICKABLE = ["licensed", "unlicensed", "agents"] as const;
+const PICKABLE = ["licensed", "unlicensed", "agents", "cowork"] as const;
 
-/** The four cohorts the Activation page reports on, in reading order. */
+/** The cohorts the Activation page reports on, in reading order. */
 const cohorts: {
     id: ActivationCohort;
     label: string;
@@ -86,21 +77,30 @@ const cohorts: {
         activeLabel: "Using agents",
         inactiveLabel: "Not using agents",
     },
+    {
+        id: "cowork",
+        label: "Cowork",
+        activeColumn: "[Cowork Active]",
+        inactiveColumn: "[Cowork NotUsing]",
+        percentColumn: "[Cowork Active Pct]",
+        activeLabel: "Using Cowork",
+        inactiveLabel: "Not using Cowork",
+    },
 ];
 
 /**
  * Stage one of the funnel: who has ever picked Copilot up.
  *
  * Power BI spends thirty-one visuals on this page. Here it is two queries —
- * one for every headline figure across all four cohorts, one for the
- * per-organization split that all four cohorts share, which waits for a click.
+ * one for every headline figure across all five cohorts, one for the
+ * per-organization split that all five cohorts share, which waits for a click.
  */
 export function ActivationStage() {
     const { filters, applicable } = useFilterContext();
     const cohort: ActivationCohort = selectedCohort(filters, applicable, PICKABLE);
     const org = useOrgAttribute();
 
-    const summary = useFilteredQuery(activationSummary(), { ignore: IGNORED });
+    const summary = useFilteredQuery(activationSummary());
 
     const summaryRow = useMemo(
         () => (summary.data?.status === "success" ? toSummaryRow(summary.data.table) : undefined),
@@ -108,26 +108,16 @@ export function ActivationStage() {
     );
 
     const selected = cohorts.find((entry) => entry.id === cohort) ?? cohorts[0];
-    const unmatched = unshownActivity(filters, applicable, PICKABLE);
-    const cohortReason = unmatched
-        ? `${unmatched} has no activation figure of its own, so ${selected.label} is highlighted and charted below.`
-        : `activation is shown for every group side by side, so ${selected.label} is highlighted and charted below.`;
-
     return (
         <Section
             id={stageAnchor("activation")}
             title="Activation"
             description="How much of the population has picked Copilot up at all — before asking how often or how deeply."
         >
-            <FilterNote ignored={COHORT_FILTERS} reason={cohortReason} />
-            <FilterNote
-                ignored={AGENT_FILTERS}
-                reason="activation counts everyone, including people who haven't used an agent yet."
-            />
             {summary.data?.status === "error" ? (
                 <QueryError message={summary.data.error.message} onRetry={summary.refetch} />
             ) : summary.isLoading || !summary.data ? (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {cohorts.map((entry) => (
                         <QueryLoading key={entry.id} />
                     ))}
@@ -138,7 +128,7 @@ export function ActivationStage() {
                     description="The semantic model returned no rows. Check that the model has been refreshed since the last data load."
                 />
             ) : (
-                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-300 md:grid-cols-2 xl:grid-cols-5">
                     {cohorts.map((entry) => (
                         <KpiCard
                             key={entry.id}
@@ -187,7 +177,6 @@ function ActivationByOrg({ cohort, label }: { cohort: ActivationCohort; label: s
     const byOrg = useMemo(() => withOrgAttribute(activationByOrg({ cohort }), org), [cohort, org]);
     const orgResult = useFilteredQuery(
         { connection: byOrg.connection, query: byOrg.query, columnMetadata: byOrg.columnMetadata },
-        { ignore: IGNORED },
     );
     // The largest fifteen by the cohort's active users, and everyone else in one Other bar. The answer is
     // read by the columns it was asked with: one for another Group by keys its org column differently.
@@ -229,7 +218,7 @@ function ActivationByOrg({ cohort, label }: { cohort: ActivationCohort; label: s
                     header={{
                         title: `${label} activation by ${org.noun}`,
                         subtitle: top && top.shown < top.of
-                            ? `${topNote(top, org.plural, cohort === "agents" ? "agent users" : "active users")}, the rest as Other`
+                            ? `${topNote(top, org.plural, cohort === "agents" ? "agent users" : cohort === "cowork" ? "Cowork users" : "active users")}, the rest as Other`
                             : "Active and inactive users, sharing a baseline",
                     }}
                 />
