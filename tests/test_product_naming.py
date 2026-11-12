@@ -4,10 +4,30 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SECURITY_GUIDE_URL = (
+    "https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots"
+    "/blob/main/docs/CUSTOMIZATION-AND-SECURITY.md"
+)
 
 
 def text(path):
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def has_unbranded_datahub(source):
+    source = source.replace(f'"{SECURITY_GUIDE_URL}"', '""')
+    source = source.replace("DataHub-App-Guide.pdf", "")
+    return bool(re.search(r"\bDataHub\b(?! App)", " ".join(source.split())))
+
+
+def test_branding_check_excludes_only_the_security_guide_url_literal():
+    assert not has_unbranded_datahub(f'const url = "{SECURITY_GUIDE_URL}";')
+    assert has_unbranded_datahub(f'const url = "{SECURITY_GUIDE_URL}"; const label = "DataHub";')
+    assert has_unbranded_datahub('"https://example.com/DataHub"')
+    assert not has_unbranded_datahub('"DataHub App"')
+    assert not has_unbranded_datahub('"DataHub\n  App"')
+    assert not has_unbranded_datahub('"DataHub-App-Guide.pdf"')
+    assert has_unbranded_datahub('"DataHub-App-Guide.pdf" + "DataHub"')
 
 
 def test_readme_branding_and_legacy_destinations():
@@ -44,8 +64,7 @@ def test_app_source_uses_requested_brand_and_keeps_named_flow():
             continue
         source = path.read_text(encoding="utf-8")
         assert "Analytics Hub dashboard" not in source, path.relative_to(ROOT)
-        display_source = source.replace("DataHub-App-Guide.pdf", "")
-        assert not re.search(r"\bDataHub\b(?! App)", " ".join(display_source.split())), path.relative_to(ROOT)
+        assert not has_unbranded_datahub(source), path.relative_to(ROOT)
     assert "Analytics Hub - Agent inventory" in text("app/src/queries/governance/governance-resource-graph.ts")
     assert "<title>DataHub App</title>" in text("app/index.html")
     assert 'DEFAULT_APP_NAME = "DataHub App"' in text("app/src/lib/app-brand.ts")

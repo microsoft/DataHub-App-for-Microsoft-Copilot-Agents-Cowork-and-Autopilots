@@ -43,7 +43,7 @@ const unsigned = { status: 'Failed', error: { errorCode: 'JobInstanceFailed', me
  * @property {boolean} [agent]  Making the data agent fails.
  * @property {'works' | 'fails'} [upload]  An export to upload, and how its upload goes.
  * @property {boolean} [noDropFolder]  The drop folder can't be made.
- * @property {object[]} [access]  Org-scoped access is on, and the access notebook's runs end like these, then Completed.
+ * @property {object[]} [access]  Org-scoped access is on, and the scope-data notebook's runs end like these, then Completed.
  * @property {object[]} [check]  The data check's runs end like these, then Completed.
  * @property {boolean} [cowork]  Cowork credits come from the Dataflow, which the install makes. Fabric lists its
  *   connections, so the first load refreshes it too.
@@ -301,15 +301,15 @@ test("install: an export that fails to upload leaves it partly set up; a drop fo
   setUp(warned);
 });
 
-test('install: org-scoped access that fails leaves it partly set up; a busy capacity it waits out does not', async (t) => {
-  const run = await runInstall(t, { app: 'off', access: [failed('The XMLA endpoint is read-only.')] });
-  assert.match(run.text, /✗ The roles weren't applied: The XMLA endpoint is read-only\./);
-  assert.match(run.text, /Then try again from "access"\./);
+test('install: org-scoped scope-data load that fails leaves it partly set up; a busy capacity it waits out does not', async (t) => {
+  const run = await runInstall(t, { app: 'off', access: [failed('The scope data load failed.')] });
+  assert.match(run.text, /✗ The scope data wasn't applied: The scope data load failed\./);
+  assert.match(run.text, /Then try again from "[^"]*access"\./);
   partlySetUp(run);
 
   const retried = await runInstall(t, { app: 'off', access: [busy] });
   assert.match(retried.text, /! Org-scoped access: the capacity is busy\. Trying again in 5 minutes\./);
-  assert.match(retried.text, /✓ Org-scoped access applied to/);
+  assert.match(retried.text, /✓ Org-scoped access data applied to/);
   assert.doesNotMatch(retried.text, /✗/);
   setUp(retried);
 });

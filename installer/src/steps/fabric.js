@@ -530,8 +530,7 @@ export function notebookSettings(ctx, nb) {
   if (nb.key === 'uploadRouter') values = routerValues(config);
   if (nb.key === 'loadStatus') values = { STATUS_JSON: statusConfigJson() };
   if (nb.key === 'auditIngester') values = { ...(values ?? {}), AUDIT_SOURCE: auditSource(config) };
-  // The pipeline loads the tables only; the installer passes roles when it applies membership.
-  if (nb.key === 'accessScope') values = { WORKSPACE_ID: /** @type {string} */ (f.workspaceId), MODE: 'all', ROLES_B64: '', ROLES_FILE: '' };
+  if (nb.key === 'accessScope') values = { MODE: 'all' };
   /** @type {Record<string, string> | undefined} */
   let expressions = nb.expressions;
   if (nb.key === 'resourceGraph') {

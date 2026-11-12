@@ -5,16 +5,13 @@
  * and no access tables.
  *
  * Two roles:
- * - **Everyone** has no filters. Its members are the people with an active `all` scope (and the
- *   Viewers group when the default `*` row is `all`). Power BI combines a person's roles as a
- *   union, so they see exactly what they would without RLS, including activity from people with
- *   no org or licence record.
- * - **Scoped viewers** has the Viewers group as its member and filters each person-level table to
- *   the viewer's scopes, read from the `Access Scope` table: everyone, below a person (by the
- *   manager chain in `Access People`), or an org value.
+ * - **Everyone** filters only the scope table to the signed-in person's own and default rows.
+ *   Administrators assign only individually approved all-data readers to this role in Power BI Service.
+ * - **Scoped viewers** filters each person-level table to the viewer's scopes, read from the
+ *   `Access Scope` table: everyone, below a person (by the manager chain in `Access People`), or
+ *   an org value. Administrators assign the viewer group to this role in Power BI Service.
  *
- * Role members are environment specific, so the definition carries none; the installer applies
- * them over XMLA after every deploy (see `roleDefinitions`).
+ * Role membership is an explicit administrator step in the Power BI service after deployment.
  */
 import { createHash } from 'node:crypto';
 
@@ -300,13 +297,13 @@ export function addAccessScope(model, kind, opts = {}) {
     ...(model.roles ?? []).filter((r) => r.name !== SCOPED_ROLE && r.name !== EVERYONE_ROLE),
     {
       name: EVERYONE_ROLE,
-      description: 'Org-scoped access: people who see everything. Members are applied by the installer.',
+      description: 'Org-scoped access: explicitly approved people who see everything. Assign members in the Power BI service.',
       modelPermission: 'read',
       tablePermissions: [{ name: ACCESS_SCOPE_TABLE, filterExpression: ownScopeFilter() }],
     },
     {
       name: SCOPED_ROLE,
-      description: 'Org-scoped access: Analytics Hub Viewers, filtered to their scopes. Members are applied by the installer.',
+      description: 'Org-scoped access: assign the viewer group in the Power BI service; rows are filtered to each viewer’s scopes.',
       modelPermission: 'read',
       tablePermissions: filters,
     },
@@ -325,31 +322,3 @@ export const rlsOn = (config) => !!config.access?.rls?.enabled;
  * @returns {import('./model.js').AccessSettings | undefined}
  */
 export const rlsSettings = (config) => (config.access?.rls?.enabled ? { orgAttribute: config.access.rls.orgAttribute ?? 'department' } : undefined);
-
-/**
- * The Azure AD member for a group, in the form XMLA takes.
- * @param {string} groupId
- * @param {string} tenantId
- */
-export const groupMember = (groupId, tenantId) => ({ memberName: `obj:${groupId}@${tenantId}`, identityProvider: 'AzureAD', memberType: 'group' });
-/** @param {string} upn */
-export const userMember = (upn) => ({ memberName: upn, identityProvider: 'AzureAD', memberType: 'user' });
-
-/**
- * The roles with their members, for the installer to apply over XMLA after a deploy.
- * @param {import('./model.js').ModelBim['model']} model  A model built with access on.
- * @param {{ groupId: string, tenantId: string, everyone: string[], defaultAll?: boolean }} members
- *   `everyone`: UPNs with an active `all` scope. `defaultAll`: the `*` row is `all`.
- */
-export function roleDefinitions(model, members) {
-  const roles = model.roles ?? [];
-  const everyone = roles.find((r) => r.name === EVERYONE_ROLE);
-  const scoped = roles.find((r) => r.name === SCOPED_ROLE);
-  if (!everyone || !scoped) throw new Error('The model was built without org-scoped access.');
-  const group = groupMember(members.groupId, members.tenantId);
-  const users = [...new Set(members.everyone.map((u) => u.trim().toLowerCase()).filter((u) => u && u !== '*'))].sort();
-  return [
-    { ...everyone, members: [...(members.defaultAll ? [group] : []), ...users.map(userMember)] },
-    { ...scoped, members: [group] },
-  ];
-}

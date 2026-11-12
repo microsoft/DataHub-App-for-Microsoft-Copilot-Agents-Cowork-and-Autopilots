@@ -1,7 +1,6 @@
 """Org-scoped access: the scope CSV, access_people, the Fabric notebook's parity and the Azure publish sync."""
 from __future__ import annotations
 
-import base64
 import json
 import sqlite3
 from datetime import datetime, timezone
@@ -113,18 +112,12 @@ def test_notebook_merge_keeps_app_grants():
                     ("bob@contoso.com", "installer")]
 
 
-def test_notebook_role_scripts():
-    ns = nb()
-    assert ns["role_scripts"]("") == []
-    role = {"name": "Scoped viewers", "modelPermission": "read", "members": [{"memberName": "obj:g@t"}]}
-    b64 = base64.b64encode(json.dumps([{"dataset": "ValueLens", "role": role}]).encode()).decode()
-    [(dataset, script)] = ns["role_scripts"](b64)
-    assert dataset == "ValueLens"
-    assert script == {"createOrReplace": {"object": {"database": "ValueLens", "role": "Scoped viewers"}, "role": role}}
-    # The installer writes the same JSON to a file when the member list is large; extra fields are ignored.
-    text = json.dumps([{"dataset": "ValueLens", "datasetId": "ds-1", "role": role}])
-    assert ns["role_scripts_json"](text) == [(dataset, script)]
-    assert ns["role_scripts_json"]("  ") == []
+def test_notebook_does_not_assign_power_bi_role_members():
+    cells = json.loads((notebook_source.NOTEBOOKS / NB).read_text(encoding="utf-8"))["cells"]
+    code = "\n".join("".join(c.get("source", [])) for c in cells if c.get("cell_type") == "code")
+    assert "ROLES_FILE" not in code and "ROLES_B64" not in code
+    assert "execute_tmsl" not in code and "sempy.fabric" not in code
+    assert "notebookutils.notebook.exit" in code
 
 
 # ---------------------------------------------------------------- Azure sync

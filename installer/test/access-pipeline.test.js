@@ -35,7 +35,7 @@ test('access notebook: deployed only with org-scoped access on, and it ships', (
   assert.equal(notebookOptions(setRls(config, true)).access, true);
 });
 
-test('access notebook: the pipeline loads tables only; the installer passes roles when it applies membership', () => {
+test('access notebook: the pipeline loads scope data; role membership is managed in Power BI Service', () => {
   const { ctx, config } = fakeCtx();
   setRls(config, true);
   config.fabric.workspaceId = 'ws-1';
@@ -43,7 +43,7 @@ test('access notebook: the pipeline loads tables only; the installer passes role
   config.fabric.lakehouseName = 'Lake';
   const nb = /** @type {import('../src/catalog.js').NotebookInfo} */ (notebooksFor(config.modules, notebookOptions(config)).find((n) => n.key === 'accessScope'));
   const settings = notebookSettings(ctx, nb);
-  assert.deepEqual(settings.values, { WORKSPACE_ID: 'ws-1', MODE: 'all', ROLES_B64: '', ROLES_FILE: '' });
+  assert.deepEqual(settings.values, { MODE: 'all' });
   assert.equal(settings.tenantId, undefined, 'no app credentials');
 
   const prepared = prepareNotebook(realSources().notebooks.accessScope, settings);
@@ -51,9 +51,7 @@ test('access notebook: the pipeline loads tables only; the installer passes role
   assert.equal(cells.length, 1, 'one parameters cell');
   const text = /** @type {string[]} */ ([]).concat(cells[0].source).join('');
   assert.match(text, /^MODE += 'all'/m);
-  assert.match(text, /^ROLES_B64 += ''/m);
-  assert.match(text, /^ROLES_FILE += ''/m);
-  assert.match(text, /^WORKSPACE_ID += 'ws-1'/m);
+  assert.doesNotMatch(text, /ROLES_B64|ROLES_FILE|WORKSPACE_ID|XMLA|execute_tmsl/);
 });
 
 test('pipeline: the access step runs after org data and before the model refresh, only when on', () => {

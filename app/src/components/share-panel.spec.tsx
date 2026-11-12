@@ -62,6 +62,23 @@ describe("SharePanel", () => {
         window.history.replaceState(null, "", "/");
     });
 
+    it.each(["fabric", "azure"] as const)("on %s, explains portal role assignment and the current identity-privacy limit", async (host) => {
+        runtime.host = host;
+        runtime.access = { groupId: "group-1", groupName: "Analytics Hub Viewers", rlsOrgAttribute: "department" };
+        api.loadAccess.mockResolvedValue({ group: { id: "group-1", name: "Analytics Hub Viewers" }, canManage: false });
+        api.loadDelegations.mockResolvedValue({ enabled: false });
+        openPanel();
+        fireEvent.click(screen.getByText("Security and privacy setup"));
+
+        expect(await screen.findByRole("link", { name: "Open the RLS and privacy setup guide" }))
+            .toHaveAttribute("href", "https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots/blob/main/docs/CUSTOMIZATION-AND-SECURITY.md");
+        expect(screen.getByText(/installer loads scope data but does not assign Power BI role members/)).toBeInTheDocument();
+        const roleGuidance = screen.getByText(/In Power BI Service, remove any existing viewer-group assignment from/);
+        expect(roleGuidance).toHaveTextContent("Add the viewer group only to Scoped viewers");
+        expect(roleGuidance).toHaveTextContent("remove any existing viewer-group assignment from Everyone");
+        expect(screen.getByText(/User-ID pseudonymization is not currently supported end to end/)).toBeInTheDocument();
+    });
+
     it("points Fabric users to My Groups", () => {
         runtime.host = "fabric";
         openPanel();

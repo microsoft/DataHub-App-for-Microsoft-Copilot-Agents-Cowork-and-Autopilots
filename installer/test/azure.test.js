@@ -1436,14 +1436,13 @@ function orgAccessOn(t) {
   Object.assign(t.powerBi.api, { datasetUsers: async () => [], addDatasetUser: async () => null });
 }
 
-test("Azure: org-scoped access that fails leaves setup not finished; a job it can't follow only warns", async () => {
-  // A Pro workspace can't take roles with members.
-  const blocked = await azureModelChanged();
-  orgAccessOn(blocked);
-  assert.equal(await installAzure(blocked.ctx, { wait: true }), false);
-  assert.match(blocked.ui.text(), /✗ The Power BI workspace is on a Pro licence/);
-  assert.match(blocked.ui.text(), /Fix that, or turn org-scoped access off from ".*access"\./);
-  assert.match(blocked.ui.text(), /DataHub App is set up, but not finished/);
+test("Azure: org-scoped access works on Pro; a job it can't follow only warns", async () => {
+  const pro = await azureModelChanged();
+  orgAccessOn(pro);
+  pro.ctx.api.dataLake = /** @type {any} */ (() => ({ readText: async () => null, writeFile: async () => {} }));
+  assert.equal(await installAzure(pro.ctx, { wait: true }), true, pro.ui.text());
+  assert.match(pro.ui.text(), /DataHub App is set up/);
+  assert.doesNotMatch(pro.ui.text(), /not finished/);
 
   const unfollowed = await azureModelChanged();
   orgAccessOn(unfollowed);
@@ -1883,8 +1882,8 @@ test("Azure: org-scoped access waits for a run that's going, rather than startin
   assert.ok(!t.arm.calls.includes('startJob vlens-run'), "the access job isn't started");
   const text = t.ui.text();
   assert.match(text, /! The run job is already running \(vlens-run-going, started 10m 00s ago\), so this didn't start another\./);
-  assert.match(text, /Check on it with "valuelens-install status"\. Once it has finished, apply org-scoped access again from "valuelens-install access", or the next scheduled run does\./);
-  assert.doesNotMatch(text, /Org-scoped access applied/);
+  assert.match(text, /Check on it with "valuelens-install status"\. Once it has finished, apply org-scoped access data again from "valuelens-install access", or the next scheduled run does\./);
+  assert.doesNotMatch(text, /Org-scoped access data applied/);
   assert.equal(/** @type {any} */ (t.config.azure).status.lastAccess, undefined);
   assert.deepEqual(t.config.access?.rls?.applied, [], 'still owed, so the next update applies it again');
   assert.match(text, /DataHub App is set up/);

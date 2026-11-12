@@ -364,7 +364,7 @@ export const NOTEBOOKS = [
     displayName: 'AnalyticsHub_Access_Scope',
     module: 'core',
     credentials: false,
-    parameters: ['MODE', 'ROLES_B64', 'ROLES_FILE', 'WORKSPACE_ID'],
+    parameters: ['MODE'],
     placeholder: null,
     access: true,
   },

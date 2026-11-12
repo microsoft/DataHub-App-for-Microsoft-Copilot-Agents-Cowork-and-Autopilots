@@ -33,6 +33,8 @@ PAGES = {
     "docs/ARCHITECTURE.md": "Architecture-and-Costs",
     "docs/PERMISSIONS.md": "Permissions",
     "docs/APP-GUIDE.md": "App-Guide",
+    "docs/CUSTOMISE.md": "Customise",
+    "docs/CUSTOMIZATION-AND-SECURITY.md": "Security-and-Privacy-Setup",
     "docs/METHODOLOGY.md": "Methodology",
     "docs/MODEL-SLIMMING.md": "Model-Slimming",
     "docs/DATA-DICTIONARY.md": "Data-Dictionary",

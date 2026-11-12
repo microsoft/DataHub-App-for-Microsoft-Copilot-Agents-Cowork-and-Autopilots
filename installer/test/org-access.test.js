@@ -2,20 +2,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { EVERYONE_ROLE, SCOPED_ROLE } from '../src/transform/access.js';
-import { buildAgentEvaluatorModel, buildModel, loadTemplateModel } from '../src/transform/model.js';
-import { deployedRoles, deployModel, definitionRoles } from '../src/steps/model.js';
+import { buildModel, loadTemplateModel } from '../src/transform/model.js';
+import { deployModel } from '../src/steps/model.js';
 import { armApi, ROLES } from '../src/clients/azure.js';
 import { HttpError } from '../src/http.js';
 import {
   addScope,
   applyOrgAccess,
-  AZURE_ROLES_FILE,
   AZURE_SCOPE_FILE,
   defaultAll,
   describeScope,
   ensureOrgAccess,
   everyoneUpns,
-  FABRIC_ROLES_FILE,
   FABRIC_SCOPE_FILE,
   newRow,
   orgAccessCommand,
@@ -36,7 +34,7 @@ const now = new Date('2026-06-01T12:00:00Z');
 const by = { grantedBy: 'Admin@Contoso.com', now };
 const lake = { server: 'abc.datawarehouse.fabric.microsoft.com', database: 'ValueLens' };
 
-/** The two roles, as a model built with org-scoped access has them. */
+/** The two role definitions, without any assigned members. */
 function builtRoles() {
   const bim = buildModel(loadTemplateModel(/** @type {string} */ (realSources().modelFile)), { ...lake, modules: /** @type {any} */ ({ orgData: true, m365Activity: true }), access: { orgAttribute: 'department' } });
   return /** @type {any[]} */ (bim.model.roles);
@@ -170,62 +168,52 @@ test('rlsModels: the deployed models on each target', () => {
   assert.equal(rlsModels(config)[2].model, config.agentEvaluator.model);
 });
 
-test('rlsBlockers: no model, a Pro workspace or private networking', () => {
+test('rlsBlockers: no model or private networking', () => {
   const { ctx, config } = fakeCtx();
   assert.match(rlsBlockers(ctx).join('\n'), /No semantic model is deployed yet/);
   config.target = 'azure';
   config.azure = /** @type {any} */ ({ powerBi: { workspaceId: 'pbi-ws', datasetId: 'az-vl' }, publicNetworkAccess: false });
   const blockers = rlsBlockers(ctx).join('\n');
   assert.match(blockers, /private networking/);
-  assert.match(blockers, /Pro licence/);
   config.azure = /** @type {any} */ ({ powerBi: { workspaceId: 'pbi-ws', datasetId: 'az-vl', capacityId: 'cap-1' } });
   assert.deepEqual(rlsBlockers(ctx), []);
 });
 
-test('apply on Fabric: lands the list, applies the roles with members, then records them', async () => {
+test('apply on Fabric: lands scope data and records the model, without changing role membership', async () => {
   const { ctx, config, fabric, lakeFiles, powerBi } = fabricInstall();
   lakeFiles.map.set(FABRIC_SCOPE_FILE, scopeCsv([...seedRows(['ana@contoso.com'], by), newRow({ upn: 'ben@contoso.com', type: 'org', value: 'Sales' }, by)]));
-  deployedRoles(ctx).set('ds-vl', builtRoles());
   fabric.jobs.push({ status: 'Completed' });
 
   assert.equal(await applyOrgAccess(ctx, { refresh: false }), true);
 
   const [params] = notebookRuns(fabric.calls);
   assert.equal(params.MODE.value, 'all');
-  assert.equal(params.ROLES_FILE.value, FABRIC_ROLES_FILE);
-  const roles = JSON.parse(/** @type {string} */ (lakeFiles.map.get(FABRIC_ROLES_FILE)));
-  assert.deepEqual(roles.map((/** @type {any} */ i) => [i.dataset, i.datasetId, i.role.name]), [[config.semanticModel.name, 'ds-vl', EVERYONE_ROLE], [config.semanticModel.name, 'ds-vl', SCOPED_ROLE]]);
-  assert.deepEqual(roles[0].role.members.map((/** @type {any} */ m) => m.memberName), ['ana@contoso.com']);
-  assert.deepEqual(roles[1].role.members, [{ memberName: 'obj:g-1@tenant-1', identityProvider: 'AzureAD', memberType: 'group' }]);
   assert.deepEqual(config.access?.rls?.applied, ['ds-vl']);
+  assert.ok(![...lakeFiles.map.keys()].some((path) => path.includes('roles')));
   assert.deepEqual(powerBi.calls, [], 'refresh: false leaves the refresh to the caller');
 });
 
-test('apply on Fabric: a model not deployed this run takes its roles from the last roles file, with members from the list now', async () => {
+test('apply on Fabric: scope reload does not overwrite role membership', async () => {
   const { ctx, config, fabric, lakeFiles, powerBi } = fabricInstall();
-  const old = builtRoles().map((role) => ({ dataset: 'ValueLens', datasetId: 'ds-vl', role: { ...role, members: [{ memberName: 'gone@contoso.com' }] } }));
-  lakeFiles.map.set(FABRIC_ROLES_FILE, JSON.stringify(old));
   lakeFiles.map.set(FABRIC_SCOPE_FILE, scopeCsv(seedRows(['ben@contoso.com'], by)));
   fabric.jobs.push({ status: 'Completed' });
 
   assert.equal(await applyOrgAccess(ctx), true);
 
-  const roles = JSON.parse(/** @type {string} */ (lakeFiles.map.get(FABRIC_ROLES_FILE)));
-  assert.deepEqual(roles[0].role.members.map((/** @type {any} */ m) => m.memberName), ['ben@contoso.com']);
   assert.deepEqual(config.access?.rls?.applied, ['ds-vl']);
+  assert.ok(![...lakeFiles.map.keys()].some((path) => path.includes('roles')));
   assert.ok(powerBi.calls.some((c) => c.startsWith('refresh ds-vl')), 'refreshes the model');
 });
 
 test('apply on Fabric: a failed notebook leaves the models unapplied and says why', async () => {
   const { ctx, config, fabric, lakeFiles, ui } = fabricInstall();
   lakeFiles.map.set(FABRIC_SCOPE_FILE, scopeCsv(seedRows(['ana@contoso.com'], by)));
-  deployedRoles(ctx).set('ds-vl', builtRoles());
-  fabric.jobs.push({ status: 'Failed', failureReason: { message: 'XMLA endpoint is read only' } });
+  fabric.jobs.push({ status: 'Failed', failureReason: { message: 'Lakehouse access data load failed' } });
 
   assert.equal(await ensureOrgAccess(ctx, { refresh: false }), false);
   assert.deepEqual(config.access?.rls?.applied, []);
-  assert.match(ui.text(), /XMLA endpoint is read only/);
-  assert.match(ui.text(), /Allow XMLA endpoints/);
+  assert.match(ui.text(), /Lakehouse access data load failed/);
+  assert.match(ui.text(), /try again from ".*access"/);
 });
 
 test('ensureOrgAccess: a blocker is a failure that says how to get past it', async () => {
@@ -237,17 +225,18 @@ test('ensureOrgAccess: a blocker is a failure that says how to get past it', asy
   assert.match(ui.text(), /Fix that, or turn org-scoped access off from ".*access"\./);
 });
 
-test('ensureOrgAccess: with no model able to take its roles yet, it only warns, so it is not a failure', async () => {
+test('ensureOrgAccess: scope data is already applied and reminds admin to review portal membership', async () => {
   const { ctx, config, fabric, lakeFiles, ui } = fabricInstall();
   lakeFiles.map.set(FABRIC_SCOPE_FILE, scopeCsv(seedRows(['ana@contoso.com'], by)));
-  assert.equal(await ensureOrgAccess(ctx, { refresh: false }), null);
+  /** @type {any} */ (config.access).rls.applied = ['ds-vl'];
+  assert.equal(await ensureOrgAccess(ctx, { refresh: false }), true);
   assert.deepEqual(notebookRuns(fabric.calls), []);
-  assert.deepEqual(config.access?.rls?.applied, []);
-  assert.match(ui.text(), /wasn't deployed with org-scoped access by this installer\. Run ".*update" to redeploy it\./);
+  assert.deepEqual(config.access?.rls?.applied, ['ds-vl']);
+  assert.match(ui.text(), /Scoped viewers role in Power BI Service/);
   assert.doesNotMatch(ui.text(), /✗/);
 });
 
-test('ensureOrgAccess: nothing to do when off, or when every model has its members', async () => {
+test('ensureOrgAccess: nothing to do when off, or when every model has its scope data', async () => {
   const off = fabricInstall({ rls: false });
   assert.equal(await ensureOrgAccess(off.ctx), true);
   assert.deepEqual(off.fabric.calls, []);
@@ -256,23 +245,20 @@ test('ensureOrgAccess: nothing to do when off, or when every model has its membe
   /** @type {any} */ (on.config.access).rls.applied = ['ds-vl'];
   assert.equal(await ensureOrgAccess(on.ctx), true);
   assert.deepEqual(notebookRuns(on.fabric.calls), []);
-  assert.match(on.ui.text(), /Org-scoped access is in place/);
+  assert.match(on.ui.text(), /Org-scoped access data is in place/);
 });
 
-test('deployModel: a redeploy drops the model from applied, and records its roles for this run', async () => {
+test('deployModel: a redeploy drops the model from scope-data applied state', async () => {
   const { ctx, config, fabric } = fabricInstall();
   const item = fabric.add('SemanticModel', 'ValueLens', null);
   config.semanticModel.id = item.id;
   /** @type {any} */ (config.access).rls.applied = [item.id, 'ds-other'];
   const bim = { model: { tables: [], roles: builtRoles() } };
   const definition = { parts: [{ path: 'model.bim', payload: Buffer.from(JSON.stringify(bim)).toString('base64') }] };
-  assert.deepEqual(definitionRoles(definition).map((r) => r.name), [EVERYONE_ROLE, SCOPED_ROLE]);
-  assert.deepEqual(definitionRoles({ parts: [{ path: 'model.bim', payload: Buffer.from('{"model":{}}').toString('base64') }] }), []);
-
   await deployModel(ctx, config.semanticModel, { signature: 'sig', definition: () => definition, force: true });
 
   assert.deepEqual(config.access?.rls?.applied, ['ds-other']);
-  assert.deepEqual(deployedRoles(ctx).get(item.id)?.map((r) => r.name), [EVERYONE_ROLE, SCOPED_ROLE]);
+  assert.deepEqual(bim.model.roles?.map((r) => r.name), [EVERYONE_ROLE, SCOPED_ROLE]);
 });
 
 test('turning it on: seeds everyone for the current viewers and you, then redeploys', async () => {
@@ -330,7 +316,7 @@ test('the menu: give someone a scope adds them to the group; turning it off keep
   assert.deepEqual(config.access?.rls, { enabled: false, orgAttribute: 'department', applied: [] });
 });
 
-test('apply on Azure: writes to the landing container, applies roles in the Power BI workspace, then runs only access and refresh', async () => {
+test('apply on Azure: writes scope data and refreshes through the access job; role membership stays manual', async () => {
   const fabric = fakeFabric();
   const arm = fakeArm();
   const store = files();
@@ -354,27 +340,21 @@ test('apply on Azure: writes to the landing container, applies roles in the Powe
   config.fabric.workspaceId = 'pbi-ws';
   config.access = /** @type {any} */ ({ ...config.access, groupId: 'g-1', rls: { enabled: true, orgAttribute: 'department', applied: [] } });
   store.map.set(`landing/${AZURE_SCOPE_FILE}`, scopeCsv(seedRows(['ana@contoso.com'], by)));
-  deployedRoles(ctx).set('az-vl', builtRoles());
   fabric.jobs.push({ status: 'Completed' });
 
   assert.equal(await applyOrgAccess(ctx), true);
 
   assert.ok(accounts.every((a) => a === 'vlensstabc'));
   assert.ok(arm.calls.some((c) => c.startsWith('assignRole /subscriptions/sub-1/resourceGroups/rg-vl/providers/Microsoft.Storage/storageAccounts/vlensstabc')));
-  assert.ok(store.map.has(`landing/${AZURE_ROLES_FILE}`));
-  assert.ok(fabric.calls.includes('createNotebook AnalyticsHub_Access_Scope'));
-  assert.equal(config.azure?.powerBi?.accessNotebookId, 'notebook-1');
-  const [params] = notebookRuns(fabric.calls);
-  assert.equal(params.MODE.value, 'membership');
-  assert.equal(params.ROLES_FILE.value, 'abfss://landing@vlensstabc.dfs.core.windows.net/access/roles.json');
-  assert.equal(params.WORKSPACE_ID.value, 'pbi-ws');
+  assert.ok(![...store.map.keys()].some((path) => path.includes('roles')));
+  assert.doesNotMatch(fabric.calls.join('\n'), /createNotebook AnalyticsHub_Access_Scope/);
   assert.ok(arm.calls.includes('startJob vlens-run'));
   assert.deepEqual(arm.jobTemplates[0].containers[0].args, ['run', '--steps', 'access,refresh']);
   assert.deepEqual(config.access?.rls?.applied, ['az-vl']);
   assert.ok(config.azure?.status?.lastAccess);
 });
 
-test('apply on Azure: the Agent Evaluator model gets its roles too', async () => {
+test('apply on Azure: scope-data state covers every deployed model', async () => {
   const fabric = fakeFabric();
   const store = files();
   const dataLake = () => ({
@@ -393,23 +373,16 @@ test('apply on Azure: the Agent Evaluator model gets its roles too', async () =>
   config.fabric.workspaceId = 'pbi-ws';
   config.access = /** @type {any} */ ({ ...config.access, groupId: 'g-1', rls: { enabled: true, orgAttribute: 'department', applied: [] } });
   store.map.set(`landing/${AZURE_SCOPE_FILE}`, scopeCsv(seedRows(['ana@example.com'], by)));
-  deployedRoles(ctx).set('az-vl', builtRoles());
-  const evaluator = buildAgentEvaluatorModel(loadTemplateModel(/** @type {string} */ (realSources().agentEvaluatorModelFile)), { ...lake, access: { orgAttribute: 'department' } });
-  deployedRoles(ctx).set('az-ae', /** @type {any[]} */ (evaluator.model.roles));
   fabric.jobs.push({ status: 'Completed' });
 
   assert.equal(await applyOrgAccess(ctx), true);
 
-  const items = JSON.parse(store.map.get(`landing/${AZURE_ROLES_FILE}`) ?? '[]');
-  assert.deepEqual([...new Set(items.map((/** @type {any} */ i) => `${i.dataset}|${i.datasetId}`))], [`${config.semanticModel.name}|az-vl`, `${config.agentEvaluator.model.name}|az-ae`]);
-  assert.deepEqual(items.filter((/** @type {any} */ i) => i.datasetId === 'az-ae').map((/** @type {any} */ i) => i.role.name).sort(), [EVERYONE_ROLE, SCOPED_ROLE].sort());
   assert.deepEqual(config.access?.rls?.applied, ['az-vl', 'az-ae']);
 });
 
 const TURN_ON = 'Turn on org-scoped access? The models are redeployed and refreshed.';
 const READ_SCOPES = `read ${AZURE_SCOPE_FILE}`;
 const WRITE_SCOPES = `write ${AZURE_SCOPE_FILE}`;
-const WRITE_ROLES = `write ${AZURE_ROLES_FILE}`;
 const WAIT = `wait ${STORAGE_RETRY_MS}`;
 /** ARM refusing a role assignment, as it does someone who can't assign roles. */
 const refused = () =>
@@ -488,7 +461,6 @@ function azureInstall(o = {}) {
   });
   config.fabric.workspaceId = 'pbi-ws';
   config.access = /** @type {any} */ ({ ...config.access, groupId: 'g-1', groupName: 'Analytics Hub Viewers', ...(o.rls === false ? {} : { rls: { enabled: true, orgAttribute: 'department', applied: [] } }) });
-  deployedRoles(ctx).set('az-vl', builtRoles());
   fabric.jobs.push({ status: 'Completed' });
   return { ctx, config, arm, store, log, ui };
 }
@@ -531,8 +503,7 @@ test('apply on Azure: gives you the storage role before reading the scope list, 
 
   assert.equal(await applyOrgAccess(ctx), true);
 
-  assert.deepEqual(log, ['assignRole', `${READ_SCOPES}: 403`, WAIT, `${READ_SCOPES}: 403`, WAIT, `${READ_SCOPES}: 403`, WAIT, READ_SCOPES, WRITE_SCOPES, WRITE_ROLES]);
-  assert.ok(store.map.has(`landing/${AZURE_ROLES_FILE}`));
+  assert.deepEqual(log, ['assignRole', `${READ_SCOPES}: 403`, WAIT, `${READ_SCOPES}: 403`, WAIT, `${READ_SCOPES}: 403`, WAIT, READ_SCOPES, WRITE_SCOPES]);
   assert.deepEqual(arm.jobTemplates[0].containers[0].args, ['run', '--steps', 'access,refresh']);
   assert.deepEqual(config.access?.rls?.applied, ['az-vl']);
 });
@@ -566,7 +537,7 @@ test("apply on Azure, when you can't assign roles but were given the storage rol
 
   assert.equal(await applyOrgAccess(ctx), true);
 
-  assert.deepEqual(log, [READ_SCOPES, WRITE_SCOPES, WRITE_ROLES]);
+  assert.deepEqual(log, [READ_SCOPES, WRITE_SCOPES]);
   assert.doesNotMatch(ui.text(), /can't assign roles|✗/);
 });
 

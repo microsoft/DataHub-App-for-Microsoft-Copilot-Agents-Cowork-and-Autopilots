@@ -149,12 +149,26 @@ def test_prerequisites_summary_fits_on_one_screen():
     assert len(summary.strip().splitlines()) <= 30
 
 
+def test_customise_topics_have_two_to_four_numbered_steps():
+    text = (ROOT / "docs" / "CUSTOMISE.md").read_text(encoding="utf-8")
+    topics = re.split(r"(?m)^### ", text)[1:]
+    assert topics
+    for topic in topics:
+        title, _, body = topic.partition("\n")
+        steps = re.findall(r"(?m)^(\d+)\. ", body.split("\n## ", 1)[0])
+        assert 2 <= len(steps) <= 4, title
+        assert steps == [str(i) for i in range(1, len(steps) + 1)], title
+
+
 @pytest.mark.parametrize(
     "target, source, expected",
     [
         ("INSTALL.md#from-powershell", "docs/VERIFY.md", "Install#from-powershell"),
         ("#at-a-glance", "docs/PREREQUISITES.md", "#at-a-glance"),
         ("../PREREQUISITES.md", "docs/wiki/Home.md", "Prerequisites"),
+        ("../CUSTOMISE.md", "docs/wiki/_Sidebar.md", "Customise"),
+        ("CUSTOMIZATION-AND-SECURITY.md#set-up-row-level-security", "docs/CUSTOMISE.md",
+         "Security-and-Privacy-Setup#set-up-row-level-security"),
         ("Home.md", "docs/wiki/_Sidebar.md", "Home"),
         ("../installer/README.md#networking", "docs/INSTALL.md",
          "https://github.com/o/r/blob/main/installer/README.md#networking"),
