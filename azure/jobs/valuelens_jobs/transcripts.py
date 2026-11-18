@@ -267,7 +267,9 @@ def _exec_ms(value) -> int:
 
 
 def _role(a):
-    return _dict(a.get("from")).get("role")
+    """Copilot Studio serializes bot=0 and user=1; Bot Framework also uses names."""
+    role = str(_dict(a.get("from")).get("role")).strip().lower()
+    return "user" if role in ("1", "user") else "bot" if role in ("0", "bot") else "other"
 
 
 def _verdict_from_value(val):
@@ -366,10 +368,10 @@ def resolve_agent_identity(acts, row):
         if not isinstance(a, dict) or a.get("type") != "message":
             continue
         frm = _dict(a.get("from"))
-        if frm.get("role") in (1, "bot"):
+        if _role(a) == "bot":
             msg_name = msg_name or _clean_token(frm.get("name"))
             msg_id = msg_id or _clean_token(frm.get("id"))
-        else:
+        elif _role(a) == "user":
             rcp = a.get("recipient") or {}
             if isinstance(rcp, dict):
                 msg_name = msg_name or _clean_token(rcp.get("name"))
@@ -535,8 +537,7 @@ def _turn_rows(r, acts):
         if not isinstance(a, dict) or a.get("type") != "message":
             continue
         frm = _dict(a.get("from"))
-        role = frm.get("role")
-        role_label = "user" if role in (0, "user") else ("bot" if role in (1, "bot") else "other")
+        role_label = _role(a)
         from_id = frm.get("aadObjectId") or frm.get("id")
         msg_id = a.get("id")
         hashable = _hashable(msg_id)
@@ -742,8 +743,8 @@ def transcript_rows(r) -> dict:
     """{fact table: [raw rows]} for one parsed transcript (`r` carries content_json and agent_schema_hint)."""
     acts = get_activities(r["content_json"])
     msgs = [a for a in acts if isinstance(a, dict) and a.get("type") == "message"]
-    user_msgs = [a for a in msgs if _role(a) in (0, "user")]
-    bot_msgs = [a for a in msgs if _role(a) in (1, "bot")]
+    user_msgs = [a for a in msgs if _role(a) == "user"]
+    bot_msgs = [a for a in msgs if _role(a) == "bot"]
     identity = resolve_agent_identity(acts, r)
     return {
         "agent_sessions": [_session_row(r, acts, msgs, user_msgs, bot_msgs, identity)],
