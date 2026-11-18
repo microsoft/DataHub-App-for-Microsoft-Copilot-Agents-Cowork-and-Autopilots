@@ -9,7 +9,9 @@
  * A seeded, synthetic scenario for the Business Impact preview: DataHub
  * adoption, agent and cost signals beside the process outcomes Business
  * Process Solutions (BPS) publishes in its Fabric Gold layer. Every figure is
- * illustrative. Nothing here is read from a model, BPS or SAP.
+ * illustrative. Nothing here is read from a model, BPS or SAP. Measure
+ * definitions follow the generic SAP document model BPS extracts (dates,
+ * statuses, amounts and flags), not any particular deployment.
  */
 
 export const SCENARIO_SEED = 4217;
@@ -19,6 +21,14 @@ export const scenarioRange = "4 May – 26 Oct 2026";
 
 export type Domain = "Finance" | "Procurement" | "Sales";
 export type Evidence = "Estimated" | "Observed" | "Attributable";
+
+/** How directly a BPS Gold deployment can supply a measure. */
+export type Availability = "Computed" | "Proxy" | "Needs source";
+export const availabilityMeaning: Record<Availability, string> = {
+    Computed: "Calculated directly from BPS Gold dates, statuses, amounts or flags.",
+    Proxy: "Approximated: the link or field is indirect, or it is a team average because BPS holds no user on the document.",
+    "Needs source": "Not in BPS's default SAP models: needs an extra source, model or calendar.",
+};
 
 /** A BPS measure read before and after rollout, against a comparison group. */
 export interface Measured {
@@ -55,7 +65,7 @@ export const personas: readonly Persona[] = [
         id: "ap", name: "Accounts payable specialist", domain: "Finance", process: "Invoice to pay",
         people: 64, copilotActive: 0.86, agentUsers: 0.72, habit: 0.64, estHoursPerPerson: 9.4,
         topTasks: ["Email", "Data & Analysis", "Document Summarisation"],
-        kpi: "Invoice cycle time", unit: "days", lowerIsBetter: true,
+        kpi: "Invoice posting to payment time", unit: "days", lowerIsBetter: true,
         baseline: 8.6, current: 6.1, comparisonChange: -0.6, interval: 0.7, evidence: "Attributable",
     },
     {
@@ -69,14 +79,14 @@ export const personas: readonly Persona[] = [
         id: "r2r", name: "Financial controller", domain: "Finance", process: "Record to report",
         people: 22, copilotActive: 0.91, agentUsers: 0.41, habit: 0.68, estHoursPerPerson: 11.2,
         topTasks: ["Data & Analysis", "Presentations", "Document Creation"],
-        kpi: "Days to close", unit: "days", lowerIsBetter: true,
-        baseline: 7.0, current: 6.0, comparisonChange: -0.2, interval: 0.9, evidence: "Observed",
+        kpi: "Manual journals", unit: "%", lowerIsBetter: true,
+        baseline: 34, current: 32, comparisonChange: -1, interval: 2.5, evidence: "Observed",
     },
     {
         id: "buyer", name: "Buyer", domain: "Procurement", process: "Procure to pay (sourcing)",
         people: 46, copilotActive: 0.68, agentUsers: 0.33, habit: 0.44, estHoursPerPerson: 6.1,
         topTasks: ["Email", "Document Creation", "Search & Research"],
-        kpi: "Purchase order cycle time", unit: "days", lowerIsBetter: true,
+        kpi: "Requisition to PO time", unit: "days", lowerIsBetter: true,
         baseline: 5.4, current: 4.9, comparisonChange: -0.3, interval: 0.6, evidence: "Observed",
     },
     {
@@ -114,6 +124,9 @@ export interface ProcessMeasure extends Measured {
     process: string;
     kind: MeasureKind;
     measure: string;
+    availability: Availability;
+    /** The generic BPS model and fields the measure is read from, and any caveat. */
+    basis: string;
 }
 
 export type MeasureRead = "Improved" | "Not conclusive" | "Held" | "Worse";
@@ -129,48 +142,55 @@ export function readMeasure(m: ProcessMeasure): MeasureRead {
     return m.kind === "Quality check" ? "Held" : "Not conclusive";
 }
 
-const measure = (process: string, kind: MeasureKind, name: string, unit: string, lowerIsBetter: boolean, baseline: number, current: number, comparisonChange: number, interval: number): ProcessMeasure =>
-    ({ process, kind, measure: name, unit, lowerIsBetter, baseline, current, comparisonChange, interval });
+const measure = (process: string, kind: MeasureKind, name: string, unit: string, lowerIsBetter: boolean, baseline: number, current: number, comparisonChange: number, interval: number, availability: Availability, basis: string): ProcessMeasure =>
+    ({ process, kind, measure: name, unit, lowerIsBetter, baseline, current, comparisonChange, interval, availability, basis });
 
 /**
  * The fuller BPS scorecard: measures the BPS finance, procurement and sales
  * data models should support, each 12 weeks before vs after rollout.
- * Illustrative: confirm against your BPS deployment before relying on any one.
+ * Illustrative: confirm field population and link coverage in your own BPS
+ * deployment before relying on any one.
  */
 export const processScorecard: readonly ProcessMeasure[] = [
-    measure("Invoice to pay", "Speed", "Invoice cycle time", "days", true, 8.6, 6.1, -0.6, 0.7),
-    measure("Invoice to pay", "Throughput", "Invoices per specialist a month", "invoices", false, 610, 700, 10, 30),
-    measure("Invoice to pay", "Quality check", "First-time match rate", "%", false, 78, 83, 1, 2.5),
-    measure("Invoice to pay", "Quality check", "Blocked invoices", "%", true, 6.2, 5.4, -0.2, 0.5),
-    measure("Invoice to pay", "Cash", "Eligible discounts captured", "%", false, 58, 71, 2, 5),
-    measure("Invoice to pay", "Cash", "Invoices paid late", "%", true, 9.1, 6.4, -0.5, 1.2),
-    measure("Order to cash (collections)", "Speed", "Days sales outstanding", "days", true, 52, 47, -1.5, 2.4),
-    measure("Order to cash (collections)", "Speed", "Dispute resolution time", "days", true, 14, 11.5, -0.5, 1.6),
-    measure("Order to cash (collections)", "Throughput", "Open items cleared per specialist a month", "items", false, 410, 455, 8, 30),
-    measure("Order to cash (collections)", "Quality check", "Receivables overdue", "%", true, 18, 16.5, -0.4, 1.5),
-    measure("Order to cash (collections)", "Cash", "Collection effectiveness", "%", false, 82, 86, 1, 2.4),
-    measure("Record to report", "Speed", "Days to close", "days", true, 7, 6, -0.2, 0.9),
-    measure("Record to report", "Throughput", "Journals per accountant a month", "journals", false, 120, 131, 3, 9),
-    measure("Record to report", "Quality check", "Manual journals", "%", true, 34, 30, -1, 2.5),
-    measure("Record to report", "Quality check", "Journal reversals", "%", true, 2.1, 2.0, 0, 0.4),
-    measure("Procure to pay (sourcing)", "Speed", "Purchase order cycle time", "days", true, 5.4, 4.9, -0.3, 0.6),
-    measure("Procure to pay (sourcing)", "Throughput", "Purchase orders per buyer a month", "POs", false, 213, 226, 4, 12),
-    measure("Procure to pay (sourcing)", "Quality check", "Supplier on-time delivery", "%", false, 88, 89, 0.5, 2),
-    measure("Source to contract", "Speed", "Contract cycle time", "days", true, 34, 30, -1, 4.5),
-    measure("Source to contract", "Quality check", "Spend outside contracts", "%", true, 9, 7.8, -0.3, 1.2),
-    measure("Source to contract", "Cash", "Spend under contract", "%", false, 71, 76, 1, 4.2),
-    measure("Quote to order", "Speed", "Quote to order", "days", true, 11.5, 11.0, -0.4, 1.3),
-    measure("Quote to order", "Throughput", "Quotes per rep a month", "quotes", false, 208, 214, 3, 14),
-    measure("Quote to order", "Quality check", "Forecast accuracy", "%", false, 74, 76, 1, 4),
-    measure("Quote to order", "Cash", "Win rate", "%", false, 27, 28, 0.5, 3),
+    measure("Invoice to pay", "Speed", "Invoice posting to payment time", "days", true, 8.6, 6.1, -0.6, 0.7, "Computed", "Accounts Payable Insights: AP open item posting date to clearing date. Starts at posting, not receipt: no invoice-receipt timestamp is assumed."),
+    measure("Invoice to pay", "Throughput", "Invoices per specialist a month", "invoices", false, 610, 700, 10, 30, "Proxy", "Supplier invoices posted by the team, divided by the persona's headcount. Per-person output needs the invoice creator mapped to a person, so this is a team average."),
+    measure("Invoice to pay", "Quality check", "Invoice items without a variance flag", "%", false, 78, 83, 1, 2.5, "Proxy", "Supplier invoice items with no price, quantity, quality, date or other tolerance-variance flag: a first-time-match proxy."),
+    measure("Invoice to pay", "Quality check", "Payment-blocked items", "%", true, 6.2, 5.4, -0.2, 0.5, "Computed", "Accounts Payable Insights: open items carrying a payment blocking reason."),
+    measure("Invoice to pay", "Cash", "Eligible discounts captured", "%", false, 58, 71, 2, 5, "Computed", "Open items with cash-discount terms cleared on or before the discount due date. Needs payment terms populated."),
+    measure("Invoice to pay", "Cash", "Invoices paid late", "%", true, 9.1, 6.4, -0.5, 1.2, "Computed", "Open items cleared after the net due date."),
+    measure("Order to cash (collections)", "Speed", "Days sales outstanding", "days", true, 52, 47, -1.5, 2.4, "Computed", "Accounts Receivable Insights: customer balances and open items."),
+    measure("Order to cash (collections)", "Speed", "Dispute resolution time", "days", true, 14, 11.5, -0.5, 1.6, "Needs source", "SAP dispute-case data is not in BPS's default models; needs a dispute-management extract."),
+    measure("Order to cash (collections)", "Throughput", "Open items cleared per specialist a month", "items", false, 410, 455, 8, 30, "Proxy", "Receivable items cleared by the team, divided by headcount. Per-collector output needs an assignment field, so this is a team average."),
+    measure("Order to cash (collections)", "Quality check", "Receivables overdue", "%", true, 18, 16.5, -0.4, 1.5, "Computed", "Open receivables past their net due date."),
+    measure("Order to cash (collections)", "Cash", "Collection effectiveness", "%", false, 82, 86, 1, 2.4, "Computed", "Cleared receivables against receivables due, from customer balances."),
+    measure("Order to cash (collections)", "Cash", "Receivables reaching dunning", "%", true, 4.4, 3.8, -0.2, 0.7, "Computed", "Receivable open items with a dunning level above zero."),
+    measure("Record to report", "Speed", "Days to close", "days", true, 7, 6, -0.2, 0.9, "Needs source", "A close calendar or task log is not part of the default BPS models; needs the close schedule from a close-management source."),
+    measure("Record to report", "Throughput", "Journals per accountant a month", "journals", false, 120, 131, 3, 9, "Proxy", "Journal entries posted by the team, divided by headcount. The creator is an SAP user, so per-person views need an identity mapping."),
+    measure("Record to report", "Quality check", "Manual journals", "%", true, 34, 32, -1, 2.5, "Proxy", "Finance Insights: share of journal lines by accounting document type and reference type that are not system-generated."),
+    measure("Record to report", "Quality check", "Journal reversals", "%", true, 2.1, 2.0, 0, 0.4, "Computed", "Finance Insights: journal lines flagged as reversals."),
+    measure("Procure to pay (sourcing)", "Speed", "Requisition to PO time", "days", true, 5.4, 4.9, -0.3, 0.6, "Proxy", "Purchase requisition item creation to its purchase order's creation. Depends on the requisition-to-PO link being populated: check coverage first."),
+    measure("Procure to pay (sourcing)", "Speed", "Requisition release time", "days", true, 3.6, 3.2, -0.2, 0.6, "Computed", "Purchase requisition item creation date to release date."),
+    measure("Procure to pay (sourcing)", "Throughput", "Purchase orders per buyer a month", "POs", false, 213, 226, 4, 12, "Proxy", "Purchase orders created by the purchasing group, divided by headcount. Per-buyer needs the PO creator's SAP user mapped."),
+    measure("Procure to pay (sourcing)", "Quality check", "Supplier on-time delivery", "%", false, 88, 89, 0.5, 2, "Proxy", "Goods movements against purchase order schedule dates. Needs the Goods movements and Deliveries models enabled."),
+    measure("Source to contract", "Speed", "Contract cycle time", "days", true, 34, 30, -1, 4.5, "Needs source", "Contract authoring and approval is not in BPS's default models; needs a contract-lifecycle source."),
+    measure("Source to contract", "Quality check", "Spend outside contracts", "%", true, 9, 7.8, -0.3, 1.2, "Computed", "Spend Insights: purchase order item net amount with no purchase-contract reference."),
+    measure("Source to contract", "Cash", "Spend under contract", "%", false, 71, 76, 1, 4.2, "Computed", "Spend Insights: purchase order item net amount that references a purchase contract."),
+    measure("Quote to order", "Speed", "Quote to order", "days", true, 11.5, 11.0, -0.4, 1.3, "Proxy", "Sales Orders: quotation creation to the follow-on order via document flow. Confirm quotations are extracted."),
+    measure("Quote to order", "Throughput", "Quotes per rep a month", "quotes", false, 208, 214, 3, 14, "Proxy", "Quotations created by the team, divided by headcount. The sales-employee field can be blank: check it before any per-person view."),
+    measure("Quote to order", "Quality check", "Orders held by a delivery or billing block", "%", true, 2.4, 2.1, -0.1, 0.5, "Computed", "Sales & Billing Insights: sales document items with a delivery or billing block reason."),
+    measure("Quote to order", "Quality check", "Forecast accuracy", "%", false, 74, 76, 1, 4, "Needs source", "Needs Opportunity Insights (Salesforce) or a planning source; not in the default SAP extraction."),
+    measure("Quote to order", "Cash", "Win rate", "%", false, 27, 28, 0.5, 3, "Needs source", "Opportunity Insights (Salesforce) or D365: won over won-or-lost opportunities."),
 ];
 
 const headlineMeasureNames = new Set([
-    "Invoice cycle time", "Invoices per specialist a month", "First-time match rate",
-    "Eligible discounts captured", "Days sales outstanding", "Days to close",
-    "Purchase order cycle time", "Spend under contract",
+    "Invoice posting to payment time", "Invoices per specialist a month", "Invoice items without a variance flag",
+    "Eligible discounts captured", "Days sales outstanding", "Manual journals",
+    "Requisition to PO time", "Spend under contract",
 ]);
 export const headlineMeasures = processScorecard.filter(m => headlineMeasureNames.has(m.measure));
+
+/** The scorecard measure behind a persona's headline KPI. */
+export const measureFor = (p: Persona) => processScorecard.find(m => m.measure === p.kpi);
 
 /** Separate invented Dataverse cohort, not a BPS export or a connected environment. */
 export const d365SalesPreview = [
@@ -218,7 +238,7 @@ function weekLabel(index: number) {
 export const rolloutDate = weekLabel(ROLLOUT_WEEK - 1);
 
 /**
- * Weekly invoice cycle time for the AP pilot team and a comparable team that
+ * Weekly invoice posting-to-payment time for the AP pilot team and a comparable team that
  * had not yet been rolled out to.
  */
 export function apTrend() {
@@ -310,7 +330,7 @@ export function costToServe() {
 /** The evidence ladder for the AP pilot, one rung per evidence level. */
 export const benefitLadder: readonly { level: Evidence; label: string; value: string; basis: string }[] = [
     { level: "Estimated", label: "Expert-equivalent hours (Value method)", value: "602 h / month", basis: "64 illustrative AP specialists × 9.4 hours. Uses Value's estimation concept, not its separate demo cohort or measured savings." },
-    { level: "Observed", label: "Invoice cycle time", value: "8.6 → 6.1 days", basis: "Illustrative invoice facts for the pilot team, 12 weeks before vs after rollout. Not adjusted for anything else that changed." },
+    { level: "Observed", label: "Invoice posting to payment time", value: "8.6 → 6.1 days", basis: "Illustrative AP open items for the pilot team, 12 weeks before vs after rollout. Not adjusted for anything else that changed." },
     { level: "Attributable", label: "Beyond the comparison team", value: "−1.9 days (±0.7)", basis: "Simulated difference in differences against a matched team not yet rolled out. 90% interval; study assumptions still matter." },
 ];
 
@@ -330,20 +350,38 @@ export const opportunities = [
     { process: "Invoice to pay", persona: "Accounts payable specialist", volume: 42_000, gap: 0.04, agentAdoption: 0.72, candidate: "Sustain, and use as the reference rollout", priority: "Low" },
 ] as const;
 
-/** What the optional module would read. BPS table names are illustrative; confirm them against your deployment. */
+/** What the optional module would read. Model names follow the BPS documentation; confirm entities and field population against your deployment. */
 export const dataContract = [
-    { source: "BPS Gold (shortcut)", table: "Accounts payable invoice facts", grain: "Invoice", use: "Cycle time, invoices per specialist, first-time match, blocks, discounts, late payment" },
-    { source: "BPS Gold (shortcut)", table: "Accounts receivable open items", grain: "Open item per day", use: "Days sales outstanding, items cleared, overdue share, collection effectiveness, disputes" },
-    { source: "BPS Gold (shortcut)", table: "General ledger journal entries", grain: "Journal line", use: "Days to close, journals per accountant, manual and reversed journals" },
-    { source: "BPS Gold (shortcut)", table: "Purchase order and goods receipt facts", grain: "PO line", use: "PO cycle time, POs per buyer, supplier on-time delivery, spend under or outside contracts" },
-    { source: "BPS Gold (shortcut)", table: "Sales quote and order facts", grain: "Document", use: "Quote to order, quotes per rep, win rate, forecast accuracy" },
-    { source: "BPS Gold (shortcut)", table: "Cost centre and company code", grain: "Cost centre, effective-dated", use: "Org mapping" },
+    { source: "BPS Gold (shortcut)", table: "Accounts Payable Insights: AP open items; supplier invoices (header, item)", grain: "Open item; invoice item", use: "Posting to payment time, payment blocks, discounts, late payment, invoice variance flags" },
+    { source: "BPS Gold (shortcut)", table: "Accounts Receivable Insights: AR open items; customer balances", grain: "Open item; customer, fiscal period", use: "Days sales outstanding, overdue share, collection effectiveness, dunning" },
+    { source: "BPS Gold (shortcut)", table: "Finance Insights: general ledger line items", grain: "Journal line", use: "Manual and reversed journals, journals posted by the team" },
+    { source: "BPS Gold (shortcut)", table: "Spend Insights: purchase requisitions and purchase orders", grain: "Requisition item; PO item", use: "Requisition release and requisition-to-PO time, spend under or outside contracts, POs by purchasing group" },
+    { source: "BPS Gold (shortcut)", table: "Sales & Billing Insights: sales orders, deliveries, billing", grain: "Sales document item; billing item", use: "Quote to order, delivery and billing blocks, quotes by team" },
+    { source: "BPS Gold (shortcut)", table: "Cost centre, company code, purchasing group, person and work agreement", grain: "Entity, effective-dated", use: "Org mapping; SAP people appear by user and personnel number, not UPN" },
+    { source: "BPS Opportunity Insights (optional)", table: "Salesforce opportunities", grain: "Opportunity", use: "Win rate, forecast accuracy: only if a Salesforce source is connected" },
     { source: "D365 / Dataverse (proposed)", table: "Lead and opportunity", grain: "Record with status, owner and lifecycle timestamps", use: "Qualification rate, win rate and sales cycle; history needed for before/after cohorts" },
     { source: "D365 / Dataverse (proposed)", table: "Account, business unit and owner mappings", grain: "Account or owner, effective-dated", use: "Sales personas and org groups after identity mapping is validated" },
-    { source: "DataHub (new)", table: "impact_org_map", grain: "Cost centre → org group, with validity dates", use: "Joins BPS outcomes to DataHub org data" },
+    { source: "DataHub (new)", table: "impact_org_map", grain: "Cost centre or purchasing group → org group, with validity dates", use: "Joins BPS outcomes to DataHub org data" },
     { source: "DataHub (new)", table: "impact_persona_map", grain: "Job title or role → persona", use: "Functional personas" },
+    { source: "DataHub (new)", table: "impact_user_map (optional)", grain: "SAP user or personnel number → UPN", use: "Person-level views only, after privacy review; customer-supplied, never inferred" },
     { source: "DataHub (new)", table: "impact_agent_process_map", grain: "Agent → process", use: "Agents in the process; optional case-ID link" },
     { source: "DataHub (new)", table: "impact_kpi_weekly", grain: "Org group × persona × process × week", use: "The one table this page reads" },
+] as const;
+
+/** How BPS outcomes can be joined to DataHub's people data, from safest to most revealing. */
+export const personaJoins = [
+    { level: "Team (default)", join: "Purchasing group, cost centre or company code → org group", shows: "Group outcomes beside the group's AI use, for groups of at least 5 people", needs: "impact_org_map" },
+    { level: "Role", join: "Job title or authorisation group → persona", shows: "Functional personas across teams", needs: "impact_persona_map" },
+    { level: "Person (opt-in)", join: "SAP user or personnel number → UPN", shows: "Whose documents an agent touched; individual-level analysis", needs: "impact_user_map from the customer, plus privacy review" },
+] as const;
+
+/** Checks before trusting a BPS-derived measure. */
+export const readinessChecks = [
+    { check: "Data window", why: "History must cover both the before and after windows, not just the latest extract." },
+    { check: "Last load", why: "A stale load understates the after period and makes recent rollouts look flat." },
+    { check: "Link coverage", why: "Share of requisitions linked to purchase orders and of cost centres mapped. Low coverage turns a measure into a proxy." },
+    { check: "Field population", why: "Payment terms, contract references, discount dates and sales-employee fields can be blank, and flags can be rare. Check a rate has a meaningful count behind it." },
+    { check: "Volume", why: "Rates on small monthly counts swing: confirm the count behind each KPI before comparing groups." },
 ] as const;
 
 export const coverage = { costCentresMapped: 0.87, peopleWithPersona: 0.81, agentsMapped: 5, agentsTotal: 7, bpsRefreshed: "26 Oct 2026, 04:10 UTC" };

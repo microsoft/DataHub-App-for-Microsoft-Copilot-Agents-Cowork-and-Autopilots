@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import { BusinessImpactScreen } from "./index";
 import { StageFilterContext, pageStages } from "@/hooks/stage-filter.context";
 import { availableDestinations, destinations, isPackable } from "@/components/destinations";
-import { attributableChange, isConclusive, personas, readMeasure, type ProcessMeasure } from "./scenario";
+import { attributableChange, isConclusive, personas, processScorecard, readMeasure, type ProcessMeasure } from "./scenario";
 
 vi.mock("@/components/vega-visual", () => ({ VegaVisual: ({ header }: { header?: { title?: string } }) => <figure aria-label={header?.title} /> }));
 vi.mock("@/hooks/theme.context", () => ({ useThemeContext: () => ({ theme: {}, isDark: false, toggleTheme() {} }) }));
@@ -31,7 +31,7 @@ describe("business impact preview", () => {
     });
 
     it("counts a quality check as held unless it is conclusively worse", () => {
-        const check: ProcessMeasure = { process: "Invoice to pay", kind: "Quality check", measure: "Blocked invoices", unit: "%", lowerIsBetter: true, baseline: 6, current: 6.2, comparisonChange: 0, interval: 0.5 };
+        const check: ProcessMeasure = { process: "Invoice to pay", kind: "Quality check", measure: "Payment-blocked items", unit: "%", lowerIsBetter: true, baseline: 6, current: 6.2, comparisonChange: 0, interval: 0.5, availability: "Computed", basis: "Test fixture." };
         expect(readMeasure(check)).toBe("Held");
         expect(readMeasure({ ...check, current: 7 })).toBe("Worse");
         expect(readMeasure({ ...check, kind: "Speed" })).toBe("Not conclusive");
@@ -42,16 +42,18 @@ describe("business impact preview", () => {
         vi.stubEnv("VITE_BUSINESS_IMPACT_DEMO", "true");
         render(<StageFilterContext.Provider value={pageStages("impact-summary")}><BusinessImpactScreen /></StageFilterContext.Provider>);
         expect(screen.getAllByRole("article", { name: / outcome$/ })).toHaveLength(8);
-        const invoice = within(screen.getByRole("article", { name: "Invoice cycle time outcome" }));
+        const invoice = within(screen.getByRole("article", { name: "Invoice posting to payment time outcome" }));
+        expect(invoice.getByText("Computed")).toBeInTheDocument();
         expect(invoice.getByText("6.1 days")).toBeInTheDocument();
         expect(invoice.getByText(/−2.5 days observed/)).toBeInTheDocument();
         expect(invoice.getByText("−1.9 days beyond comparison")).toBeInTheDocument();
         const discounts = within(screen.getByRole("article", { name: "Eligible discounts captured outcome" }));
         expect(discounts.getByText(/\+13 pts observed/)).toBeInTheDocument();
         expect(discounts.getByText("+11 pts beyond comparison")).toBeInTheDocument();
-        const procurement = within(screen.getByRole("article", { name: "Purchase order cycle time outcome" }));
+        const procurement = within(screen.getByRole("article", { name: "Requisition to PO time outcome" }));
+        expect(procurement.getByText("Proxy")).toBeInTheDocument();
         expect(procurement.getByText("Not conclusive")).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "Explore all 25 process measures" })).toHaveAttribute("href", "#/business-impact/impact-processes");
+        expect(screen.getByRole("link", { name: `Explore all ${processScorecard.length} process measures` })).toHaveAttribute("href", "#/business-impact/impact-processes");
     });
 
     it("labels the D365 cohort separately and does not give it an attribution estimate", () => {

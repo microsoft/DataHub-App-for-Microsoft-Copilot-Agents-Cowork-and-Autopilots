@@ -13,9 +13,9 @@ import { BODY, SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
 import { Chart } from "../cross-vendor/insights";
 import {
-    apTrend, attributableChange, benefitLadder, costToServe, coverage, dataContract, d365SalesPreview, financialCategories, headlineMeasures, improvement,
-    isConclusive, measureKinds, observedChange, opportunities, personas, personaTaskMix, processAgents, processScorecard,
-    readMeasure, rolloutDate, scenarioRange, teamScatter, throughputFor, type Evidence, type MeasureRead, type Persona, type ProcessMeasure,
+    apTrend, attributableChange, availabilityMeaning, benefitLadder, costToServe, coverage, dataContract, d365SalesPreview, financialCategories, headlineMeasures, improvement,
+    isConclusive, measureFor, measureKinds, observedChange, opportunities, personaJoins, personas, personaTaskMix, processAgents, processScorecard,
+    readMeasure, readinessChecks, rolloutDate, scenarioRange, teamScatter, throughputFor, type Availability, type Evidence, type MeasureRead, type Persona, type ProcessMeasure,
 } from "./scenario";
 
 const panel = "rounded-xl border border-border bg-card p-500";
@@ -41,6 +41,16 @@ const EVIDENCE_MEANING: Record<Evidence, string> = {
 
 function EvidenceBadge({ level }: { level: Evidence }) {
     return <span title={EVIDENCE_MEANING[level]} className={cn(SMALL, "inline-flex w-fit shrink-0 items-center whitespace-nowrap rounded-full border px-200 py-100 font-semibold", EVIDENCE_STYLE[level])}>{level}</span>;
+}
+
+const AVAILABILITY_STYLE: Record<Availability, string> = {
+    Computed: "border-primary/40 text-primary",
+    Proxy: "border-border text-foreground",
+    "Needs source": "border-border text-muted-foreground",
+};
+
+function AvailabilityBadge({ level, basis }: { level: Availability; basis?: string }) {
+    return <span title={basis ?? availabilityMeaning[level]} className={cn(SMALL, "inline-flex w-fit shrink-0 items-center whitespace-nowrap rounded-full border px-200 py-100", AVAILABILITY_STYLE[level])}>{level}</span>;
 }
 
 function Table({ caption, headers, rows }: { caption: string; headers: string[]; rows: React.ReactNode[][] }) {
@@ -76,8 +86,10 @@ function OutcomeCard({ measure: m }: { measure: ProcessMeasure }) {
         <article aria-label={`${m.measure} outcome`} className={cn(panel, "flex flex-col gap-200")}>
             <h3 className={cn(BODY, "font-semibold")}>{m.measure}</h3>
             <p className={cn(SMALL, "text-muted-foreground")}>{m.process} · {m.kind}</p>
+            <AvailabilityBadge level={m.availability} basis={m.basis} />
             <p className="font-numeric text-[length:var(--text-hero-800)] leading-hero-800 font-semibold tabular-nums">{num(m.current, m.unit)}</p>
             <p className={SMALL}>Before: {num(m.baseline, m.unit)} · {delta(observedChange(m), m.unit)} observed</p>
+            <p className={cn(SMALL, "text-muted-foreground")}>{m.basis}</p>
             <div className={cn(SMALL, "mt-auto border-t border-border pt-200")}>
                 <p>{delta(attributableChange(m), m.unit)} beyond comparison</p>
                 <p className="text-muted-foreground">90% interval: ±{num(m.interval, m.unit === "%" ? "pts" : m.unit)}</p>
@@ -115,7 +127,7 @@ function BottomLine() {
             <div className="grid gap-400 sm:grid-cols-2 xl:grid-cols-4">
                 {headlineMeasures.map(m => <OutcomeCard key={m.measure} measure={m} />)}
             </div>
-            <p className={cn(SMALL, "text-muted-foreground")}>BPS/SAP examples, 12 weeks before vs after rollout. “Beyond comparison” subtracts the change in a team not yet rolled out. Intervals and effects are simulated, not evidence that AI caused an improvement. Confirm measure availability in your BPS deployment.</p>
+            <p className={cn(SMALL, "text-muted-foreground")}>BPS/SAP examples, 12 weeks before vs after rollout. “Beyond comparison” subtracts the change in a team not yet rolled out. Intervals and effects are simulated, not evidence that AI caused an improvement. Each card says how it would be read from BPS: Computed from Gold fields, Proxy (indirect or team-level), or Needs source.</p>
             <div className={cn(SMALL, "flex flex-wrap gap-x-600 gap-y-200")}>
                 <a href="#/business-impact/impact-processes" className="font-semibold text-primary underline-offset-4 hover:underline">Explore all {processScorecard.length} process measures</a>
                 <a href="#/business-impact/impact-personas" className="font-semibold text-primary underline-offset-4 hover:underline">See the functional personas</a>
@@ -135,7 +147,7 @@ function BottomLine() {
                     </div>
                 ))}
             </dl>
-            <p className={BODY}>In this scenario, invoice processing and collections show the strongest signals; close and procurement outcomes still need more evidence. Value estimates the effort represented by AI work. Business impact asks whether process outcomes changed as well, without adding the two into a single ROI.</p>
+            <p className={BODY}>In this scenario, invoice processing and collections show the strongest signals; journal and procurement outcomes still need more evidence. Value estimates the effort represented by AI work. Business impact asks whether process outcomes changed as well, without adding the two into a single ROI.</p>
             <D365Preview />
             <div className="flex flex-col gap-200">
                 <h3 className={cn(BODY, "font-semibold")}>How to read the evidence: the AP worked example</h3>
@@ -153,8 +165,8 @@ function BottomLine() {
             </div>
             <p className={cn(SMALL, "text-muted-foreground")}>Three levels of evidence, read from left to right. Each is reported on its own and never added to another.</p>
             <Chart
-                title="Invoice cycle time: pilot team vs comparison team"
-                subtitle={`Weekly average days from invoice receipt to payment (BPS). Copilot and the invoice exception agent rolled out to the pilot team on ${rolloutDate}.`}
+                title="Invoice posting to payment time: pilot team vs comparison team"
+                subtitle={`Weekly average days from invoice posting to payment (BPS AP open items). Copilot and the invoice exception agent rolled out to the pilot team on ${rolloutDate}.`}
                 rows={apTrend()}
                 height={300}
                 spec={{
@@ -172,6 +184,7 @@ function BottomLine() {
 function PersonaCard({ p }: { p: Persona }) {
     const did = attributableChange(p);
     const throughput = throughputFor(p);
+    const kpi = measureFor(p);
     const bars: [string, number][] = [["Copilot active", p.copilotActive], ["Using agents", p.agentUsers], ["Habit (weekly 3+ days)", p.habit]];
     return (
         <article className={cn(panel, "flex flex-col gap-300")}>
@@ -194,7 +207,10 @@ function PersonaCard({ p }: { p: Persona }) {
             <p className={SMALL}><span className="text-muted-foreground">Expert-equivalent hours (Value page): </span>{p.estHoursPerPerson} h per person per month</p>
             {throughput && <p className={SMALL}><span className="text-muted-foreground">{throughput.measure} (BPS): </span>{whole(throughput.baseline)} → {whole(throughput.current)} <span className="text-muted-foreground">({readMeasure(throughput) === "Improved" ? "beyond comparison" : "not conclusive"})</span></p>}
             <div className="rounded-lg bg-muted p-300">
-                <p className={cn(SMALL, "text-muted-foreground")}>{p.kpi} (BPS)</p>
+                <div className="flex items-start justify-between gap-200">
+                    <p className={cn(SMALL, "text-muted-foreground")}>{p.kpi} (BPS)</p>
+                    {kpi && <AvailabilityBadge level={kpi.availability} basis={kpi.basis} />}
+                </div>
                 <p className="text-[length:var(--text-500)] font-semibold">{num(p.baseline, p.unit)} → {num(p.current, p.unit)}</p>
                 <p className={SMALL}>
                     {delta(did, p.unit)} beyond the comparison group <span className="text-muted-foreground">(±{num(p.interval, p.unit === "%" ? "pts" : p.unit)})</span>
@@ -207,7 +223,7 @@ function PersonaCard({ p }: { p: Persona }) {
 
 function Personas() {
     return (
-        <Section id={stageAnchor("impact-personas")} title="Functional personas" description="Job titles and Entra cost centres map people to the finance, procurement and sales roles BPS measures, so each persona's AI habits sit next to the process outcome it owns.">
+        <Section id={stageAnchor("impact-personas")} title="Functional personas" description="BPS records outcomes against teams, cost centres and purchasing groups, and people only by SAP user. Personas therefore join at team level by default, through job titles and Entra cost centres. Person-level views need an explicit, customer-supplied SAP-user mapping.">
             <div className="grid gap-400 md:grid-cols-2 xl:grid-cols-3">
                 {personas.map(p => <PersonaCard key={p.id} p={p} />)}
             </div>
@@ -294,11 +310,11 @@ function Processes() {
                 })}
             </div>
             <Table
-                caption="The fuller BPS scorecard. Speed, throughput and cash measures count only when they improve beyond the comparison group. Quality checks only need to hold: they show faster work has not meant more errors. Measures are illustrative: confirm each against your BPS deployment."
-                headers={["Process", "Type", "Measure", "Before", "After", "Attributable (90%)", "Read"]}
+                caption="The fuller BPS scorecard. Speed, throughput and cash measures count only when they improve beyond the comparison group. Quality checks only need to hold: they show faster work has not meant more errors. “How computed” describes the BPS fields each measure would use; hover a badge for what it means."
+                headers={["Process", "Type", "Measure", "Availability", "How computed", "Before", "After", "Attributable (90%)", "Read"]}
                 rows={processScorecard.map(m => {
                     const read = readMeasure(m);
-                    return [m.process, m.kind, m.measure, num(m.baseline, m.unit), num(m.current, m.unit), `${delta(attributableChange(m), m.unit)} ±${num(m.interval, m.unit === "%" ? "pts" : m.unit)}`, <span className={READ_STYLE[read]}>{read}</span>];
+                    return [m.process, m.kind, m.measure, <AvailabilityBadge level={m.availability} />, <span className="text-muted-foreground">{m.basis}</span>, num(m.baseline, m.unit), num(m.current, m.unit), `${delta(attributableChange(m), m.unit)} ±${num(m.interval, m.unit === "%" ? "pts" : m.unit)}`, <span className={READ_STYLE[read]}>{read}</span>];
                 })}
             />
         </Section>
@@ -373,15 +389,17 @@ function Opportunities() {
 function Method() {
     const steps = [
         "Choose an optional source: read existing BPS Gold through a OneLake shortcut, or link approved D365 / Dataverse tables to Fabric. D365 is a separate adapter, not a BPS source.",
-        "Fill in three small mapping tables: cost centre to org group, job title to persona, and agent to process.",
+        "Run the readiness checks below, then fill in three small mapping tables: cost centre or purchasing group to org group, job title to persona, and agent to process.",
         "In the proposed implementation, a source-specific adapter would write impact_kpi_weekly. This preview reads local fixtures; neither adapter is implemented or connected here.",
         "Pick a comparison group for each rollout before it starts, so the attributable estimate is fair.",
     ];
+    const availabilityLevels = Object.keys(availabilityMeaning) as Availability[];
+    const countOf = (level: Availability) => processScorecard.filter(m => m.availability === level).length;
     return (
         <Section id={stageAnchor("impact-method")} title="Data and method" description="An optional module concept with BPS and D365 input routes. Both are off by default; the rest of DataHub is unchanged.">
             <div className={cn(panel, "flex flex-col gap-200")}>
                 <p className={cn(BODY, "font-semibold")}>Synthetic preview</p>
-                <p className={SMALL}>Every number on this page is synthetic ({scenarioRange}). No SAP system, BPS deployment, D365 environment or tenant data is connected. BPS table names are illustrative: confirm them against your deployment. D365 sales examples are a separate cohort and are not included in the BPS scorecard totals. App-wide date and org filters do not apply to these fixed scenarios.</p>
+                <p className={SMALL}>Every number on this page is synthetic ({scenarioRange}). No SAP system, BPS deployment, D365 environment or tenant data is connected. BPS model names follow its public documentation; the fields each measure uses are generic, so confirm them and their population against your deployment. D365 sales examples are a separate cohort and are not included in the BPS scorecard totals. App-wide date and org filters do not apply to these fixed scenarios.</p>
             </div>
             <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-4">
                 <KpiCard label="Cost centres mapped" value={coverage.costCentresMapped} format="percent" detail="BPS cost centres with a DataHub org group" />
@@ -394,6 +412,27 @@ function Method() {
                 caption="What the module reads and writes."
                 headers={["Source", "Table", "Grain", "Used for"]}
                 rows={dataContract.map(d => [d.source, <code>{d.table}</code>, d.grain, d.use])}
+            />
+            <div className="grid gap-400 sm:grid-cols-3">
+                {availabilityLevels.map(level => (
+                    <article key={level} className={cn(panel, "flex flex-col gap-200")}>
+                        <div className="flex items-center justify-between gap-200">
+                            <AvailabilityBadge level={level} />
+                            <p className="text-[length:var(--text-600)] font-semibold tabular-nums">{countOf(level)} of {processScorecard.length}</p>
+                        </div>
+                        <p className={cn(SMALL, "text-muted-foreground")}>{availabilityMeaning[level]}</p>
+                    </article>
+                ))}
+            </div>
+            <Table
+                caption="How BPS outcomes join to people. SAP records people by user or personnel number, not by UPN, so the join defaults to the team."
+                headers={["Level", "Join", "What it shows", "Needs"]}
+                rows={personaJoins.map(j => [<strong>{j.level}</strong>, j.join, j.shows, j.needs])}
+            />
+            <Table
+                caption="Readiness checks before trusting a BPS-derived measure."
+                headers={["Check", "Why it matters"]}
+                rows={readinessChecks.map(r => [<strong>{r.check}</strong>, r.why])}
             />
             <div className={cn(panel, "flex flex-col gap-200")}>
                 <p className={cn(BODY, "font-semibold")}>Reading the evidence</p>

@@ -91,8 +91,14 @@ Value's expert-equivalent-hours approach as its estimated level of evidence, not
 cohort or totals. The Bottom line presents eight BPS/SAP outcomes across speed, throughput, cash
 and quality, including inconclusive results. Three separate D365 examples show lead qualification,
 opportunity win rate and sales cycle as observed changes only. They are excluded from BPS totals.
-No SAP, BPS or D365 data is connected; the proposed adapters are not implemented. BPS table
-names are illustrative, and app-wide filters do not apply to these fixed scenarios. `.env.demo` enables it; ordinary builds
+Each scorecard measure is labelled **Computed** (from BPS Gold fields), **Proxy**
+(indirect or team-level) or **Needs source** (not in the default BPS models), with a plain-language
+description of how it would be computed. The Data and method page adds the BPS model names the
+module would read, the persona join levels (team by default; person-level only through a
+customer-supplied SAP-user-to-UPN map and privacy review) and readiness checks to run first:
+data window, last load, link coverage, field population and volume.
+No SAP, BPS or D365 data is connected; the proposed adapters are not implemented. Model names follow
+the public BPS documentation and every value is synthetic. App-wide filters do not apply to these fixed scenarios. `.env.demo` enables it; ordinary builds
 keep it hidden unless `VITE_BUSINESS_IMPACT_DEMO=true` is set.
 
 For a team-feedback build, run `npm run build:demo:impact`. It produces the same
