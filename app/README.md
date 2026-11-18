@@ -82,6 +82,13 @@ The view's own vendor/product filters work locally; app-wide filters do
 not apply. `.env.demo` enables this view only for the static demo build; ordinary builds keep
 it disabled unless `VITE_CROSS_VENDOR_DEMO=true` is explicitly set.
 
+The static demo also includes **Business impact**, a separate seeded scenario that previews an
+optional module for SAP Business Process Solutions (BPS). It shows functional personas, BPS
+process KPIs with a difference-in-differences estimate against a comparison group, agents mapped
+to SAP processes, cost per transaction and separate value categories. No SAP or BPS data is
+connected and the BPS table names are illustrative. `.env.demo` enables it; ordinary builds
+keep it hidden unless `VITE_BUSINESS_IMPACT_DEMO=true` is set.
+
 The demo build retains the compatibility flag `VITE_DATAHUB_PREVIEW=true` to use DataHub App in desktop and mobile
 navigation, cross-vendor copy and report exports. Its HTML title, description and bundled
 README use DataHub App too. Existing demo links remain unchanged. Ordinary builds also retain

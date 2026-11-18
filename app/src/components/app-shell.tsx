@@ -472,6 +472,7 @@ export function AppShell({ view, onNavigate, onOpenPack, children }: AppShellPro
                             {active === "agent-evaluation" && <p className="mt-100">Evaluation conversations are not included in the published sample pack. No live agent or environment is connected.</p>}
                             {active === "governance" && <p className="mt-100">Agent 365 registry data is included. Defender and Resource Graph exports are not included; their configuration checks are unavailable, not verified clear.</p>}
                             {active === "cross-vendor" && <p className="mt-100">Separate seeded comparison scenario; not the published CSV cohort on the other pages.</p>}
+                            {active === "business-impact" && <p className="mt-100">Separate seeded scenario of SAP process outcomes from Business Process Solutions; no SAP or BPS data is connected.</p>}
                         </div>
                     )}
                     {view.kind === "pack" ? (

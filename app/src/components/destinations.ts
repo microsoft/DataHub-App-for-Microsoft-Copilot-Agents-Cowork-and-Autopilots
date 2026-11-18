@@ -12,6 +12,7 @@ import {
     BotMessageSquare,
     Briefcase,
     Coins,
+    Factory,
     Gauge,
     Globe,
     KeyRound,
@@ -92,6 +93,24 @@ export const destinations = [
             { id: "vendor-cost", label: "Cost & evidence", ready: true },
             { id: "vendor-coverage", label: "Source coverage", ready: true },
             { id: "vendor-methodology", label: "Methodology", ready: true },
+        ],
+    },
+    {
+        id: "business-impact",
+        label: "Business impact",
+        blurb: "Copilot and agents beside SAP process outcomes from Business Process Solutions",
+        icon: Factory as LucideIcon,
+        filters: [] as FilterKey[],
+        demo: true,
+        dataRange: "4 May – 26 Oct 2026",
+        stages: [
+            { id: "impact-summary", label: "The bottom line", ready: true },
+            { id: "impact-personas", label: "Functional personas", ready: true },
+            { id: "impact-processes", label: "Process outcomes", ready: true },
+            { id: "impact-agents", label: "Agents in the process", ready: true },
+            { id: "impact-value", label: "Cost to serve & value", ready: true },
+            { id: "impact-opportunities", label: "Next opportunities", ready: true },
+            { id: "impact-method", label: "Data & method", ready: true },
         ],
     },
     {
@@ -271,6 +290,12 @@ export function isPackable(destination: Destination): boolean {
         !("conversational" in destination && destination.conversational);
 }
 
+/** Whether the build flag for a synthetic demo destination is on. */
+export function isDemoEnabled(id: DestinationId): boolean {
+    if (id === "business-impact") return import.meta.env.VITE_BUSINESS_IMPACT_DEMO === "true";
+    return import.meta.env.VITE_CROSS_VENDOR_DEMO === "true";
+}
+
 /**
  * Every destination except those reading a model `fabric.yaml` doesn't set
  * up, and, once `sources` has been checked, those whose source has no data.
@@ -278,7 +303,7 @@ export function isPackable(destination: Destination): boolean {
 export function availableDestinations(models: ModelReferences, sources?: SourceAvailability): Destination[] {
     return destinations.filter(
         (destination) =>
-            (!("demo" in destination) || import.meta.env.VITE_CROSS_VENDOR_DEMO === "true") &&
+            (!("demo" in destination) || isDemoEnabled(destination.id)) &&
             (!("connection" in destination) || isConnectionConfigured(models, destination.connection)) &&
             (runtimeConfig().demo || !sources || !("source" in destination) || !isAbsent(sources, destination.source)),
     );

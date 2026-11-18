@@ -10,6 +10,7 @@ import type { DestinationId } from "@/components/destinations";
 
 // Screens load on demand so only the destinations on show query the model.
 export const SCREENS: Readonly<Record<DestinationId, ComponentType>> = {
+    "business-impact": lazy(() => import("./business-impact").then((module) => ({ default: module.BusinessImpactScreen }))),
     "cross-vendor": lazy(() => import("./cross-vendor").then((module) => ({ default: module.CrossVendorScreen }))),
     executive: lazy(() => import("./executive").then((module) => ({ default: module.ExecutiveScreen }))),
     adoption: lazy(() => import("./adoption").then((module) => ({ default: module.AdoptionScreen }))),
