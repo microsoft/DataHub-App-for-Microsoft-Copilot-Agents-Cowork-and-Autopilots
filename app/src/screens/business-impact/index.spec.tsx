@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { BusinessImpactScreen } from "./index";
 import { StageFilterContext, pageStages } from "@/hooks/stage-filter.context";
 import { availableDestinations, destinations, isPackable } from "@/components/destinations";
@@ -36,6 +36,33 @@ describe("business impact preview", () => {
         expect(readMeasure({ ...check, current: 7 })).toBe("Worse");
         expect(readMeasure({ ...check, kind: "Speed" })).toBe("Not conclusive");
         expect(readMeasure({ ...check, kind: "Speed", current: 5 })).toBe("Improved");
+    });
+
+    it("shows multiple Bottom line outcomes with observed and adjusted changes kept separate", () => {
+        vi.stubEnv("VITE_BUSINESS_IMPACT_DEMO", "true");
+        render(<StageFilterContext.Provider value={pageStages("impact-summary")}><BusinessImpactScreen /></StageFilterContext.Provider>);
+        expect(screen.getAllByRole("article", { name: / outcome$/ })).toHaveLength(8);
+        const invoice = within(screen.getByRole("article", { name: "Invoice cycle time outcome" }));
+        expect(invoice.getByText("6.1 days")).toBeInTheDocument();
+        expect(invoice.getByText(/−2.5 days observed/)).toBeInTheDocument();
+        expect(invoice.getByText("−1.9 days beyond comparison")).toBeInTheDocument();
+        const discounts = within(screen.getByRole("article", { name: "Eligible discounts captured outcome" }));
+        expect(discounts.getByText(/\+13 pts observed/)).toBeInTheDocument();
+        expect(discounts.getByText("+11 pts beyond comparison")).toBeInTheDocument();
+        const procurement = within(screen.getByRole("article", { name: "Purchase order cycle time outcome" }));
+        expect(procurement.getByText("Not conclusive")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Explore all 25 process measures" })).toHaveAttribute("href", "#/business-impact/impact-processes");
+    });
+
+    it("labels the D365 cohort separately and does not give it an attribution estimate", () => {
+        vi.stubEnv("VITE_BUSINESS_IMPACT_DEMO", "true");
+        render(<StageFilterContext.Provider value={pageStages("impact-summary")}><BusinessImpactScreen /></StageFilterContext.Provider>);
+        const sales = within(screen.getByRole("article", { name: "Opportunity win rate preview" }));
+        expect(sales.getByText("28%")).toBeInTheDocument();
+        expect(sales.getByText(/\+1 pts observed/)).toBeInTheDocument();
+        expect(sales.queryByText(/beyond comparison|Attributable/)).not.toBeInTheDocument();
+        expect(screen.getByText(/no attribution claim and no D365 connection/)).toBeInTheDocument();
+        expect(screen.getByText(/totals do not reconcile to that page/)).toBeInTheDocument();
     });
 
     it("renders each persona and says when the build has it off", () => {

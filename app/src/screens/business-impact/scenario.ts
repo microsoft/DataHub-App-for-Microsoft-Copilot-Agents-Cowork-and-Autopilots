@@ -165,6 +165,20 @@ export const processScorecard: readonly ProcessMeasure[] = [
     measure("Quote to order", "Cash", "Win rate", "%", false, 27, 28, 0.5, 3),
 ];
 
+const headlineMeasureNames = new Set([
+    "Invoice cycle time", "Invoices per specialist a month", "First-time match rate",
+    "Eligible discounts captured", "Days sales outstanding", "Days to close",
+    "Purchase order cycle time", "Spend under contract",
+]);
+export const headlineMeasures = processScorecard.filter(m => headlineMeasureNames.has(m.measure));
+
+/** Separate invented Dataverse cohort, not a BPS export or a connected environment. */
+export const d365SalesPreview = [
+    { measure: "Lead qualification rate", baseline: 32, current: 38, unit: "%", definition: "Qualified leads / all qualified or disqualified leads; open leads excluded.", persona: "Sales development representative" },
+    { measure: "Opportunity win rate", baseline: 27, current: 28, unit: "%", definition: "Won opportunities / all won or lost opportunities; open opportunities excluded.", persona: "Account executive" },
+    { measure: "Opportunity sales cycle", baseline: 42, current: 37, unit: "days", definition: "Median days from creation to close for won opportunities.", persona: "Account executive" },
+] as const;
+
 /** The throughput measure for a persona's process, if BPS has one. */
 export const throughputFor = (p: Persona) => processScorecard.find(m => m.process === p.process && m.kind === "Throughput");
 
@@ -295,9 +309,9 @@ export function costToServe() {
 
 /** The evidence ladder for the AP pilot, one rung per evidence level. */
 export const benefitLadder: readonly { level: Evidence; label: string; value: string; basis: string }[] = [
-    { level: "Estimated", label: "Expert-equivalent hours (Value page)", value: "602 h / month", basis: "The Value page's estimate for the 64 AP specialists: recorded AI tasks × expert task times. A planning figure, not measured." },
-    { level: "Observed", label: "Invoice cycle time", value: "8.6 → 6.1 days", basis: "BPS invoice facts for the pilot team, 12 weeks before vs after rollout. Not adjusted for anything else that changed." },
-    { level: "Attributable", label: "Beyond the comparison team", value: "−1.9 days (±0.7)", basis: "Difference in differences against a matched team not yet rolled out. 90% interval." },
+    { level: "Estimated", label: "Expert-equivalent hours (Value method)", value: "602 h / month", basis: "64 illustrative AP specialists × 9.4 hours. Uses Value's estimation concept, not its separate demo cohort or measured savings." },
+    { level: "Observed", label: "Invoice cycle time", value: "8.6 → 6.1 days", basis: "Illustrative invoice facts for the pilot team, 12 weeks before vs after rollout. Not adjusted for anything else that changed." },
+    { level: "Attributable", label: "Beyond the comparison team", value: "−1.9 days (±0.7)", basis: "Simulated difference in differences against a matched team not yet rolled out. 90% interval; study assumptions still matter." },
 ];
 
 /** Value categories, kept apart and never summed. */
@@ -324,6 +338,8 @@ export const dataContract = [
     { source: "BPS Gold (shortcut)", table: "Purchase order and goods receipt facts", grain: "PO line", use: "PO cycle time, POs per buyer, supplier on-time delivery, spend under or outside contracts" },
     { source: "BPS Gold (shortcut)", table: "Sales quote and order facts", grain: "Document", use: "Quote to order, quotes per rep, win rate, forecast accuracy" },
     { source: "BPS Gold (shortcut)", table: "Cost centre and company code", grain: "Cost centre, effective-dated", use: "Org mapping" },
+    { source: "D365 / Dataverse (proposed)", table: "Lead and opportunity", grain: "Record with status, owner and lifecycle timestamps", use: "Qualification rate, win rate and sales cycle; history needed for before/after cohorts" },
+    { source: "D365 / Dataverse (proposed)", table: "Account, business unit and owner mappings", grain: "Account or owner, effective-dated", use: "Sales personas and org groups after identity mapping is validated" },
     { source: "DataHub (new)", table: "impact_org_map", grain: "Cost centre → org group, with validity dates", use: "Joins BPS outcomes to DataHub org data" },
     { source: "DataHub (new)", table: "impact_persona_map", grain: "Job title or role → persona", use: "Functional personas" },
     { source: "DataHub (new)", table: "impact_agent_process_map", grain: "Agent → process", use: "Agents in the process; optional case-ID link" },

@@ -83,13 +83,26 @@ not apply. `.env.demo` enables this view only for the static demo build; ordinar
 it disabled unless `VITE_CROSS_VENDOR_DEMO=true` is explicitly set.
 
 The static demo also includes **Business impact**, a separate seeded scenario that previews an
-optional module for SAP Business Process Solutions (BPS). It shows functional personas, BPS
+optional module for SAP Business Process Solutions (BPS), with a separate D365 Sales preview. It shows functional personas, BPS
 process KPIs with a difference-in-differences estimate against a comparison group, a fuller
 scorecard of speed, throughput, cash and quality-check measures, agents mapped to SAP processes,
 cost per transaction and separate value categories. It sits after Value in the menu and reuses
-Value's expert-equivalent hours as its estimated level of evidence. No SAP or BPS data is
-connected and the BPS table names are illustrative. `.env.demo` enables it; ordinary builds
+Value's expert-equivalent-hours approach as its estimated level of evidence, not the Value demo's
+cohort or totals. The Bottom line presents eight BPS/SAP outcomes across speed, throughput, cash
+and quality, including inconclusive results. Three separate D365 examples show lead qualification,
+opportunity win rate and sales cycle as observed changes only. They are excluded from BPS totals.
+No SAP, BPS or D365 data is connected; the proposed adapters are not implemented. BPS table
+names are illustrative, and app-wide filters do not apply to these fixed scenarios. `.env.demo` enables it; ordinary builds
 keep it hidden unless `VITE_BUSINESS_IMPACT_DEMO=true` is set.
+
+For a team-feedback build, run `npm run build:demo:impact`. It produces the same
+static bundle, opening Business impact by default while preserving explicit hash links to
+other pages. Both HTML entry points request `noindex, nofollow, noarchive`; this is **not access
+control**. Host the whole `dist-demo` directory at a new site path and keep existing demos
+unchanged. If the preview should be unlisted, do not add navigation links to it. Anyone who
+discovers the URL or public repository can access it. Use only
+synthetic data, and verify in a signed-out browser before sharing. No download or sign-in is
+needed for viewers of the hosted version.
 
 The demo build retains the compatibility flag `VITE_DATAHUB_PREVIEW=true` to use DataHub App in desktop and mobile
 navigation, cross-vendor copy and report exports. Its HTML title, description and bundled

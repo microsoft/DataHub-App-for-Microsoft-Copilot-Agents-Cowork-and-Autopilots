@@ -13,9 +13,9 @@ import { BODY, SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
 import { Chart } from "../cross-vendor/insights";
 import {
-    apTrend, attributableChange, benefitLadder, costToServe, coverage, dataContract, financialCategories, improvement,
+    apTrend, attributableChange, benefitLadder, costToServe, coverage, dataContract, d365SalesPreview, financialCategories, headlineMeasures, improvement,
     isConclusive, measureKinds, observedChange, opportunities, personas, personaTaskMix, processAgents, processScorecard,
-    readMeasure, rolloutDate, scenarioRange, teamScatter, throughputFor, type Evidence, type MeasureRead, type Persona,
+    readMeasure, rolloutDate, scenarioRange, teamScatter, throughputFor, type Evidence, type MeasureRead, type Persona, type ProcessMeasure,
 } from "./scenario";
 
 const panel = "rounded-xl border border-border bg-card p-500";
@@ -35,8 +35,8 @@ const EVIDENCE_STYLE: Record<Evidence, string> = {
 
 const EVIDENCE_MEANING: Record<Evidence, string> = {
     Estimated: "DataHub's behaviour-based estimate. A planning figure.",
-    Observed: "A real change in the BPS process KPI. Not proof Copilot caused it.",
-    Attributable: "The change beyond a comparable group not yet rolled out, with an interval.",
+    Observed: "A before/after change in a process KPI. Not proof Copilot caused it. All values in this preview are synthetic.",
+    Attributable: "A comparison-adjusted estimate with an interval, subject to study assumptions. Simulated here, not causal proof.",
 };
 
 function EvidenceBadge({ level }: { level: Evidence }) {
@@ -57,7 +57,6 @@ function Table({ caption, headers, rows }: { caption: string; headers: string[];
 
 const people = personas.reduce((sum, p) => sum + p.people, 0);
 const agentSessions = processAgents.reduce((sum, a) => sum + a.sessions, 0);
-const ap = personas.find(p => p.id === "ap")!;
 const outcomes = processScorecard.filter(m => m.kind !== "Quality check");
 const qualityChecks = processScorecard.filter(m => m.kind === "Quality check");
 const improved = outcomes.filter(m => readMeasure(m) === "Improved").length;
@@ -71,17 +70,77 @@ const READ_STYLE: Record<MeasureRead, string> = {
     Worse: "font-semibold text-destructive",
 };
 
+function OutcomeCard({ measure: m }: { measure: ProcessMeasure }) {
+    const read = readMeasure(m);
+    return (
+        <article aria-label={`${m.measure} outcome`} className={cn(panel, "flex flex-col gap-200")}>
+            <h3 className={cn(BODY, "font-semibold")}>{m.measure}</h3>
+            <p className={cn(SMALL, "text-muted-foreground")}>{m.process} · {m.kind}</p>
+            <p className="font-numeric text-[length:var(--text-hero-800)] leading-hero-800 font-semibold tabular-nums">{num(m.current, m.unit)}</p>
+            <p className={SMALL}>Before: {num(m.baseline, m.unit)} · {delta(observedChange(m), m.unit)} observed</p>
+            <div className={cn(SMALL, "mt-auto border-t border-border pt-200")}>
+                <p>{delta(attributableChange(m), m.unit)} beyond comparison</p>
+                <p className="text-muted-foreground">90% interval: ±{num(m.interval, m.unit === "%" ? "pts" : m.unit)}</p>
+                <p className={READ_STYLE[read]}>{read}</p>
+            </div>
+        </article>
+    );
+}
+
+function D365Preview() {
+    return (
+        <div className="flex flex-col gap-400">
+            <div className="flex flex-col gap-200">
+                <h3 className={cn(BODY, "font-semibold")}>D365 Sales: a second optional source</h3>
+                <p className={cn(SMALL, "text-muted-foreground")}>A separate invented sales cohort, 12 weeks before vs after. These are illustrative observed changes only: no comparison group, no attribution claim and no D365 connection. D365 would use a Dataverse adapter, not BPS ingestion.</p>
+            </div>
+            <div className="grid gap-400 md:grid-cols-3">
+                {d365SalesPreview.map(m => (
+                    <article key={m.measure} aria-label={`${m.measure} preview`} className={cn(panel, "flex flex-col gap-200")}>
+                        <h4 className={cn(BODY, "font-semibold")}>{m.measure}</h4>
+                        <p className={cn(SMALL, "text-muted-foreground")}>{m.persona}</p>
+                        <p className="font-numeric text-[length:var(--text-hero-800)] leading-hero-800 font-semibold tabular-nums">{num(m.current, m.unit)}</p>
+                        <p className={SMALL}>Before: {num(m.baseline, m.unit)} · {delta(m.current - m.baseline, m.unit)} observed</p>
+                        <p className={cn(SMALL, "mt-auto border-t border-border pt-200 text-muted-foreground")}>{m.definition}</p>
+                    </article>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function BottomLine() {
     return (
-        <Section id={stageAnchor("impact-summary")} title="From usage to business outcomes" description="DataHub adoption and agent signals beside the SAP process KPIs Business Process Solutions (BPS) publishes in Fabric. Synthetic scenario.">
-            <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                <KpiCard label="People in functional personas" value={people} detail={`${pct(coverage.peopleWithPersona)} of finance, procurement and sales staff mapped`} />
-                <KpiCard label="Agent sessions inside SAP processes" value={agentSessions} detail={`${processAgents.length} agents mapped to a BPS process, last 30 days`} />
-                <KpiCard label="Days off invoice cycle time" value={-attributableChange(ap)} format="hours" emphasis detail={`Attributable: AP pilot vs comparison team, ±${ap.interval} days at 90%`} />
-                <KpiCard label="BPS measures improved" value={improved} detail={`Of ${outcomes.length} speed, throughput and cash measures, beyond the comparison group`} />
-                <KpiCard label="Quality checks held" value={qualityHeld} detail={`Of ${qualityChecks.length}: faster work without more errors`} />
+        <Section id={stageAnchor("impact-summary")} title="From usage to business outcomes" description="Speed, throughput, cash and quality beside DataHub's adoption, consumption and value story. Synthetic BPS/SAP scenario, with a separate D365 Sales preview. No live sources are connected.">
+            <div className="grid gap-400 sm:grid-cols-2 xl:grid-cols-4">
+                {headlineMeasures.map(m => <OutcomeCard key={m.measure} measure={m} />)}
             </div>
-            <p className={BODY}>Where Copilot and agents took hold, work got faster and each person handled more of it, and the quality checks did not slip. The Value page estimates what the AI work was worth; this page checks it against the SAP process data.</p>
+            <p className={cn(SMALL, "text-muted-foreground")}>BPS/SAP examples, 12 weeks before vs after rollout. “Beyond comparison” subtracts the change in a team not yet rolled out. Intervals and effects are simulated, not evidence that AI caused an improvement. Confirm measure availability in your BPS deployment.</p>
+            <div className={cn(SMALL, "flex flex-wrap gap-x-600 gap-y-200")}>
+                <a href="#/business-impact/impact-processes" className="font-semibold text-primary underline-offset-4 hover:underline">Explore all {processScorecard.length} process measures</a>
+                <a href="#/business-impact/impact-personas" className="font-semibold text-primary underline-offset-4 hover:underline">See the functional personas</a>
+                <a href="#/value/estimated-value" className="font-semibold text-primary underline-offset-4 hover:underline">Compare with estimated value</a>
+            </div>
+            <dl className={cn(panel, "grid gap-400 sm:grid-cols-2 xl:grid-cols-4")}>
+                {[
+                    ["People in functional personas", whole(people), `${pct(coverage.peopleWithPersona)} of scenario staff mapped`],
+                    ["Mapped agent sessions", whole(agentSessions), `${processAgents.length} agents, last 30 days`],
+                    ["Process outcomes improved", `${improved} / ${outcomes.length}`, "Beyond comparison in this scenario"],
+                    ["Quality checks held", `${qualityHeld} / ${qualityChecks.length}`, "No conclusive deterioration; not proof of no harm"],
+                ].map(([label, value, detail]) => (
+                    <div key={label} className="flex flex-col gap-100">
+                        <dt className={SMALL}>{label}</dt>
+                        <dd className="font-numeric text-[length:var(--text-600)] font-semibold tabular-nums">{value}</dd>
+                        <dd className={cn(SMALL, "text-muted-foreground")}>{detail}</dd>
+                    </div>
+                ))}
+            </dl>
+            <p className={BODY}>In this scenario, invoice processing and collections show the strongest signals; close and procurement outcomes still need more evidence. Value estimates the effort represented by AI work. Business impact asks whether process outcomes changed as well, without adding the two into a single ROI.</p>
+            <D365Preview />
+            <div className="flex flex-col gap-200">
+                <h3 className={cn(BODY, "font-semibold")}>How to read the evidence: the AP worked example</h3>
+                <p className={cn(SMALL, "text-muted-foreground")}>The same Value estimation approach, followed by observed and comparison-adjusted outcomes. This scenario is separate from the public CSV cohort used on the Value page; its totals do not reconcile to that page.</p>
+            </div>
             <div className="grid gap-400 md:grid-cols-3">
                 {benefitLadder.map(rung => (
                     <article key={rung.level} className={cn(panel, "flex flex-col gap-200")}>
@@ -92,7 +151,7 @@ function BottomLine() {
                     </article>
                 ))}
             </div>
-            <p className={cn(SMALL, "text-muted-foreground")}>Three levels of evidence, read upwards. Each is reported on its own and never added to another.</p>
+            <p className={cn(SMALL, "text-muted-foreground")}>Three levels of evidence, read from left to right. Each is reported on its own and never added to another.</p>
             <Chart
                 title="Invoice cycle time: pilot team vs comparison team"
                 subtitle={`Weekly average days from invoice receipt to payment (BPS). Copilot and the invoice exception agent rolled out to the pilot team on ${rolloutDate}.`}
@@ -191,6 +250,7 @@ function Personas() {
                     }}
                 />
             </div>
+            <D365Preview />
         </Section>
     );
 }
@@ -312,22 +372,22 @@ function Opportunities() {
 
 function Method() {
     const steps = [
-        "Add a OneLake shortcut from the DataHub lakehouse to the BPS Gold lakehouse. Read-only; no SAP connection from DataHub.",
+        "Choose an optional source: read existing BPS Gold through a OneLake shortcut, or link approved D365 / Dataverse tables to Fabric. D365 is a separate adapter, not a BPS source.",
         "Fill in three small mapping tables: cost centre to org group, job title to persona, and agent to process.",
-        "Run one adapter notebook that writes impact_kpi_weekly: the only table this page reads.",
+        "In the proposed implementation, a source-specific adapter would write impact_kpi_weekly. This preview reads local fixtures; neither adapter is implemented or connected here.",
         "Pick a comparison group for each rollout before it starts, so the attributable estimate is fair.",
     ];
     return (
-        <Section id={stageAnchor("impact-method")} title="Data and method" description="An optional module. Without BPS, this page stays hidden and the rest of DataHub is unchanged.">
+        <Section id={stageAnchor("impact-method")} title="Data and method" description="An optional module concept with BPS and D365 input routes. Both are off by default; the rest of DataHub is unchanged.">
             <div className={cn(panel, "flex flex-col gap-200")}>
                 <p className={cn(BODY, "font-semibold")}>Synthetic preview</p>
-                <p className={SMALL}>Every number on this page comes from a seeded scenario ({scenarioRange}). No SAP system, BPS deployment or tenant data is connected. BPS table names are illustrative: confirm them against your deployment.</p>
+                <p className={SMALL}>Every number on this page is synthetic ({scenarioRange}). No SAP system, BPS deployment, D365 environment or tenant data is connected. BPS table names are illustrative: confirm them against your deployment. D365 sales examples are a separate cohort and are not included in the BPS scorecard totals. App-wide date and org filters do not apply to these fixed scenarios.</p>
             </div>
             <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-4">
                 <KpiCard label="Cost centres mapped" value={coverage.costCentresMapped} format="percent" detail="BPS cost centres with a DataHub org group" />
                 <KpiCard label="People with a persona" value={coverage.peopleWithPersona} format="percent" detail="Finance, procurement and sales staff" />
                 <KpiCard label="Agents mapped to a process" value={coverage.agentsMapped} detail={`Of ${coverage.agentsTotal} finance, procurement and sales agents`} />
-                <KpiCard label="Process measures" value={processScorecard.length} detail={`Across ${personas.length} processes. BPS Gold refreshed ${coverage.bpsRefreshed}`} />
+                <KpiCard label="Process measures" value={processScorecard.length} detail={`Across ${personas.length} processes. Simulated refresh: ${coverage.bpsRefreshed}`} />
             </div>
             <ol className={cn(BODY, "flex list-decimal flex-col gap-200 pl-500")}>{steps.map(s => <li key={s}>{s}</li>)}</ol>
             <Table

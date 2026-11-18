@@ -140,7 +140,7 @@ export const destinations = [
     {
         id: "business-impact",
         label: "Business impact",
-        blurb: "Copilot and agents beside SAP process outcomes from Business Process Solutions",
+        blurb: "Copilot and agents beside business outcomes: BPS/SAP and D365 Sales previews",
         icon: Factory as LucideIcon,
         filters: [] as FilterKey[],
         demo: true,
