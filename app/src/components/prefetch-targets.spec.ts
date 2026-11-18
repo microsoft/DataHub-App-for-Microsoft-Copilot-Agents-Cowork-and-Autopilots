@@ -16,7 +16,7 @@ describe("prefetchTargets", () => {
         expect(PREFETCH_AHEAD).toBe(2);
         expect(prefetchTargets(destinations, "executive", "the-bottom-line").map(key)).toEqual([
             "adoption/adoption",
-            "value/task-breakdown",
+            "consumption/consumption-overview",
         ]);
     });
 
@@ -30,15 +30,15 @@ describe("prefetchTargets", () => {
             .filter((stage) => stage.ready && stage.id !== "adoption")
             .map((stage) => `adoption/${stage.id}`);
         expect(targets).toEqual([...others, ...tabs]);
-        expect(targets[0]).toBe("value/task-breakdown");
+        expect(targets[0]).toBe("consumption/consumption-overview");
         expect(targets).toContain("executive/the-bottom-line");
     });
 
     it("from the executive summary, lists every other page in menu order, then its own tabs", () => {
         expect(prefetchTargets(destinations, "executive", "the-bottom-line", all).map(key)).toEqual([
             "adoption/adoption",
-            "value/task-breakdown",
             "consumption/consumption-overview",
+            "value/task-breakdown",
             "efficiency/cowork-fit",
             "leaderboards/leaderboard",
             "work-patterns/m365-activity",

@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import { Chart } from "../cross-vendor/insights";
 import {
     apTrend, attributableChange, benefitLadder, costToServe, coverage, dataContract, financialCategories, improvement,
-    isConclusive, observedChange, opportunities, personas, personaTaskMix, processAgents, rolloutDate, scenarioRange,
-    teamScatter, type Evidence, type Persona,
+    isConclusive, measureKinds, observedChange, opportunities, personas, personaTaskMix, processAgents, processScorecard,
+    readMeasure, rolloutDate, scenarioRange, teamScatter, throughputFor, type Evidence, type MeasureRead, type Persona,
 } from "./scenario";
 
 const panel = "rounded-xl border border-border bg-card p-500";
@@ -23,6 +23,8 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 const whole = (v: number) => v.toLocaleString("en-US");
 const num = (v: number, unit: string) => `${v.toLocaleString("en-US", { maximumFractionDigits: 1 })}${unit === "%" ? "%" : ` ${unit}`}`;
 const signed = (v: number, unit: string) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${num(Math.abs(v), unit)}`;
+/** Changes in a percentage are percentage points. */
+const delta = (v: number, unit: string) => signed(v, unit === "%" ? "pts" : unit);
 const money = (v: number) => v.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v < 10 ? 2 : 0 });
 
 const EVIDENCE_STYLE: Record<Evidence, string> = {
@@ -56,17 +58,30 @@ function Table({ caption, headers, rows }: { caption: string; headers: string[];
 const people = personas.reduce((sum, p) => sum + p.people, 0);
 const agentSessions = processAgents.reduce((sum, a) => sum + a.sessions, 0);
 const ap = personas.find(p => p.id === "ap")!;
-const conclusive = personas.filter(isConclusive).length;
+const outcomes = processScorecard.filter(m => m.kind !== "Quality check");
+const qualityChecks = processScorecard.filter(m => m.kind === "Quality check");
+const improved = outcomes.filter(m => readMeasure(m) === "Improved").length;
+const qualityHeld = qualityChecks.filter(m => readMeasure(m) !== "Worse").length;
+const estHours = personas.reduce((sum, p) => sum + p.people * p.estHoursPerPerson, 0);
+
+const READ_STYLE: Record<MeasureRead, string> = {
+    Improved: "font-semibold text-primary",
+    "Not conclusive": "text-muted-foreground",
+    Held: "font-semibold",
+    Worse: "font-semibold text-destructive",
+};
 
 function BottomLine() {
     return (
         <Section id={stageAnchor("impact-summary")} title="From usage to business outcomes" description="DataHub adoption and agent signals beside the SAP process KPIs Business Process Solutions (BPS) publishes in Fabric. Synthetic scenario.">
-            <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 <KpiCard label="People in functional personas" value={people} detail={`${pct(coverage.peopleWithPersona)} of finance, procurement and sales staff mapped`} />
                 <KpiCard label="Agent sessions inside SAP processes" value={agentSessions} detail={`${processAgents.length} agents mapped to a BPS process, last 30 days`} />
                 <KpiCard label="Days off invoice cycle time" value={-attributableChange(ap)} format="hours" emphasis detail={`Attributable: AP pilot vs comparison team, ±${ap.interval} days at 90%`} />
-                <KpiCard label="Personas with a conclusive effect" value={conclusive} detail={`Of ${personas.length}. The rest are observed or estimated only.`} />
+                <KpiCard label="BPS measures improved" value={improved} detail={`Of ${outcomes.length} speed, throughput and cash measures, beyond the comparison group`} />
+                <KpiCard label="Quality checks held" value={qualityHeld} detail={`Of ${qualityChecks.length}: faster work without more errors`} />
             </div>
+            <p className={BODY}>Where Copilot and agents took hold, work got faster and each person handled more of it, and the quality checks did not slip. The Value page estimates what the AI work was worth; this page checks it against the SAP process data.</p>
             <div className="grid gap-400 md:grid-cols-3">
                 {benefitLadder.map(rung => (
                     <article key={rung.level} className={cn(panel, "flex flex-col gap-200")}>
@@ -97,6 +112,7 @@ function BottomLine() {
 
 function PersonaCard({ p }: { p: Persona }) {
     const did = attributableChange(p);
+    const throughput = throughputFor(p);
     const bars: [string, number][] = [["Copilot active", p.copilotActive], ["Using agents", p.agentUsers], ["Habit (weekly 3+ days)", p.habit]];
     return (
         <article className={cn(panel, "flex flex-col gap-300")}>
@@ -116,12 +132,13 @@ function PersonaCard({ p }: { p: Persona }) {
                 ))}
             </dl>
             <p className={SMALL}><span className="text-muted-foreground">Top AI tasks: </span>{p.topTasks.join(", ")}</p>
-            <p className={SMALL}><span className="text-muted-foreground">Estimated time saved: </span>{p.estHoursPerPerson} h per person per month</p>
+            <p className={SMALL}><span className="text-muted-foreground">Expert-equivalent hours (Value page): </span>{p.estHoursPerPerson} h per person per month</p>
+            {throughput && <p className={SMALL}><span className="text-muted-foreground">{throughput.measure} (BPS): </span>{whole(throughput.baseline)} → {whole(throughput.current)} <span className="text-muted-foreground">({readMeasure(throughput) === "Improved" ? "beyond comparison" : "not conclusive"})</span></p>}
             <div className="rounded-lg bg-muted p-300">
                 <p className={cn(SMALL, "text-muted-foreground")}>{p.kpi} (BPS)</p>
                 <p className="text-[length:var(--text-500)] font-semibold">{num(p.baseline, p.unit)} → {num(p.current, p.unit)}</p>
                 <p className={SMALL}>
-                    {signed(did, p.unit)} beyond the comparison group <span className="text-muted-foreground">(±{num(p.interval, p.unit)})</span>
+                    {delta(did, p.unit)} beyond the comparison group <span className="text-muted-foreground">(±{num(p.interval, p.unit === "%" ? "pts" : p.unit)})</span>
                     {isConclusive(p) ? "" : <span className="text-muted-foreground"> · not conclusive yet</span>}
                 </p>
             </div>
@@ -135,6 +152,14 @@ function Personas() {
             <div className="grid gap-400 md:grid-cols-2 xl:grid-cols-3">
                 {personas.map(p => <PersonaCard key={p.id} p={p} />)}
             </div>
+            <Table
+                caption={`The Value page's measures by persona, with the BPS outcome each persona owns. ${whole(Math.round(estHours))} expert-equivalent hours a month in total: an estimate, not a saving.`}
+                headers={["Persona", "People", "Habit (weekly 3+ days)", "Expert-equivalent hours per person", "Expert-equivalent hours a month", "BPS outcome", "Evidence"]}
+                rows={personas.map(p => [
+                    <strong>{p.name}</strong>, whole(p.people), pct(p.habit), `${p.estHoursPerPerson} h`, `${whole(Math.round(p.people * p.estHoursPerPerson))} h`,
+                    `${p.kpi}: ${delta(attributableChange(p), p.unit)} beyond comparison`, <EvidenceBadge level={p.evidence} />,
+                ])}
+            />
             <div className="grid gap-400 lg:grid-cols-2">
                 <Chart
                     title="What each persona uses AI for"
@@ -201,6 +226,21 @@ function Processes() {
                     <EvidenceBadge level={p.evidence} />,
                 ])}
             />
+            <div className="grid gap-400 sm:grid-cols-2 lg:grid-cols-4">
+                {measureKinds.map(kind => {
+                    const ms = processScorecard.filter(m => m.kind === kind);
+                    const good = ms.filter(m => kind === "Quality check" ? readMeasure(m) !== "Worse" : readMeasure(m) === "Improved").length;
+                    return <KpiCard key={kind} label={kind === "Quality check" ? "Quality checks held" : `${kind} measures improved`} value={good} detail={`Of ${ms.length} tracked`} />;
+                })}
+            </div>
+            <Table
+                caption="The fuller BPS scorecard. Speed, throughput and cash measures count only when they improve beyond the comparison group. Quality checks only need to hold: they show faster work has not meant more errors. Measures are illustrative: confirm each against your BPS deployment."
+                headers={["Process", "Type", "Measure", "Before", "After", "Attributable (90%)", "Read"]}
+                rows={processScorecard.map(m => {
+                    const read = readMeasure(m);
+                    return [m.process, m.kind, m.measure, num(m.baseline, m.unit), num(m.current, m.unit), `${delta(attributableChange(m), m.unit)} ±${num(m.interval, m.unit === "%" ? "pts" : m.unit)}`, <span className={READ_STYLE[read]}>{read}</span>];
+                })}
+            />
         </Section>
     );
 }
@@ -223,10 +263,10 @@ function Agents() {
     );
 }
 
-function Value() {
+function CostPerTransaction() {
     const rows = costToServe();
     return (
-        <Section id={stageAnchor("impact-value")} title="Cost to serve and value" description="AI cost per business transaction, and the value categories BPS outcomes support. Categories stay separate: they are different kinds of money.">
+        <Section id={stageAnchor("impact-cost")} title="Cost per transaction" description="AI cost per SAP business transaction, and the value categories BPS outcomes support. The Value page compares cost with estimated value; this adds the cost of each process outcome. Categories stay separate: they are different kinds of money.">
             <Table
                 caption="Monthly. Agent cost at the scenario credit price; licence cost is the persona's share of Copilot licences. Volume is BPS document count."
                 headers={["Process", "Agent", "Agent cost", "Licence cost", "BPS volume", "AI cost per transaction", "Agent cost per resolved case"]}
@@ -287,7 +327,7 @@ function Method() {
                 <KpiCard label="Cost centres mapped" value={coverage.costCentresMapped} format="percent" detail="BPS cost centres with a DataHub org group" />
                 <KpiCard label="People with a persona" value={coverage.peopleWithPersona} format="percent" detail="Finance, procurement and sales staff" />
                 <KpiCard label="Agents mapped to a process" value={coverage.agentsMapped} detail={`Of ${coverage.agentsTotal} finance, procurement and sales agents`} />
-                <KpiCard label="Process KPIs" value={personas.length} detail={`BPS Gold refreshed ${coverage.bpsRefreshed}`} />
+                <KpiCard label="Process measures" value={processScorecard.length} detail={`Across ${personas.length} processes. BPS Gold refreshed ${coverage.bpsRefreshed}`} />
             </div>
             <ol className={cn(BODY, "flex list-decimal flex-col gap-200 pl-500")}>{steps.map(s => <li key={s}>{s}</li>)}</ol>
             <Table
@@ -311,7 +351,7 @@ export function BusinessImpactScreen() {
     const { show } = useStageFilter();
     const stages: [StageId, () => React.JSX.Element][] = [
         ["impact-summary", BottomLine], ["impact-personas", Personas], ["impact-processes", Processes], ["impact-agents", Agents],
-        ["impact-value", Value], ["impact-opportunities", Opportunities], ["impact-method", Method],
+        ["impact-cost", CostPerTransaction], ["impact-opportunities", Opportunities], ["impact-method", Method],
     ];
     if (import.meta.env.VITE_BUSINESS_IMPACT_DEMO !== "true") return <p className={BODY}>The Business impact preview is not enabled for this build.</p>;
     return (

@@ -58,8 +58,9 @@ import { consumptionConnection, evaluatorConnection } from "@/queries/shared";
  * drawing on the others, each of its panels linking to the destination
  * that tells that part of the story in full. The rest follow in the order
  * the sidebar lists them and the background loader warms them: who is
- * using it (Adoption), whether it is paying off (Value, Consumption,
- * Efficiency), who does the most and how people work, who is next, the
+ * using it (Adoption), what it costs (Consumption), what the work was worth
+ * (Value), whether business processes changed (Business impact, an optional
+ * preview), whether the right tool is doing the job (Efficiency), who does the most and how people work, who is next, the
  * agents, then what people say.
  */
 export const destinations = [
@@ -96,24 +97,6 @@ export const destinations = [
         ],
     },
     {
-        id: "business-impact",
-        label: "Business impact",
-        blurb: "Copilot and agents beside SAP process outcomes from Business Process Solutions",
-        icon: Factory as LucideIcon,
-        filters: [] as FilterKey[],
-        demo: true,
-        dataRange: "4 May – 26 Oct 2026",
-        stages: [
-            { id: "impact-summary", label: "The bottom line", ready: true },
-            { id: "impact-personas", label: "Functional personas", ready: true },
-            { id: "impact-processes", label: "Process outcomes", ready: true },
-            { id: "impact-agents", label: "Agents in the process", ready: true },
-            { id: "impact-value", label: "Cost to serve & value", ready: true },
-            { id: "impact-opportunities", label: "Next opportunities", ready: true },
-            { id: "impact-method", label: "Data & method", ready: true },
-        ],
-    },
-    {
         id: "adoption",
         label: "Adoption",
         blurb: "Who started, who stayed, who stuck",
@@ -124,6 +107,21 @@ export const destinations = [
             { id: "activation", label: "Activation", ready: true },
             { id: "habit-formation", label: "Habit formation", ready: true },
             { id: "trend-heatmap", label: "Trend heatmap", ready: true },
+        ],
+    },
+    {
+        id: "consumption",
+        label: "Consumption",
+        blurb: "Credits used, and what they cost",
+        icon: Coins as LucideIcon,
+        filters: ["dateRange", "organizations", "agentNames"] as FilterKey[],
+        connection: consumptionConnection,
+        stages: [
+            { id: "consumption-overview", label: "All products", ready: true },
+            { id: "budget-runway", label: "Budget runway", ready: true },
+            { id: "cowork-credits", label: "Cowork / Work IQ", ready: true },
+            { id: "studio-credits", label: "Copilot Studio", ready: true },
+            { id: "azure-spend", label: "Azure", ready: true },
         ],
     },
     {
@@ -140,18 +138,21 @@ export const destinations = [
         ],
     },
     {
-        id: "consumption",
-        label: "Consumption",
-        blurb: "Credits used, and what they cost",
-        icon: Coins as LucideIcon,
-        filters: ["dateRange", "organizations", "agentNames"] as FilterKey[],
-        connection: consumptionConnection,
+        id: "business-impact",
+        label: "Business impact",
+        blurb: "Copilot and agents beside SAP process outcomes from Business Process Solutions",
+        icon: Factory as LucideIcon,
+        filters: [] as FilterKey[],
+        demo: true,
+        dataRange: "4 May – 26 Oct 2026",
         stages: [
-            { id: "consumption-overview", label: "All products", ready: true },
-            { id: "budget-runway", label: "Budget runway", ready: true },
-            { id: "cowork-credits", label: "Cowork / Work IQ", ready: true },
-            { id: "studio-credits", label: "Copilot Studio", ready: true },
-            { id: "azure-spend", label: "Azure", ready: true },
+            { id: "impact-summary", label: "The bottom line", ready: true },
+            { id: "impact-personas", label: "Functional personas", ready: true },
+            { id: "impact-processes", label: "Process outcomes", ready: true },
+            { id: "impact-agents", label: "Agents in the process", ready: true },
+            { id: "impact-cost", label: "Cost per transaction", ready: true },
+            { id: "impact-opportunities", label: "Next opportunities", ready: true },
+            { id: "impact-method", label: "Data & method", ready: true },
         ],
     },
     {

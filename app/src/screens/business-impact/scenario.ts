@@ -20,7 +20,20 @@ export const scenarioRange = "4 May – 26 Oct 2026";
 export type Domain = "Finance" | "Procurement" | "Sales";
 export type Evidence = "Estimated" | "Observed" | "Attributable";
 
-export interface Persona {
+/** A BPS measure read before and after rollout, against a comparison group. */
+export interface Measured {
+    unit: string;
+    /** Whether a fall in the measure is an improvement. */
+    lowerIsBetter: boolean;
+    baseline: number;
+    current: number;
+    /** Change in a comparable not-yet-rolled-out group over the same period. */
+    comparisonChange: number;
+    /** Half-width of the 90% interval on the attributable estimate. */
+    interval: number;
+}
+
+export interface Persona extends Measured {
     id: string;
     name: string;
     domain: Domain;
@@ -30,19 +43,10 @@ export interface Persona {
     copilotActive: number;
     agentUsers: number;
     habit: number;
-    /** DataHub behaviour-based estimate, hours per person per month. */
+    /** The Value page's expert-equivalent hours, per person per month. */
     estHoursPerPerson: number;
     topTasks: readonly string[];
     kpi: string;
-    unit: string;
-    /** Whether a fall in the KPI is an improvement. */
-    lowerIsBetter: boolean;
-    baseline: number;
-    current: number;
-    /** Change in a comparable not-yet-rolled-out group over the same period. */
-    comparisonChange: number;
-    /** Half-width of the 90% interval on the attributable estimate. */
-    interval: number;
     evidence: Evidence;
 }
 
@@ -91,17 +95,78 @@ export const personas: readonly Persona[] = [
     },
 ];
 
-/** The persona's own change: current minus baseline. */
-export const observedChange = (p: Persona) => p.current - p.baseline;
+/** The group's own change: current minus baseline. */
+export const observedChange = (m: Measured) => m.current - m.baseline;
 
-/** Difference in differences: the persona's change less the comparison group's. */
-export const attributableChange = (p: Persona) => observedChange(p) - p.comparisonChange;
+/** Difference in differences: the group's change less the comparison group's. */
+export const attributableChange = (m: Measured) => observedChange(m) - m.comparisonChange;
 
 /** Whether the 90% interval on the attributable change excludes zero. */
-export const isConclusive = (p: Persona) => Math.abs(attributableChange(p)) > p.interval;
+export const isConclusive = (m: Measured) => Math.abs(attributableChange(m)) > m.interval;
 
 /** A change expressed so that positive is always better. */
-export const improvement = (p: Persona, change: number) => (p.lowerIsBetter ? -change : change);
+export const improvement = (m: Measured, change: number) => (m.lowerIsBetter ? -change : change);
+
+export type MeasureKind = "Speed" | "Throughput" | "Quality check" | "Cash";
+export const measureKinds: readonly MeasureKind[] = ["Speed", "Throughput", "Quality check", "Cash"];
+
+export interface ProcessMeasure extends Measured {
+    process: string;
+    kind: MeasureKind;
+    measure: string;
+}
+
+export type MeasureRead = "Improved" | "Not conclusive" | "Held" | "Worse";
+
+/**
+ * Speed, throughput and cash measures need an improvement beyond the
+ * comparison group to count. A quality check only needs to hold: it is there
+ * to show that faster work hasn't produced more errors.
+ */
+export function readMeasure(m: ProcessMeasure): MeasureRead {
+    const better = improvement(m, attributableChange(m));
+    if (isConclusive(m)) return better > 0 ? "Improved" : "Worse";
+    return m.kind === "Quality check" ? "Held" : "Not conclusive";
+}
+
+const measure = (process: string, kind: MeasureKind, name: string, unit: string, lowerIsBetter: boolean, baseline: number, current: number, comparisonChange: number, interval: number): ProcessMeasure =>
+    ({ process, kind, measure: name, unit, lowerIsBetter, baseline, current, comparisonChange, interval });
+
+/**
+ * The fuller BPS scorecard: measures the BPS finance, procurement and sales
+ * data models should support, each 12 weeks before vs after rollout.
+ * Illustrative: confirm against your BPS deployment before relying on any one.
+ */
+export const processScorecard: readonly ProcessMeasure[] = [
+    measure("Invoice to pay", "Speed", "Invoice cycle time", "days", true, 8.6, 6.1, -0.6, 0.7),
+    measure("Invoice to pay", "Throughput", "Invoices per specialist a month", "invoices", false, 610, 700, 10, 30),
+    measure("Invoice to pay", "Quality check", "First-time match rate", "%", false, 78, 83, 1, 2.5),
+    measure("Invoice to pay", "Quality check", "Blocked invoices", "%", true, 6.2, 5.4, -0.2, 0.5),
+    measure("Invoice to pay", "Cash", "Eligible discounts captured", "%", false, 58, 71, 2, 5),
+    measure("Invoice to pay", "Cash", "Invoices paid late", "%", true, 9.1, 6.4, -0.5, 1.2),
+    measure("Order to cash (collections)", "Speed", "Days sales outstanding", "days", true, 52, 47, -1.5, 2.4),
+    measure("Order to cash (collections)", "Speed", "Dispute resolution time", "days", true, 14, 11.5, -0.5, 1.6),
+    measure("Order to cash (collections)", "Throughput", "Open items cleared per specialist a month", "items", false, 410, 455, 8, 30),
+    measure("Order to cash (collections)", "Quality check", "Receivables overdue", "%", true, 18, 16.5, -0.4, 1.5),
+    measure("Order to cash (collections)", "Cash", "Collection effectiveness", "%", false, 82, 86, 1, 2.4),
+    measure("Record to report", "Speed", "Days to close", "days", true, 7, 6, -0.2, 0.9),
+    measure("Record to report", "Throughput", "Journals per accountant a month", "journals", false, 120, 131, 3, 9),
+    measure("Record to report", "Quality check", "Manual journals", "%", true, 34, 30, -1, 2.5),
+    measure("Record to report", "Quality check", "Journal reversals", "%", true, 2.1, 2.0, 0, 0.4),
+    measure("Procure to pay (sourcing)", "Speed", "Purchase order cycle time", "days", true, 5.4, 4.9, -0.3, 0.6),
+    measure("Procure to pay (sourcing)", "Throughput", "Purchase orders per buyer a month", "POs", false, 213, 226, 4, 12),
+    measure("Procure to pay (sourcing)", "Quality check", "Supplier on-time delivery", "%", false, 88, 89, 0.5, 2),
+    measure("Source to contract", "Speed", "Contract cycle time", "days", true, 34, 30, -1, 4.5),
+    measure("Source to contract", "Quality check", "Spend outside contracts", "%", true, 9, 7.8, -0.3, 1.2),
+    measure("Source to contract", "Cash", "Spend under contract", "%", false, 71, 76, 1, 4.2),
+    measure("Quote to order", "Speed", "Quote to order", "days", true, 11.5, 11.0, -0.4, 1.3),
+    measure("Quote to order", "Throughput", "Quotes per rep a month", "quotes", false, 208, 214, 3, 14),
+    measure("Quote to order", "Quality check", "Forecast accuracy", "%", false, 74, 76, 1, 4),
+    measure("Quote to order", "Cash", "Win rate", "%", false, 27, 28, 0.5, 3),
+];
+
+/** The throughput measure for a persona's process, if BPS has one. */
+export const throughputFor = (p: Persona) => processScorecard.find(m => m.process === p.process && m.kind === "Throughput");
 
 export const taskCategories = [
     "Email", "Data & Analysis", "Document Summarisation", "Document Creation",
@@ -230,14 +295,14 @@ export function costToServe() {
 
 /** The evidence ladder for the AP pilot, one rung per evidence level. */
 export const benefitLadder: readonly { level: Evidence; label: string; value: string; basis: string }[] = [
-    { level: "Estimated", label: "Hours saved (DataHub estimate)", value: "602 h / month", basis: "Behaviour-based task times × AI tasks for 64 AP specialists. A planning figure, not measured." },
+    { level: "Estimated", label: "Expert-equivalent hours (Value page)", value: "602 h / month", basis: "The Value page's estimate for the 64 AP specialists: recorded AI tasks × expert task times. A planning figure, not measured." },
     { level: "Observed", label: "Invoice cycle time", value: "8.6 → 6.1 days", basis: "BPS invoice facts for the pilot team, 12 weeks before vs after rollout. Not adjusted for anything else that changed." },
     { level: "Attributable", label: "Beyond the comparison team", value: "−1.9 days (±0.7)", basis: "Difference in differences against a matched team not yet rolled out. 90% interval." },
 ];
 
 /** Value categories, kept apart and never summed. */
 export const financialCategories = [
-    { category: "Released capacity", value: "≈ 12 FTE equivalent", note: "1,750 estimated hours a month across the six personas. Hours, not payroll savings, unless roles are redeployed or not backfilled." },
+    { category: "Released capacity", value: "≈ 12 FTE equivalent", note: "1,750 expert-equivalent hours a month across the six personas, from the Value page's estimate. Hours, not payroll savings, unless roles are redeployed or not backfilled." },
     { category: "Working capital", value: "≈ 2.6M one-off", note: "From the attributable DSO change. Cash timing, not revenue or profit, and not recurring." },
     { category: "Cash savings", value: "≈ 38k / month", note: "Early-payment discounts captured on invoices now approved inside terms." },
     { category: "Avoided cost", value: "≈ 9k / month", note: "Late-payment fees no longer incurred. Shown apart from discounts." },
@@ -253,10 +318,11 @@ export const opportunities = [
 
 /** What the optional module would read. BPS table names are illustrative; confirm them against your deployment. */
 export const dataContract = [
-    { source: "BPS Gold (shortcut)", table: "Accounts payable invoice facts", grain: "Invoice", use: "Cycle time, first-time match, discounts and late fees" },
-    { source: "BPS Gold (shortcut)", table: "Accounts receivable open items", grain: "Open item per day", use: "Days sales outstanding" },
-    { source: "BPS Gold (shortcut)", table: "Purchase order facts", grain: "PO line", use: "PO cycle time, spend under contract" },
-    { source: "BPS Gold (shortcut)", table: "Sales quote and order facts", grain: "Document", use: "Quote to order" },
+    { source: "BPS Gold (shortcut)", table: "Accounts payable invoice facts", grain: "Invoice", use: "Cycle time, invoices per specialist, first-time match, blocks, discounts, late payment" },
+    { source: "BPS Gold (shortcut)", table: "Accounts receivable open items", grain: "Open item per day", use: "Days sales outstanding, items cleared, overdue share, collection effectiveness, disputes" },
+    { source: "BPS Gold (shortcut)", table: "General ledger journal entries", grain: "Journal line", use: "Days to close, journals per accountant, manual and reversed journals" },
+    { source: "BPS Gold (shortcut)", table: "Purchase order and goods receipt facts", grain: "PO line", use: "PO cycle time, POs per buyer, supplier on-time delivery, spend under or outside contracts" },
+    { source: "BPS Gold (shortcut)", table: "Sales quote and order facts", grain: "Document", use: "Quote to order, quotes per rep, win rate, forecast accuracy" },
     { source: "BPS Gold (shortcut)", table: "Cost centre and company code", grain: "Cost centre, effective-dated", use: "Org mapping" },
     { source: "DataHub (new)", table: "impact_org_map", grain: "Cost centre → org group, with validity dates", use: "Joins BPS outcomes to DataHub org data" },
     { source: "DataHub (new)", table: "impact_persona_map", grain: "Job title or role → persona", use: "Functional personas" },

@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 import { useStageFilter } from "@/hooks/stage-filter.context";
+import { BODY, SMALL } from "@/lib/type-scale";
+import { cn } from "@/lib/utils";
 import { CommercialTermsProvider } from "@/components/commercial-terms-provider";
 import { ValueAssumptionsProvider } from "@/components/value-assumptions-provider";
 import { CONSUMPTION_CONFIGURED } from "./cost-vs-value-data";
@@ -21,6 +23,19 @@ import { ValueByHabitStage } from "./value-by-habit-stage";
  * explicit rate and effort scenario, and how that sets against what Copilot
  * cost. The last two stages share one rate and scenario.
  */
+/** Points from the estimate to the optional BPS module that tests it. Shown only in the preview build. */
+function BusinessImpactNext() {
+    return (
+        <aside className="flex flex-col gap-200 rounded-xl border border-border bg-card p-500">
+            <p className={cn(BODY, "font-semibold")}>Next: check the estimate against business outcomes</p>
+            <p className={cn(SMALL, "text-muted-foreground")}>
+                These figures are estimates from recorded AI work. With SAP Business Process Solutions connected, the optional Business impact page puts the same expert-equivalent hours beside measured process outcomes, such as invoice cycle time and days sales outstanding, by functional persona.
+            </p>
+            <a href="#/business-impact/impact-summary" className={cn(SMALL, "w-fit font-semibold text-primary underline-offset-4 hover:underline")}>Open Business impact (preview)</a>
+        </aside>
+    );
+}
+
 export function ValueScreen() {
     const { show } = useStageFilter();
     return (
@@ -32,6 +47,7 @@ export function ValueScreen() {
                     {show("estimated-value") && <EstimatedValueStage />}
                     {show("value-by-habit") && <ValueByHabitStage />}
                     {show("cost-vs-value") && <CostVsValueStage />}
+                    {import.meta.env.VITE_BUSINESS_IMPACT_DEMO === "true" && <BusinessImpactNext />}
                 </div>
             </ValueAssumptionsProvider>
         </CommercialTermsProvider>
