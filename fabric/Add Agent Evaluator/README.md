@@ -83,6 +83,21 @@ Spark, `PARSE_CHUNK_ROWS` transcripts at a time, so a large environment needs no
 If a scheduled `merge` or `append` run finds no new transcripts, the notebook creates missing
 `agent_*` tables as empty string-schema tables and leaves existing tables unchanged.
 
+**Transcript roles.** Copilot Studio's numeric `from.role` values are **1 = user** and
+**0 = bot**, including `"1"` and `"0"` strings. Named `user` and `bot` roles are also accepted;
+anything else stays unclassified. Only `message` activities contribute to user/bot message
+counts and the session's user identity. The legacy `user_id_hash` and `from_user_hash` columns
+still contain raw identifiers, not hashes.
+
+**Correcting previously loaded roles.** Earlier parsers reversed numeric roles, affecting user
+joins, message counts, prompt/reply fields, authentication indicators and agent-name fallbacks.
+After updating the notebook, re-read all transcripts Dataverse still holds with
+`LOOKBACK_DAYS = 0` and `WRITE_MODE = 'merge'`, then restore the scheduled lookback and refresh
+the semantic model. Don't use `overwrite`: it would discard history Dataverse no longer holds.
+Expired transcripts need an archived source to reparse; updating the notebook cannot repair
+those rows by itself. Review stale catalogue entries created from user names when no bot lookup
+was available; a merge does not remove obsolete catalogue keys.
+
 ### 3. Open the template
 
 Lakehouse → **Settings** → **SQL analytics endpoint** → copy the connection string. Open

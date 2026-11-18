@@ -350,9 +350,9 @@ def dataverse_transcript(n, user, *, env_bot="crb_helpdesk", error=False, connec
     start = 1_700_000_000_000 + n * 60_000
     acts = [
         {"type": "message", "timestampMs": start, "text": f"{text}\nline two\t{n}",
-         "from": {"role": 0, "aadObjectId": user}, "recipient": {"name": "Helpdesk", "id": "bot-1"}},
+         "from": {"role": 1, "aadObjectId": user}, "recipient": {"name": "Helpdesk", "id": "bot-1"}},
         {"type": "message", "timestampMs": start + 1500, "text": "Here you go.",
-         "from": {"role": 1, "name": "Helpdesk", "id": "bot-1"}},
+         "from": {"role": 0, "name": "Helpdesk", "id": "bot-1"}},
     ]
     if error:
         acts.append({"type": "trace", "valueType": "ErrorTraceData", "timestampMs": start + 2000,

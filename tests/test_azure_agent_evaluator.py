@@ -175,7 +175,7 @@ def rich_transcript(n, user, *, schema="copilots_header_x", verdict="like", scor
         {"type": "event", "name": "SetVariables", "timestampMs": start - 10,
          "value": {"variables": {"ESS_UserContext_UPN": "alex@example.com", "ESS_Message_Disclaimer": "shown"}}},
         {"type": "message", "id": f"u{n}", "channelId": "msteams", "timestampMs": start, "text": prompt,
-         "from": {"role": 0, "aadObjectId": user, "userPrincipalName": "alex@example.com"},
+         "from": {"role": 1, "aadObjectId": user, "userPrincipalName": "alex@example.com"},
          "recipient": {"name": "HR Helper", "id": "bot-hr"}},
         {"type": "trace", "valueType": "IntentRecognition", "replyToId": f"u{n}", "timestampMs": start + 100,
          "value": {"intentTitle": "Leave balance", "intentId": "topic.leave", **intent}},
@@ -200,7 +200,7 @@ def rich_transcript(n, user, *, schema="copilots_header_x", verdict="like", scor
                    "parentBotSchemaName": schema or "crb_payroll", "dialogSchemaName": "it.topic",
                    "userId": user, "planStepId": "step-1"}},
         {"type": "message", "id": f"b{n}", "channelId": "msteams", "timestampMs": start + 1500,
-         "text": "You have 12 days left.", "from": {"role": 1, "name": "HR Helper", "id": "bot-hr"},
+         "text": "You have 12 days left.", "from": {"role": 0, "name": "HR Helper", "id": "bot-hr"},
          "channelData": {"feedbackLoop": {"type": "default"}}},
         {"type": "invoke", "name": "message/submitAction", "timestampMs": start + 5000,
          "value": {"actionName": "feedback", "feedback": {"reaction": verdict, "feedbackText": "Thanks — très bien"}}},
@@ -277,6 +277,80 @@ def fabric_pandas(fn, *args):
 
 
 # ------------------------------------------------------------------------------------- parity with Fabric
+def parse_role_fixture(ns, engine, activities):
+    record = dataverse_transcript(1, USER_A)
+    record.pop("bot_conversationtranscriptid")
+    record["content"] = json.dumps({"activities": activities})
+    if engine == "azure":
+        out, stats = tx.parse_records([tx.normalise(tx.staged_record(record, ENV_A))])
+        assert stats["failed"] == 0
+        return out
+    parsed, _ = ns["parsed_transcript_frame"](
+        [ns["staged_transcript_record"](record, ENV_A)], "content", "conversationtranscriptid", True)
+    return {table: [{k: ns["_out_str"](v) for k, v in row.items()} for row in build(parsed).to_dict("records")]
+            for table, build in ns["_OUTPUT_BUILDERS"].items()}
+
+
+@pytest.mark.parametrize("engine", ["azure", "fabric"])
+@pytest.mark.parametrize("user_role,bot_role", [(1, 0), ("1", "0"), ("user", "bot"), (" USER ", " BOT ")])
+def test_transcript_roles_identify_people_and_agents(ns, engine, user_role, bot_role):
+    activities = [
+        {"type": "event", "from": {"role": user_role, "aadObjectId": USER_B}},
+        {"type": "message", "id": "greeting", "text": "Welcome",
+         "from": {"role": bot_role, "name": "Helpdesk", "id": "bot-1"},
+         "recipient": {"name": "Alex", "id": USER_A}},
+        {"type": "message", "id": "question", "text": "Where is the guide?",
+         "from": {"role": user_role, "name": "Alex", "aadObjectId": USER_A, "id": "alex@example.com"}},
+        {"type": "message", "id": "answer", "text": "Here is the guide.",
+         "from": {"role": bot_role, "name": "Helpdesk", "id": "bot-1"}},
+        {"type": "message", "id": "unknown", "text": "Unclassified", "from": {"role": 2, "id": USER_C}},
+    ]
+    out = parse_role_fixture(ns, engine, activities)
+    session = out["agent_sessions"][0]
+    assert session["user_id_hash"] == USER_A
+    assert session["user_upn"] == "alex@example.com"
+    assert session["agent_name"] == "Helpdesk"
+    assert session["agent_id"] == "bot-1"
+    assert session["first_user_prompt"] == "Where is the guide?"
+    perf = out["agent_performance"][0]
+    assert (perf["UserMessageCount"], perf["BotMessageCount"], perf["TotalMessageCount"]) == ("1", "2", "4")
+    assert (perf["FirstUserMessage"], perf["FirstBotMessage"]) == ("Where is the guide?", "Welcome")
+    assert perf["IsAuthenticated"] == "TRUE"
+    turns = {row["turn_id"]: row for row in out["agent_turns"]}
+    assert {key: row["turn_role"] for key, row in turns.items()} == {
+        "greeting": "bot", "question": "user", "answer": "bot", "unknown": "other"}
+    assert {key: row["from_user_hash"] for key, row in turns.items()} == {
+        "greeting": None, "question": USER_A, "answer": None, "unknown": None}
+
+
+@pytest.mark.parametrize("engine", ["azure", "fabric"])
+def test_bot_identity_comes_from_user_recipient_not_user_name(ns, engine):
+    out = parse_role_fixture(ns, engine, [
+        {"type": "message", "text": "Hello", "from": {"role": 1, "name": "Alex", "aadObjectId": USER_A},
+         "recipient": {"name": "Helpdesk", "id": "bot-1"}},
+    ])
+    session = out["agent_sessions"][0]
+    assert (session["agent_name"], session["agent_id"]) == ("Helpdesk", "bot-1")
+    perf = out["agent_performance"][0]
+    assert (perf["UserMessageCount"], perf["BotMessageCount"], perf["SessionOutcome"]) == ("1", "0", "Abandoned")
+
+
+@pytest.mark.parametrize("engine", ["azure", "fabric"])
+def test_bot_or_unknown_sender_cannot_authenticate_a_user(ns, engine):
+    out = parse_role_fixture(ns, engine, [
+        {"type": "message", "text": "Unclassified", "from": {"role": None},
+         "recipient": {"name": "Alex", "id": USER_A}},
+        {"type": "message", "text": "Welcome",
+         "from": {"role": 0, "name": "Helpdesk", "id": "bot-1", "aadObjectId": USER_B}},
+    ])
+    session = out["agent_sessions"][0]
+    assert session["user_id_hash"] is None
+    assert session["is_authenticated"] == "False"
+    assert (session["agent_name"], session["agent_id"]) == ("Helpdesk", "bot-1")
+    perf = out["agent_performance"][0]
+    assert (perf["UserMessageCount"], perf["BotMessageCount"], perf["IsAuthenticated"]) == ("0", "1", "FALSE")
+
+
 def test_fact_and_catalogue_columns_match_the_notebook(ns):
     staged = [ns["staged_transcript_record"](r, env) for r, env in raw_records()]
     parsed, _ = ns["parsed_transcript_frame"](staged, "content", "conversationtranscriptid", True)
@@ -353,7 +427,7 @@ def test_malformed_transcripts_read_as_missing_values():
     odd = [
         None, 5, "x",
         {"type": "message", "from": "someone", "text": 12345, "timestampMs": "soon"},
-        {"type": "message", "from": {"role": 0, "aadObjectId": USER_B}, "text": {"rich": True}, "timestampMs": 1e300},
+        {"type": "message", "from": {"role": 1, "aadObjectId": USER_B}, "text": {"rich": True}, "timestampMs": 1e300},
         {"type": "trace", "valueType": "ErrorTraceData", "value": "boom"},
         {"type": "trace", "valueType": "IntentRecognition", "replyToId": ["not", "hashable"],
          "value": {"intentScore": "high"}},
@@ -367,7 +441,7 @@ def test_malformed_transcripts_read_as_missing_values():
         json.dumps({"activities": odd}),
         json.dumps({"activities": {"type": "message"}}),
         "[]",
-        json.dumps({"activities": [{"type": "message", "from": {"role": 0, "aadObjectId": USER_A}, "text": "hi",
+        json.dumps({"activities": [{"type": "message", "from": {"role": 1, "aadObjectId": USER_A}, "text": "hi",
                                     "timestampMs": 1_700_000_000_000}]}),
         "just text",
     ]

@@ -466,6 +466,15 @@ and what the jobs' last read found in each, from the model's *Evaluator Status* 
 The tables and settings are in the [jobs' README](jobs/README.md#agent-evaluator-module-agentevaluator).
 To check all of this on a real install, see the [live test](AGENT-EVALUATOR-LIVE-TEST.md).
 
+**Correcting previously loaded transcript roles.** The parser reads Copilot Studio numeric roles
+as **1 = user, 0 = bot**, also accepting numeric strings and named `user`/`bot` roles. Earlier
+versions reversed the numeric values. After updating the jobs, run the `agentEvaluator` module
+once with `VALUELENS_TRANSCRIPT_LOOKBACK_DAYS=0` to re-read every available transcript, then
+restore the scheduled lookback and refresh the semantic model. The keyed merge preserves older
+history, but transcripts already deleted from Dataverse need an archived source to reparse.
+This corrects user joins, user/bot counts, prompt/reply fields, authentication indicators and
+agent-name fallbacks for the transcripts re-read; it is not a repair of expired source data.
+
 ## Ask
 
 The app's **Ask** page answers questions about the dashboard in plain language, inline. The web app's
