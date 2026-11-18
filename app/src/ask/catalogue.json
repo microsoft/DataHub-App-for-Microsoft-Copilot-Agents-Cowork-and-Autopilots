@@ -35,7 +35,8 @@
             "destination": "agent-evaluation",
             "questions": [
                 "Which agent topics answer worst?",
-                "What share of agent conversations are resolved?"
+                "What share of agent conversations are resolved?",
+                "Which Copilot Studio bots have the most failing conversations?"
             ]
         },
         {
@@ -227,6 +228,15 @@
             "query": "agent-evaluation/performance-summary.dax",
             "filters": [],
             "description": "Agent Evaluator headline: conversations, people, resolution rate, implied success, true failure rate, failing conversations, hours lost, escalation and abandonment rates."
+        },
+        {
+            "name": "agent_performance_by_agent",
+            "page": "agent-evaluation",
+            "model": "ae",
+            "query": "agent-evaluation/performance-by-agent.dax",
+            "filters": [],
+            "people": ["People"],
+            "description": "Top 100 Copilot Studio bots with a Bot ID and at least five distinct known user UPNs, ordered by failing conversation count. Count UPNs after trimming and case normalization; exclude blanks. Group by Bot ID so duplicate display names stay separate. Only surface the ID to distinguish same-named bots. Includes conversations, people, resolution and failure rates, knowledge gaps, CSAT and errors."
         },
         {
             "name": "topic_health",

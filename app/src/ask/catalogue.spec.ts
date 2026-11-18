@@ -21,6 +21,7 @@ const ISSUE_PROMPTS = [
     "Where are we using a premium model for simple work?",
     "Which agents have no active owner?",
     "Which agent topics answer worst?",
+    "Which Copilot Studio bots have the most failing conversations?",
 ];
 
 describe("ask catalogue", () => {
@@ -74,6 +75,19 @@ describe("ask catalogue", () => {
             const text = queries[`../queries/${tool.query}`];
             for (const column of tool.people!) expect(text, `${tool.name}: ${column}`).toContain(`"${column}"`);
         }
+    });
+
+    it("bounds and audience-filters per-agent evaluation results for Ask", () => {
+        const tool = askCatalogue.tools.find((item) => item.name === "agent_performance_by_agent");
+        expect(tool?.people).toEqual(["People"]);
+        const query = queries[`../queries/${tool?.query}`];
+        expect(query).toMatch(/SUMMARIZECOLUMNS\(\s*'Agent Performance'\[BotId\],\s*"@Agent"/);
+        expect(query).toContain("SELECTEDVALUE('Agent Performance'[BotFriendlyName])");
+        expect(query).toContain("LEN(TRIM('Agent Performance'[BotId] & \"\")) > 0");
+        expect(query).toContain("LOWER(TRIM('Agent Performance'[Var_ESS_UserContext_UPN] & \"\"))");
+        expect(query).toContain("COUNTROWS(FILTER(DISTINCT(_upns), [@UPN] <> \"\"))");
+        expect(query).toContain("[@People] >= 5");
+        expect(query).toMatch(/TOPN\(\s*100,/);
     });
 
     it("leaves out only columns the query returns", () => {

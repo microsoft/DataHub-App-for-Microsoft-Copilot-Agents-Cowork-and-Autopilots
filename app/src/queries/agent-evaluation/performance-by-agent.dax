@@ -1,0 +1,51 @@
+// Count known people conservatively for small-group suppression.
+EVALUATE
+VAR _eligible =
+    FILTER(
+        SUMMARIZECOLUMNS(
+            'Agent Performance'[BotId],
+            "@Agent",
+                VAR _name = SELECTEDVALUE('Agent Performance'[BotFriendlyName])
+                RETURN IF(LEN(TRIM(_name & "")) > 0, _name, "(multiple or unnamed)"),
+            "@Conversations", [Total Conversations],
+            "@People",
+                VAR _upns =
+                    SELECTCOLUMNS(
+                        VALUES('Agent Performance'[Var_ESS_UserContext_UPN]),
+                        "@UPN", LOWER(TRIM('Agent Performance'[Var_ESS_UserContext_UPN] & ""))
+                    )
+                RETURN COUNTROWS(FILTER(DISTINCT(_upns), [@UPN] <> "")),
+            "@Resolution", [Resolution Rate],
+            "@Failure", [True Failure Rate],
+            "@Failing", [Failing Conversations],
+            "@Knowledge Gaps", [Knowledge Gap Conversations],
+            "@CSAT", [Turn CSAT %],
+            "@Errors", [Session Error Rate]
+        ),
+        LEN(TRIM('Agent Performance'[BotId] & "")) > 0
+            && [@Conversations] > 0
+            && [@People] >= 5
+    )
+VAR _top =
+    TOPN(
+        100,
+        _eligible,
+        [@Failing], DESC,
+        [@Conversations], DESC,
+        'Agent Performance'[BotId], ASC
+    )
+RETURN
+    SELECTCOLUMNS(
+        _top,
+        "Bot ID", 'Agent Performance'[BotId],
+        "Agent", [@Agent],
+        "Conversations", [@Conversations],
+        "People", [@People],
+        "Resolution Rate", [@Resolution],
+        "True Failure Rate", [@Failure],
+        "Failing Conversations", [@Failing],
+        "Knowledge Gaps", [@Knowledge Gaps],
+        "CSAT", [@CSAT],
+        "Error Rate", [@Errors]
+    )
+ORDER BY [Failing Conversations] DESC, [Conversations] DESC, [Agent] ASC, [Bot ID] ASC

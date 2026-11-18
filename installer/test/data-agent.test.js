@@ -29,7 +29,7 @@ import {
   sourceFolder,
   visibleSchema,
 } from '../src/transform/data-agent.js';
-import { buildModel, loadTemplateModel } from '../src/transform/model.js';
+import { buildAgentEvaluatorModel, buildModel, loadTemplateModel } from '../src/transform/model.js';
 import { fakeCtx, fakeFabric, fakeUi, httpError, realSources } from './fakes.js';
 
 const ask = /** @type {import('../src/transform/data-agent.js').Ask} */ (realSources().ask);
@@ -156,6 +156,20 @@ test('the main model\'s instructions name only measures and columns the deployed
   assert.ok(named.length > 5, 'the main model\'s queries use its measures');
   for (const m of named) assert.ok(measures.has(m), `[${m}] is a measure of the model`);
   for (const t of ask.catalogue.tools.filter((x) => x.model === 'vl')) assert.ok(s.includes(`- ${t.name}: `), t.name);
+});
+
+test('the evaluator instructions include per-bot review and its audience safeguard', () => {
+  const bim = buildAgentEvaluatorModel(
+    loadTemplateModel(/** @type {string} */ (realSources().agentEvaluatorModelFile)),
+    { server: 's', database: 'd' },
+  );
+  const instructions = dataSourceInstructions(ask, 'ae', visibleSchema(bim));
+  const line = instructions.split('\n').find((l) => l.startsWith('- agent_performance_by_agent: '));
+  assert.ok(line, 'the per-bot instructions fit in the evaluator data source');
+  assert.match(line, /'Agent Performance'\[BotId\]/);
+  assert.match(line, /'Agent Performance'\[Var_ESS_UserContext_UPN\]/);
+  assert.match(line, /trimming and case normalization/);
+  assert.match(line, /leave out rows under 5/);
 });
 
 test('dataAgentDefinition: the agent config, its instructions and one data source per model', () => {

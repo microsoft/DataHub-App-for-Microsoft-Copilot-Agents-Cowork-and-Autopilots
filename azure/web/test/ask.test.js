@@ -99,6 +99,33 @@ test('Ask answers with the catalogue queries it ran, as the user, with small gro
   assert.doesNotMatch(toolMessage.content, /Tiny team/);
 });
 
+test('per-bot evaluation uses the evaluator model and suppresses small or unknown audiences', async () => {
+  const rows = [
+    { '[Bot ID]': 'bot-1', '[Agent]': 'Supported bot', '[People]': 5, '[Failing Conversations]': 2 },
+    { '[Bot ID]': 'bot-2', '[Agent]': 'Small bot', '[People]': 4, '[Failing Conversations]': 3 },
+    { '[Bot ID]': 'bot-3', '[Agent]': 'Unknown audience', '[People]': null, '[Failing Conversations]': 1 }
+  ];
+  const { fetchImpl, ai, pbi } = fakeFetch([
+    reply({ tool_calls: [call('evaluation', 'agent_performance_by_agent')] }),
+    reply({ content: 'Supported bot had 2 failing conversations. Small groups are not shown.' })
+  ], () => json({ results: [{ tables: [{ rows }] }] }));
+  const models = { ...MODELS, ae: { workspaceId: 'ws', itemId: 'ae-model' } };
+  await withServer({ config: { ask: ASK, semanticModels: models }, fetchImpl }, async (baseUrl) => {
+    const res = await ask(baseUrl, { question: 'Which bots have the most failing conversations?' });
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.runs[0].name, 'agent_performance_by_agent');
+    assert.equal(body.runs[0].rowCount, 1);
+    assert.equal(body.runs[0].suppressed, 2);
+  });
+  assert.ok(ai[0].body.tools.some((t) => t.function.name === 'agent_performance_by_agent'));
+  assert.match(pbi[0].url, /datasets\/ae-model\/executeQueries$/);
+  assert.match(pbi[0].query, /LOWER\(TRIM\('Agent Performance'\[Var_ESS_UserContext_UPN\]/);
+  const result = JSON.parse(ai[1].body.messages.at(-1).content);
+  assert.deepEqual(result.rows.map((row) => row.Agent), ['Supported bot']);
+  assert.match(result.leftOut, /under 5 people/);
+});
+
 test('Ask never hands its model the summary\'s count of people with an organization', async () => {
   // The summary row as executeQueries returns it. People With Organization equals People once any
   // org data is loaded, because the audit log doesn't filter the org table, so it isn't right to quote.

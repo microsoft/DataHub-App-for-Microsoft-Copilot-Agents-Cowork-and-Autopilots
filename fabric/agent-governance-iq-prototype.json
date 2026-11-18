@@ -1,0 +1,146 @@
+{
+  "name": "Agent governance review",
+  "target": "Fabric IQ ontology V2",
+  "status": "repository prototype only; not a Fabric item definition",
+  "purpose": "Ground agent-governance reviews in DataHub's existing business keys and source-owned measures.",
+  "entities": [
+    {
+      "name": "Agent",
+      "key": {
+        "semanticModel": "Analytics Hub Model",
+        "table": "Agents 365",
+        "column": "Title ID"
+      },
+      "properties": [
+        "Agent name",
+        "Agent Type Label",
+        "Creator",
+        "Agent creator source",
+        "Governance Flags"
+      ]
+    },
+    {
+      "name": "Agent activity",
+      "semanticModel": "Analytics Hub Model",
+      "table": "Chat + Agent Interactions (Audit Logs)",
+      "agentKeyColumn": "Agent_LinkID",
+      "grain": "Use the semantic model's measures; do not count fact rows as conversations."
+    },
+    {
+      "name": "Agent configuration",
+      "semanticModel": "Analytics Hub Model",
+      "table": "Agent Configuration",
+      "keyColumn": "TitleId",
+      "optionalSource": true,
+      "properties": [
+        "Governance Flags",
+        "Owner UPN",
+        "Owner account",
+        "Sharing Scope",
+        "Data Access"
+      ]
+    },
+    {
+      "name": "Person",
+      "semanticModel": "Analytics Hub Model",
+      "table": "Chat + Agent Org Data",
+      "keyColumn": "PersonId_Normalized",
+      "properties": [
+        "Organization"
+      ],
+      "privacy": "Use identity only for governed ownership and filtering; do not return person-level activity."
+    },
+    {
+      "name": "Agent evaluation",
+      "semanticModel": "Analytics Hub Agent Evaluator Model",
+      "table": "Agent Performance",
+      "agentIdentityColumn": "BotId",
+      "displayColumn": "BotFriendlyName",
+      "grain": "One evaluated conversation; use the model's aggregate measures."
+    }
+  ],
+  "relationships": [
+    {
+      "name": "activity-to-agent",
+      "from": "Agent activity.Agent_LinkID",
+      "to": "Agent.Title ID",
+      "status": "existing semantic-model relationship"
+    },
+    {
+      "name": "agent-creator-to-person",
+      "from": "Agent.Agent creator UPN",
+      "to": "Person.PersonId_Normalized",
+      "status": "requires adding Agent creator UPN from the source table to the semantic model; not present in the current template",
+      "source": "Lakehouse dbo.agents_365[Agent creator UPN]",
+      "resolution": "Normalize the creator UPN like PersonId_Normalized and validate a unique match before binding."
+    },
+    {
+      "name": "configuration-to-agent",
+      "from": "Agent configuration.TitleId",
+      "to": "Agent.Title ID",
+      "status": "optional Resource Graph source; validate in the target model"
+    },
+    {
+      "name": "agent-owner-to-person",
+      "from": "Agent configuration.Owner UPN",
+      "to": "Person.PersonId_Normalized",
+      "status": "optional owner detail; validate availability and permissions",
+      "resolution": "Normalize the owner UPN like PersonId_Normalized and validate a unique match before binding."
+    },
+    {
+      "name": "evaluation-to-agent",
+      "from": "Agent evaluation.BotId",
+      "to": "Agent.Title ID",
+      "status": "requires canonical identity enrichment before binding",
+      "resolution": "Reuse the canonical Title ID rules in core/valuelens_core/agent_link.py, but require a unique canonical candidate for each Bot ID. The existing Bot Id map chooses a preferred row and does not by itself establish uniqueness. Keep unmatched or ambiguous IDs unlinked."
+    }
+  ],
+  "sourceOwnedMeasures": [
+    {
+      "semanticModel": "Analytics Hub Model",
+      "measures": [
+        "[Active Agent Users]",
+        "[Observed Agent Sessions]",
+        "[Agent Orgs]",
+        "[Agent Last Observed Activity]"
+      ]
+    },
+    {
+      "semanticModel": "Analytics Hub Agent Evaluator Model",
+      "audienceNote": "[Unique Users] can count a blank UPN. For the minimum-audience rule, count distinct nonblank UPNs after trimming and case normalization.",
+      "measures": [
+        "[Total Conversations]",
+        "[Unique Users]",
+        "[Resolution Rate]",
+        "[True Failure Rate]",
+        "[Failing Conversations]",
+        "[Knowledge Gap Conversations]",
+        "[Turn CSAT %]",
+        "[Session Error Rate]"
+      ]
+    }
+  ],
+  "identityRules": [
+    "Use Title ID as the registered-agent key and preserve the existing LOB/Shared canonicalization.",
+    "Use BotId as the evaluation identity input; check for exactly one canonical Title ID before linking.",
+    "Never join Agent name, BotName, or BotFriendlyName to a registry name; display names are not unique.",
+    "Keep records with missing or ambiguous identity visible as unlinked rather than guessing."
+  ],
+  "deferredSignals": [
+    {
+      "concept": "Per-agent credits and cost",
+      "semanticModel": "Analytics Hub Agent Evaluator Model",
+      "table": "Credit Consumption (Agent)",
+      "candidateIdentityColumn": "Agent_Id",
+      "status": "defer until its identity and grain are validated against the canonical agent key"
+    }
+  ],
+  "guardrails": {
+    "status": "requirements for a future implementation; not enforced by this prototype",
+    "respectSourceModelPermissionsAndRLS": true,
+    "minimumDistinctPeopleForAskResults": 5,
+    "returnAggregateEvaluationMetricsOnly": true,
+    "includeTranscriptContent": false,
+    "allowAutomaticRemediation": false
+  }
+}

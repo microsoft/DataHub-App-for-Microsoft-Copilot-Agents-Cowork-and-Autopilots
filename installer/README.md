@@ -1215,10 +1215,12 @@ it. It reads `Analytics Hub Model`, and Consumption Central and Agent Evaluator 
 instructions come from the same catalogue: what the measures mean, how to filter by date and
 organization, to compare rather than explain why, never to estimate, and to leave out groups under
 5 people. A data agent built on semantic models can't take example queries, so these all go into its
-instructions. On a re-run the installer updates and republishes it only when the models or the
-catalogue changed, and a failure here never stops the install. The app's Ask page links to the agent
-in Fabric (**Open the data agent in Fabric**) and copies questions to ask it. To use it in Teams or
-Microsoft 365 Copilot, publish it there from Fabric by hand: there's no API for that yet.
+instructions. The small-group rule is guidance, not an independently enforced security filter: the
+agent can generate its own queries rather than run the catalogue's DAX. Restrict access to sensitive
+model data separately. On a re-run the installer updates and republishes it only when the models or
+the catalogue changed, and a failure here never stops the install. The app's Ask page links to the
+agent in Fabric (**Open the data agent in Fabric**) and copies questions to ask it. To use it in
+Teams or Microsoft 365 Copilot, publish it there from Fabric by hand: there's no API for that yet.
 
 It needs:
 
@@ -1236,7 +1238,10 @@ agent. It's recorded as `dataAgent` in `valuelens-install.json`.
 
 **Azure.** The web app answers on the page itself through `POST /api/ask`, with an Azure OpenAI model.
 The model can only run the named queries the pages run, as the person asking, so it sees only what
-they can see. Under [Advanced settings](#advanced-settings) the wizard asks which model to use:
+they can see. For per-bot evaluation, the query keeps only bots with at least five distinct,
+nonblank user UPNs after trimming and case normalization; the server also suppresses rows with a
+small or unknown audience before returning them to the AI model. Under
+[Advanced settings](#advanced-settings) the wizard asks which model to use:
 
 - **Create one for Ask** (the default): an Azure AI Services account in the resource group with a
   `gpt-5-mini` deployment, billed per token. Choose whether prompts may be processed in any region

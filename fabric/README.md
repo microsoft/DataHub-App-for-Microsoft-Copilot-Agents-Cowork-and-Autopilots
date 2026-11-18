@@ -136,6 +136,20 @@ see [Optional extras](../docs/PREREQUISITES.md#optional-extras) for what each on
 | [Defender (shadow AI and agent risk)](../installer/README.md#defender-shadow-ai-and-agent-risk) | AI tools other than Copilot in use on your devices and network, and agents that answer without sign-in | Microsoft Defender advanced hunting and Cloud Discovery |
 | [Agent configuration and Foundry (Azure Resource Graph)](../installer/README.md#agent-configuration-and-foundry) | How each Copilot Studio agent is set up, and your Foundry resources | Azure Resource Graph |
 
+## Fabric IQ agent-governance prototype
+
+[`agent-governance-iq-prototype.json`](agent-governance-iq-prototype.json) maps a first
+Fabric IQ ontology around DataHub's agent registry, activity, configuration and evaluation.
+It is a repository design prototype, **not** a deployable Fabric ontology definition.
+
+The evaluation model has a `BotId`, so the prototype proposes reusing DataHub's canonical Title ID
+rules rather than joining on agent names. The current Bot Id map chooses a preferred row when there
+are duplicates, so a future implementation must check for a unique canonical match first. Ambiguous
+or missing IDs remain unlinked. Per-agent credits are deferred until their identity can be validated
+against that same key.
+The proposed identity mappings and guardrails are requirements for future work, not implemented by
+the prototype.
+
 ## Prefer Power BI Desktop?
 
 To build your own reports, connect Power BI Desktop to `Analytics Hub Model` (or `ValueLens Model`)
