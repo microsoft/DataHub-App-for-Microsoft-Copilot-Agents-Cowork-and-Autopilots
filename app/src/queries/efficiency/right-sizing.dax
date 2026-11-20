@@ -1,0 +1,27 @@
+EVALUATE
+VAR _Groups =
+    SUMMARIZECOLUMNS(
+        'CoworkBilling'[Seat Action],
+        'CoworkBilling'[UsageCohort Label],
+        'CoworkBilling'[UsageCohortRank],
+        "People", COUNTROWS('CoworkBilling'),
+        "Current Allowance", SUM('CoworkBilling'[MonthlyCreditLimit]),
+        "Credits Used", SUM('CoworkBilling'[MonthlyCreditsUsed]),
+        "Recommended Allowance", SUM('CoworkBilling'[Recommended Limit]),
+        "Allowance Delta", SUM('CoworkBilling'[Seat Delta])
+    )
+VAR _Total = COUNTROWS(_Groups)
+RETURN
+    SELECTCOLUMNS(
+        TOPN(500, _Groups, 'CoworkBilling'[Seat Action], ASC, 'CoworkBilling'[UsageCohortRank], ASC, 'CoworkBilling'[UsageCohort Label], ASC),
+        "Seat Action", COALESCE('CoworkBilling'[Seat Action], "(No recommendation)"),
+        "Usage Cohort", COALESCE('CoworkBilling'[UsageCohort Label], "(No cohort)"),
+        "Cohort Rank", 'CoworkBilling'[UsageCohortRank],
+        "People", [People],
+        "Current Allowance", [Current Allowance],
+        "Credits Used", [Credits Used],
+        "Recommended Allowance", [Recommended Allowance],
+        "Allowance Delta", [Allowance Delta],
+        "Total", _Total
+    )
+ORDER BY [Seat Action], [Cohort Rank], [Usage Cohort]

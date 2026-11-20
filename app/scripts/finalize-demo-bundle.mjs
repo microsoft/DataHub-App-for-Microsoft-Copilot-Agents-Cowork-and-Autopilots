@@ -8,6 +8,7 @@ const root = resolve(import.meta.dirname, "..", "..");
 const businessImpactReview = process.argv.includes("--business-impact-review");
 const data = JSON.parse(await readFile(resolve(root, "app", "src", "demo", "sample-data.generated.json"), "utf8"));
 const scenarioSource = "app/src/screens/business-impact/scenario.ts";
+const outcomeSource = "app/src/demo/outcome-samples.json";
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 await writeFile(resolve(output, "SOURCE_PROVENANCE.json"), `${JSON.stringify({
     repository: "https://github.com/microsoft/DataHub-App-for-Microsoft-Copilot-Agents-Cowork-and-Autopilots",
@@ -17,9 +18,14 @@ await writeFile(resolve(output, "SOURCE_PROVENANCE.json"), `${JSON.stringify({
     node: process.version,
     variant: businessImpactReview ? "business-impact-review" : "standard",
     businessImpact: {
-        classification: "Synthetic BPS/SAP scenario and a separate invented D365 Sales cohort. No live sources.",
+        classification: "Synthetic SAP process scenario and a separate invented D365 Sales cohort. No live sources.",
         source: scenarioSource,
         sha256: createHash("sha256").update(await readFile(resolve(root, scenarioSource))).digest("hex"),
+    },
+    outcomeExplorer: {
+        classification: "Independent public historical and CRM test aggregates. No tenant, employee or AI joins.",
+        source: outcomeSource,
+        sha256: createHash("sha256").update(await readFile(resolve(root, outcomeSource))).digest("hex"),
     },
     ...data.provenance,
 }, null, 2)}\n`);
@@ -41,7 +47,7 @@ await writeFile(
     [
         "DataHub App interactive browser demo",
         "",
-        "Static, self-contained app bundle. Uses synthetic sample data only.",
+        "Static, self-contained app bundle with synthetic scenarios and separately labelled public reference data.",
         "No sign-in, model, tenant, or app backend is required.",
         "Core pages derive from the repository's published synthetic CSVs, with original dates.",
         "Unfiltered activity: 13,337 tasks, 170 inventory people; template-rule typical hours: 2,476.65.",
@@ -49,9 +55,10 @@ await writeFile(
         "User and agent exports are separate snapshots, not dated tenant totals.",
         "No Microsoft 365 telemetry, evaluation conversations, Defender or Resource Graph export is included.",
         "The cross-vendor comparison retains its separately labelled seeded scenario.",
-        "Business impact adds eight headline BPS/SAP outcomes and three separate D365 Sales examples.",
-        "All process data, persona mappings and attribution intervals are illustrative; no live sources are connected.",
-        "The BPS/SAP, D365 and core Value samples use different cohorts: do not reconcile or sum their totals.",
+        "Business impact adds eight headline SAP process outcomes and three separate D365 Sales examples.",
+        "Persona mappings and attribution intervals in the SAP and D365 scenarios are illustrative; no live sources are connected.",
+        "The optional Outcome explorer instead uses public process aggregates from separate sources. Its AI budget is a what-if, not observed spend.",
+        "The SAP, D365 and core Value samples use different cohorts: do not reconcile or sum their totals.",
         "The optional adapters are proposed, not implemented by this demo.",
         ...(businessImpactReview ? [
             "Feedback build: opens Business impact by default; existing hash links still work.",

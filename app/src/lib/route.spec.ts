@@ -98,13 +98,25 @@ describe("routeHash", () => {
             agentNames: ["HR Helper", "IT Help Desk"],
         };
         const hash = routeHash({ kind: "destination", id: "adoption", stage: "habit-formation" }, filters);
-        expect(parseHash(hash)).toEqual({ route: { kind: "destination", id: "adoption", stage: "habit-formation" }, filters });
+        expect(parseHash(hash)).toEqual({ route: { kind: "destination", id: "adoption", stage: "habit-formation" }, filters, vendorScope: "microsoft" });
     });
 
     it("round-trips every date", () => {
         const hash = routeHash({ kind: "destination", id: "adoption" }, { ...tenantDefaultFilters, dateRange: undefined });
         expect(hash).toBe("#/adoption?dates=all");
         expect(parseHash(hash).filters.dateRange).toBeUndefined();
+    });
+
+    it("round-trips the optional vendor scope with filters and restores legacy vendor links", () => {
+        const hash = routeHash({ kind: "destination", id: "adoption", stage: "activation" }, tenantDefaultFilters, "all");
+        expect(parseHash(hash).vendorScope).toBe("all");
+        expect(parseHash(hash).route).toEqual({ kind: "destination", id: "adoption", stage: "activation" });
+        expect(parseHash("#/cross-vendor/vendor-spend").vendorScope).toBe("all");
+        expect(parseHash("#/executive?vendors=invalid").vendorScope).toBe("microsoft");
+    });
+
+    it("drops the retired heavy-users stage while preserving its expansion destination", () => {
+        expect(parseHash("#/readiness/habit-licence").route).toEqual({ kind: "destination", id: "readiness", stage: undefined });
     });
 });
 

@@ -22,4 +22,12 @@ describe("app branding", () => {
         expect(appDisplayName()).toBe("DataHub App");
         expect(appDisplayNameWithArticle()).toBe("a DataHub App");
     });
+
+    it("uses a deployment-specific name without changing the product default", () => {
+        vi.stubEnv("VITE_APP_NAME", " DataHub - Demo ");
+        expect(appDisplayName()).toBe("DataHub - Demo");
+        expect(appDisplayNameWithArticle()).toBe("a DataHub - Demo");
+        vi.stubEnv("VITE_APP_NAME", " ");
+        expect(appDisplayName()).toBe("DataHub App");
+    });
 });

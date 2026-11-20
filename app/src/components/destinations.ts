@@ -11,6 +11,8 @@ import {
     BookOpen,
     BotMessageSquare,
     Briefcase,
+    Cloud,
+    CodeXml,
     Coins,
     Factory,
     Gauge,
@@ -26,6 +28,7 @@ import {
 } from "lucide-react";
 import { isConnectionConfigured, type ModelReferences } from "@/lib/connections";
 import type { FilterKey } from "@/lib/filters";
+import { businessImpactLive, crossVendorOn, finopsOn, githubCopilotOn, outcomeSamplesOn, valueLensOn } from "@/lib/optional-modules";
 import { isAbsent, type SourceAvailability } from "@/lib/optional-sources";
 import { runtimeConfig } from "@/lib/runtime-config";
 import { consumptionConnection, evaluatorConnection } from "@/queries/shared";
@@ -41,7 +44,9 @@ import { consumptionConnection, evaluatorConnection } from "@/queries/shared";
  * model, and is left out once the app has checked that source has no data.
  * Governance reads the Agent 365 registry, plus the optional Defender source
  * for its Shadow AI stage, and stays listed without either, saying how to
- * connect them.
+ * connect them. The rest read ValueLens, an optional installer module too:
+ * an install without it lists only Consumption and Agent Evaluation, plus
+ * the cross-vendor view when that was chosen.
  *
  * A stage that is not built yet stays listed so the shape of the destination
  * is visible; a destination is reachable once any of its stages is built.
@@ -66,8 +71,8 @@ import { consumptionConnection, evaluatorConnection } from "@/queries/shared";
 export const destinations = [
     {
         id: "executive",
-        label: "Executive summary",
-        blurb: "What Copilot is delivering, and where",
+        label: "Overview",
+        blurb: "How is our AI investment performing?",
         icon: LayoutDashboard as LucideIcon,
         filters: ["dateRange", "organizations"] as FilterKey[],
         stages: [
@@ -111,14 +116,16 @@ export const destinations = [
     },
     {
         id: "consumption",
-        label: "Consumption",
-        blurb: "Credits used, and what they cost",
+        label: "Cost & consumption",
+        blurb: "What is it costing us?",
         icon: Coins as LucideIcon,
         filters: ["dateRange", "organizations", "agentNames"] as FilterKey[],
         connection: consumptionConnection,
         stages: [
             { id: "consumption-overview", label: "All products", ready: true },
             { id: "budget-runway", label: "Budget runway", ready: true },
+            { id: "chargeback", label: "Chargeback", ready: true },
+            { id: "forecast", label: "Forecast", ready: true },
             { id: "cowork-credits", label: "Cowork / Work IQ", ready: true },
             { id: "studio-credits", label: "Copilot Studio", ready: true },
             { id: "azure-spend", label: "Azure", ready: true },
@@ -140,31 +147,83 @@ export const destinations = [
     {
         id: "business-impact",
         label: "Business impact",
-        blurb: "Copilot and agents beside business outcomes: BPS/SAP and D365 Sales previews",
+        blurb: "Connect agents and automation to process steps, functional personas and business outcomes. Impact needs approved mappings and outcome evidence.",
         icon: Factory as LucideIcon,
         filters: [] as FilterKey[],
         demo: true,
         dataRange: "4 May – 26 Oct 2026",
         stages: [
             { id: "impact-summary", label: "The bottom line", ready: true },
-            { id: "impact-personas", label: "Functional personas", ready: true },
-            { id: "impact-processes", label: "Process outcomes", ready: true },
-            { id: "impact-agents", label: "Agents in the process", ready: true },
-            { id: "impact-cost", label: "Cost per transaction", ready: true },
+            { id: "impact-samples", label: "Outcome explorer", get ready() { return outcomeSamplesOn(); } },
+            { id: "impact-personas", label: "Personas & processes", ready: true },
+            { id: "impact-processes", label: "Process outcomes", ready: true, within: "impact-personas" },
+            { id: "impact-connect", label: "Connect", ready: true, within: "impact-personas" },
+            { id: "impact-agents", label: "Agents & automation", ready: true },
+            { id: "impact-cost", label: "Cost per transaction", ready: true, within: "impact-agents" },
             { id: "impact-opportunities", label: "Next opportunities", ready: true },
             { id: "impact-method", label: "Data & method", ready: true },
         ],
     },
     {
+        id: "github-copilot",
+        label: "GitHub Copilot",
+        blurb: "Who uses GitHub Copilot, how far they hand work over to it, what it costs and what it returns. Synthetic mock-up.",
+        icon: CodeXml as LucideIcon,
+        filters: ["dateRange", "organizations"] as FilterKey[],
+        demo: true,
+        stages: [
+            { id: "ghcp-summary", label: "At a glance", ready: true },
+            { id: "ghcp-reach", label: "Reach & habit", ready: true },
+            { id: "ghcp-depth", label: "Depth", ready: true },
+            { id: "ghcp-cost", label: "Seats & premium requests", ready: true },
+            { id: "ghcp-value", label: "Capacity & value", ready: true },
+            { id: "ghcp-optimise", label: "Seats & model fit", ready: true },
+            { id: "ghcp-expand", label: "Where to deepen next", ready: true },
+            { id: "ghcp-governance", label: "Models & autonomy", ready: true },
+            { id: "ghcp-method", label: "Data & method", ready: true },
+        ],
+    },
+    {
+        id: "finops",
+        label: "Cloud & AI spend",
+        blurb: "What cloud and AI providers cost, what each outcome costs, and how far the numbers can be trusted. Synthetic mock-up.",
+        icon: Cloud as LucideIcon,
+        filters: ["dateRange"] as FilterKey[],
+        demo: true,
+        dataRange: "1 Jun – 25 Oct 2026",
+        stages: [
+            { id: "fin-summary", label: "At a glance", ready: true },
+            { id: "fin-portfolio", label: "Where it goes", ready: true },
+            { id: "fin-explorer", label: "Movers & services", ready: true, within: "fin-portfolio" },
+            { id: "fin-models", label: "Models & tokens", ready: true, within: "fin-portfolio" },
+            { id: "fin-unit", label: "Cost per outcome", ready: true },
+            { id: "fin-rates", label: "Rates & commitments", ready: true },
+            { id: "fin-forecast", label: "Forecast", ready: true },
+            { id: "fin-allocation", label: "Ownership & trust", ready: true },
+            { id: "fin-trust", label: "Data trust", ready: true, within: "fin-allocation" },
+            { id: "fin-method", label: "Method", ready: true, within: "fin-allocation" },
+        ],
+    },
+    {
         id: "efficiency",
-        label: "Efficiency",
-        blurb: "Whether the right tool is doing the job",
+        label: "Optimise",
+        blurb: "How do we optimise our costs and tool choices?",
         icon: Gauge as LucideIcon,
         filters: ["dateRange", "organizations", "licence", "audience", "agentTypes", "agentNames"] as FilterKey[],
         stages: [
+            { id: "idle-licenses", label: "Idle licences", ready: true },
             { id: "cowork-fit", label: "Cowork fit", ready: true },
             { id: "model-fit", label: "Model fit", ready: true },
         ],
+    },
+    {
+        id: "optimization",
+        label: "Cowork right-sizing",
+        blurb: "Review allowances against observed usage before changing commitments",
+        icon: Gauge as LucideIcon,
+        filters: ["organizations"] as FilterKey[],
+        connection: consumptionConnection,
+        stages: [{ id: "cowork-right-sizing", label: "Right-sizing", ready: true }],
     },
     {
         id: "leaderboards",
@@ -192,19 +251,18 @@ export const destinations = [
     },
     {
         id: "readiness",
-        label: "Readiness",
-        blurb: "Who to license next, and who is ready for Cowork",
+        label: "Expand",
+        blurb: "Where should we expand AI next?",
         icon: KeyRound as LucideIcon,
         filters: ["dateRange", "organizations"] as FilterKey[],
         stages: [
             { id: "license-readiness", label: "License readiness", ready: true },
-            { id: "habit-licence", label: "Heavy users without a licence", ready: true },
             { id: "cowork-readiness", label: "Cowork readiness", ready: true },
         ],
     },
     {
         id: "agent-evaluation",
-        label: "Agent Evaluation",
+        label: "Agent quality",
         blurb: "How well your agents answer, and where they fall short",
         icon: BotMessageSquare as LucideIcon,
         filters: ["dateRange", "organizations"] as FilterKey[],
@@ -239,7 +297,7 @@ export const destinations = [
     },
     {
         id: "ask",
-        label: "Ask",
+        label: "Ask agent",
         blurb: "Questions about the data, in your own words",
         icon: Sparkles as LucideIcon,
         filters: [] as FilterKey[],
@@ -291,20 +349,34 @@ export function isPackable(destination: Destination): boolean {
         !("conversational" in destination && destination.conversational);
 }
 
-/** Whether the build flag for a synthetic demo destination is on. */
-export function isDemoEnabled(id: DestinationId): boolean {
-    if (id === "business-impact") return import.meta.env.VITE_BUSINESS_IMPACT_DEMO === "true";
-    return import.meta.env.VITE_CROSS_VENDOR_DEMO === "true";
+/** Whether a synthetic demo destination is on: a build flag, or the cross-vendor installer module. */
+export function isDemoEnabled(id: DestinationId, models?: ModelReferences): boolean {
+    if (id === "business-impact") return businessImpactLive(models) || import.meta.env.VITE_BUSINESS_IMPACT_DEMO === "true";
+    if (id === "github-copilot") return githubCopilotOn();
+    if (id === "finops") return finopsOn();
+    return crossVendorOn();
+}
+
+/**
+ * Whether a destination reads the ValueLens model: every one without its own
+ * `connection`, except the cross-vendor view, which reads its own scenario.
+ */
+export function readsValueLens(destination: Destination): boolean {
+    return !("connection" in destination) && !("demo" in destination);
 }
 
 /**
  * Every destination except those reading a model `fabric.yaml` doesn't set
- * up, and, once `sources` has been checked, those whose source has no data.
+ * up, those reading ValueLens when the install left it out, the cross-vendor
+ * view unless it was chosen, and, once `sources` has been checked, those
+ * whose source has no data.
  */
 export function availableDestinations(models: ModelReferences, sources?: SourceAvailability): Destination[] {
+    const valueLens = valueLensOn();
     return destinations.filter(
         (destination) =>
-            (!("demo" in destination) || isDemoEnabled(destination.id)) &&
+            (!("demo" in destination) || isDemoEnabled(destination.id, models)) &&
+            (valueLens || !readsValueLens(destination)) &&
             (!("connection" in destination) || isConnectionConfigured(models, destination.connection)) &&
             (runtimeConfig().demo || !sources || !("source" in destination) || !isAbsent(sources, destination.source)),
     );
@@ -325,7 +397,24 @@ export function openStage(
     wanted?: StageId,
 ): StageId | undefined {
     const built = destination.stages.filter((stage) => stage.ready);
-    return (built.find((stage) => stage.id === wanted) ?? built[0])?.id;
+    const target = wanted && stageParent(wanted);
+    return (built.find((stage) => stage.id === target) ?? built[0])?.id;
+}
+
+const stageList: readonly Stage[] = destinations.flatMap((destination): readonly Stage[] => destination.stages);
+
+/**
+ * The tab a stage sits on. A `within` stage has no tab of its own: it opens
+ * as detail below the stage it names, so a page keeps one headline story.
+ */
+export function stageParent(id: StageId): StageId {
+    const stage = stageList.find((candidate) => candidate.id === id);
+    return stage && "within" in stage ? stage.within : id;
+}
+
+/** Whether a stage has its own tab rather than sitting within another. */
+export function hasOwnTab(stage: Stage): boolean {
+    return !("within" in stage);
 }
 
 /** The tab panel that holds the open stage. */

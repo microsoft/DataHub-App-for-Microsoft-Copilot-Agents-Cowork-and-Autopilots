@@ -31,6 +31,8 @@ import { useConsumptionSummary, useConsumptionTable } from "./data";
 import { RatesBar } from "./rates-bar";
 import { StudioStage } from "./studio-stage";
 import { CrossVendorPanel } from "@/screens/cross-vendor/page-panel-gate";
+import { ForecastStage } from "./forecast-stage";
+import { ChargebackStage } from "./chargeback-stage";
 
 const SOURCE = { anchor: stageAnchor("consumption-overview"), page: "Consumption", model: "Consumption Central" };
 
@@ -89,10 +91,12 @@ function ConsumptionPage() {
         <div className="flex flex-col gap-800">
             {/* Throttled slicer choices only cost the slicers: each stage still loads, or fails, on its own. */}
             {optionsBusy && optionsResult.error && <QueryError message={optionsResult.error} onRetry={optionsResult.refetch} />}
-            {!inPack && <RatesBar azureCurrency={azureCurrency} />}
+            {!inPack && !show("forecast") && <RatesBar azureCurrency={azureCurrency} />}
             {show("consumption-overview") && <OverviewStage />}
             {show("consumption-overview") && <CrossVendorPanel page="consumption" />}
             {show("budget-runway") && <BudgetRunwayStage options={options} azure={azure} sources={sources.row} />}
+            {show("chargeback") && <ChargebackStage />}
+            {show("forecast") && <ForecastStage />}
             {show("cowork-credits") && <CoworkStage options={options} rates={rates} />}
             {show("studio-credits") && <StudioStage options={options} rates={rates} />}
             {show("azure-spend") && <AzureStage options={options} />}

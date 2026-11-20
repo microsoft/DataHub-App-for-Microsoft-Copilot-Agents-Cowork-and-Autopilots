@@ -8,6 +8,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import { type CachedQueryResult } from "@microsoft/fabric-app-data";
 import { getFabricClient, QUERY_CACHE_MAX_AGE_MS } from "@/lib/fabric-client";
+import { valueLensOn, VALUE_LENS } from "@/lib/optional-modules";
 import { withPriority, type QueryCaller } from "@/lib/query-priority";
 import { isBusyMessage, onModelRecovered, recoveriesOf } from "@/lib/query-scheduler";
 import { runtimeConfig } from "@/lib/runtime-config";
@@ -138,7 +139,7 @@ export function useSemanticModelQuery(
     /** The column metadata as last rendered, which an ask pairs its answer with. */
     const metadata = useRef(columnMetadata);
 
-    const canExecute = Boolean(connection && query);
+    const canExecute = Boolean(connection && query) && !skipped(connection);
     const priority = useIsPrefetch() || background ? "low" : "normal";
 
     // Declared before the effect that asks, so an ask made in the same commit sees the change.
@@ -287,7 +288,7 @@ export function useSpeculativeQuery(options: Omit<UseSemanticModelQueryOptions, 
     });
 
     useLayoutEffect(() => {
-        if (!connection || !query) return;
+        if (!connection || !query || skipped(connection)) return;
         if (runtimeConfig().demo) return;
         const runs = ended.current;
         const run = new AbortController();
@@ -313,6 +314,11 @@ export function useSpeculativeQuery(options: Omit<UseSemanticModelQueryOptions, 
         const runs = ended.current;
         return () => callOff(runs);
     }, []);
+}
+
+/** A ValueLens query on an install without ValueLens: there is no model to ask, so it stays empty. */
+function skipped(connection: string): boolean {
+    return connection === VALUE_LENS && !valueLensOn();
 }
 
 function callOff(runs: AbortController[]): void {

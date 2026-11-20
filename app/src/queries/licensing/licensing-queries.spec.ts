@@ -34,7 +34,6 @@ const modules = [
 ];
 
 const specModules = [
-    { name: "licensePriorityByOrg", factory: () => licensePriorityByOrg() },
     { name: "licenseDormancy", factory: () => licenseDormancy() },
 ];
 

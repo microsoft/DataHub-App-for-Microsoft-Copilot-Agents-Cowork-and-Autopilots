@@ -1,0 +1,105 @@
+EVALUATE
+CALCULATETABLE(
+    UNION(
+        ROW(
+            "Id", "payable-clearing-days",
+            "Value", [Payable clearing days],
+            "Eligible", COALESCE([Valid paid items], 0),
+            "Population", COALESCE([Payable items], 0),
+            "Exceptions", BLANK(),
+            "FirstDate", FORMAT(MIN('Accounting items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Accounting items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "payable-block-rate",
+            "Value", [Blocked payable rate],
+            "Eligible", COALESCE([Open payable items], 0),
+            "Population", COALESCE([Payable items], 0),
+            "Exceptions", COALESCE([Blocked payable items], 0),
+            "FirstDate", FORMAT(MIN('Accounting items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Accounting items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "invoice-variance-free",
+            "Value", [Variance free invoice rate],
+            "Eligible", COALESCE([Supplier invoice items], 0),
+            "Population", COALESCE([Supplier invoice items], 0),
+            "Exceptions", COALESCE([Variance flagged invoice items], 0),
+            "FirstDate", FORMAT(MIN('Invoice items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Invoice items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "receivable-clearing-days",
+            "Value", [Receivable clearing days],
+            "Eligible", COALESCE([Valid collected items], 0),
+            "Population", COALESCE([Receivable items], 0),
+            "Exceptions", BLANK(),
+            "FirstDate", FORMAT(MIN('Accounting items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Accounting items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "late-collection-rate",
+            "Value", [Late collection rate],
+            "Eligible", COALESCE([Due dated collected items], 0),
+            "Population", COALESCE([Receivable items], 0),
+            "Exceptions", COALESCE([Late collected items], 0),
+            "FirstDate", FORMAT(MIN('Accounting items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Accounting items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "dunning-rate",
+            "Value", [Dunned receivable rate],
+            "Eligible", COALESCE([Receivable items], 0),
+            "Population", COALESCE([Receivable items], 0),
+            "Exceptions", COALESCE([Dunned receivable items], 0),
+            "FirstDate", FORMAT(MIN('Accounting items'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Accounting items'[Posting date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "requisition-release-days",
+            "Value", [Requisition release days],
+            "Eligible", COALESCE([Valid released requisitions], 0),
+            "Population", COALESCE([Requisition items], 0),
+            "Exceptions", BLANK(),
+            "FirstDate", FORMAT(MIN('Requisitions'[Creation date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Requisitions'[Creation date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "requisition-reference-coverage",
+            "Value", [Requisition reference coverage],
+            "Eligible", COALESCE([Requisition items], 0),
+            "Population", COALESCE([Requisition items], 0),
+            "Exceptions", COALESCE([Requisition items] - [Requisitions with document reference], 0),
+            "FirstDate", FORMAT(MIN('Requisitions'[Creation date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Requisitions'[Creation date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "contract-reference-rate",
+            "Value", [Contract reference rate],
+            "Eligible", COALESCE([Purchase order items], 0),
+            "Population", COALESCE([Purchase order items], 0),
+            "Exceptions", COALESCE([Purchase order items] - [Contract referenced items], 0),
+            "FirstDate", FORMAT(MIN('Purchasing items'[Order date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Purchasing items'[Order date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "sales-block-rate",
+            "Value", [Blocked sales rate],
+            "Eligible", COALESCE([Sales document items], 0),
+            "Population", COALESCE([Sales document items], 0),
+            "Exceptions", COALESCE([Blocked sales items], 0),
+            "FirstDate", FORMAT(MIN('Sales items'[Creation date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Sales items'[Creation date]), "yyyy-MM-dd")
+        ),
+        ROW(
+            "Id", "journal-reversal-rate",
+            "Value", [Journal reversal rate],
+            "Eligible", COALESCE([Journal line items], 0),
+            "Population", COALESCE([Journal line items], 0),
+            "Exceptions", COALESCE([Reversal flagged journal lines], 0),
+            "FirstDate", FORMAT(MIN('Journal lines'[Posting date]), "yyyy-MM-dd"),
+            "LastDate", FORMAT(MAX('Journal lines'[Posting date]), "yyyy-MM-dd")
+        )
+    ),
+    REMOVEFILTERS('Date') /* IMPACT_YEAR_FILTER */
+)

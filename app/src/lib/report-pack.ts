@@ -8,7 +8,7 @@
 import { destinations, isPackable, type Destination, type DestinationId, type StageId } from "@/components/destinations";
 import { dataToSuffix } from "@/lib/download";
 import { FILTER_KEYS, type FilterKey } from "@/lib/filters";
-import { PAGE_SOURCES, type FreshnessSource } from "@/lib/freshness";
+import { sourcesForStage, type FreshnessSource } from "@/lib/freshness";
 
 /**
  * A named, ordered set of stages from any destinations, read top to bottom as
@@ -49,7 +49,7 @@ export const BUILT_IN_PACKS: readonly ReportPack[] = [
         id: "builtin-adoption-review",
         name: "Adoption review",
         description: "Who started, who stayed, and who to license next",
-        stages: ["activation", "adoption", "habit-formation", "trend-heatmap", "leaderboard", "habit-licence"],
+        stages: ["activation", "adoption", "habit-formation", "trend-heatmap", "leaderboard", "license-readiness"],
         builtIn: true,
     },
 ];
@@ -181,7 +181,7 @@ export function packFilters(runs: readonly PackRun[]): FilterKey[] {
 
 /** Every source behind the runs, in first-seen order, for the freshness line. */
 export function packSources(runs: readonly PackRun[]): FreshnessSource[] {
-    return [...new Set(runs.flatMap((run) => PAGE_SOURCES[run.destination.id]))];
+    return [...new Set(runs.flatMap((run) => run.stages.flatMap((stage) => sourcesForStage(run.destination.id, stage))))];
 }
 
 /** A destination read as a pack of all of its stages, for exporting the page on its own. */

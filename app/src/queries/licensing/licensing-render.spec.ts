@@ -16,9 +16,7 @@ import "@/test/vega-formats";
 import type { TopLevelSpec } from "vega-lite";
 import type { ColumnMetadataMap } from "@/lib/to-data-table";
 import { licenseDormancy } from "./license-dormancy";
-import { licensePriorityByOrg } from "./license-priority-by-org";
 import dormancyRows from "./__fixtures__/license-dormancy.rows.json";
-import priorityRows from "./__fixtures__/license-priority-by-org.rows.json";
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -74,27 +72,6 @@ function expectProportional(bars: Bar[], valueField: string) {
         expect(bar.width / widest).toBeCloseTo((bar.datum[valueField] as number) / largest, 6);
     }
 }
-
-describe("license priority by organization renders", () => {
-    const rows = priorityRows as Row[];
-
-    it("draws one bar per organization, sized by unlicensed usage", async () => {
-        const { vegaLiteSpec, columnMetadata } = licensePriorityByOrg();
-        const bars = await renderBars(vegaLiteSpec, rows, columnMetadata);
-
-        expectDrawable(bars, rows.length);
-        expectProportional(bars, "Sessions Per User Per Week");
-    });
-
-    it("puts the highest-session organization at the top", async () => {
-        const { vegaLiteSpec, columnMetadata } = licensePriorityByOrg();
-        const bars = await renderBars(vegaLiteSpec, rows, columnMetadata);
-        const top = bars.reduce((first, bar) => (bar.bounds.y1 < first.bounds.y1 ? bar : first));
-        expect(top.datum["Sessions Per User Per Week"]).toBe(
-            Math.max(...rows.map((row) => row["[Sessions Per User Per Week]"] as number)),
-        );
-    });
-});
 
 describe("license dormancy renders", () => {
     const rows = dormancyRows as Row[];

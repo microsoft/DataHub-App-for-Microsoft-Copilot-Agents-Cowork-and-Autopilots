@@ -13,6 +13,7 @@ import {
     FRESHNESS_LABELS,
     PAGE_SOURCES,
     SOURCE_LOADS,
+    sourcesForStage,
     type FreshnessSource,
 } from "./freshness";
 
@@ -65,6 +66,11 @@ describe("describeFreshness", () => {
 });
 
 describe("PAGE_SOURCES", () => {
+    it("does not label the Cowork forecast or allocation with unrelated product freshness", () => {
+        expect(sourcesForStage("consumption", "forecast")).toEqual(["cowork"]);
+        expect(sourcesForStage("consumption", "chargeback")).toEqual(["cowork"]);
+        expect(sourcesForStage("consumption", "consumption-overview")).toEqual(["cowork", "copilotStudio", "azure"]);
+    });
     it("points each page at the data it draws on", () => {
         expect(PAGE_SOURCES.executive).toEqual(["auditLog"]);
         expect(PAGE_SOURCES["work-patterns"]).toEqual(["m365Activity"]);

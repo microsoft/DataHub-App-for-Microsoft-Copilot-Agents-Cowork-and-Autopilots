@@ -23,13 +23,13 @@ import { ValueByHabitStage } from "./value-by-habit-stage";
  * explicit rate and effort scenario, and how that sets against what Copilot
  * cost. The last two stages share one rate and scenario.
  */
-/** Points from the estimate to the optional BPS module that tests it. Shown only in the preview build. */
+/** Points from the estimate to the optional Business impact module that tests it. Shown only in the preview build. */
 function BusinessImpactNext() {
     return (
         <aside className="flex flex-col gap-200 rounded-xl border border-border bg-card p-500">
             <p className={cn(BODY, "font-semibold")}>Next: check the estimate against business outcomes</p>
             <p className={cn(SMALL, "text-muted-foreground")}>
-                These figures are estimates from recorded AI work. The optional Business impact concept would compare this estimation approach with outcomes from BPS or D365, such as invoice posting-to-payment time, days sales outstanding and opportunity win rate, by functional persona. The preview uses separate synthetic cohorts: its figures are not measured results and do not reconcile to this page.
+                These figures are estimates from recorded AI work. The optional Business impact concept would compare this estimation approach with outcomes from SAP or D365 process data, such as invoice posting-to-payment time, days sales outstanding and opportunity win rate, by functional persona. The preview uses separate synthetic cohorts: its figures are not measured results and do not reconcile to this page.
             </p>
             <a href="#/business-impact/impact-summary" className={cn(SMALL, "w-fit font-semibold text-primary underline-offset-4 hover:underline")}>Open Business impact (preview)</a>
         </aside>

@@ -12,6 +12,8 @@ import type { DestinationId } from "@/components/destinations";
 export const SCREENS: Readonly<Record<DestinationId, ComponentType>> = {
     "business-impact": lazy(() => import("./business-impact").then((module) => ({ default: module.BusinessImpactScreen }))),
     "cross-vendor": lazy(() => import("./cross-vendor").then((module) => ({ default: module.CrossVendorScreen }))),
+    "github-copilot": lazy(() => import("./github-copilot").then((module) => ({ default: module.GithubCopilotScreen }))),
+    finops: lazy(() => import("./finops").then((module) => ({ default: module.FinopsScreen }))),
     executive: lazy(() => import("./executive").then((module) => ({ default: module.ExecutiveScreen }))),
     adoption: lazy(() => import("./adoption").then((module) => ({ default: module.AdoptionScreen }))),
     leaderboards: lazy(() => import("./leaderboards").then((module) => ({ default: module.LeaderboardsScreen }))),
@@ -20,6 +22,7 @@ export const SCREENS: Readonly<Record<DestinationId, ComponentType>> = {
     consumption: lazy(() => import("./consumption").then((module) => ({ default: module.ConsumptionScreen }))),
     value: lazy(() => import("./value").then((module) => ({ default: module.ValueScreen }))),
     efficiency: lazy(() => import("./efficiency").then((module) => ({ default: module.EfficiencyScreen }))),
+    optimization: lazy(() => import("./efficiency/right-sizing-stage").then((module) => ({ default: module.RightSizingStage }))),
     feedback: lazy(() => import("./feedback").then((module) => ({ default: module.FeedbackScreen }))),
     ask: lazy(() => import("./ask").then((module) => ({ default: module.AskScreen }))),
     "agent-evaluation": lazy(() =>

@@ -1,4 +1,33 @@
 EVALUATE
+-- A team's readiness score is the average of its people's scores, the order
+-- the model's `Cowork Readiness Rank (Dynamic)` ranks teams in. People are
+-- scored once, against the broadest and deepest user in the selection, as
+-- the measure scores them: everyone with recorded use who has not tried Cowork.
+VAR __People =
+    FILTER(
+        ADDCOLUMNS(
+            VALUES('Chat + Agent Interactions (Audit Logs)'[Audit_UserId]),
+            "@b", [Cowork Readiness: Surfaces Per Day],
+            "@d", CALCULATE([Prompts per Observed Session], KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[Is_Cowork] = FALSE())),
+            "@a", IF(COALESCE(CALCULATE([Observed Agent Sessions]), 0) > 0, 1, 0),
+            "@cw", COALESCE(CALCULATE([Observed Sessions], KEEPFILTERS('Chat + Agent Interactions (Audit Logs)'[Is_Cowork] = TRUE())), 0)
+        ),
+        [@cw] = 0 && NOT ISBLANK([@b]) && NOT ISBLANK([@d])
+    )
+VAR __MaxB = MAXX(__People, [@b])
+VAR __MaxD = MAXX(__People, [@d])
+VAR __Scored =
+    ADDCOLUMNS(
+        __People,
+        "@s",
+            ROUND(
+                45 * MIN(DIVIDE([@b], __MaxB, 0), 1)
+                    + 35 * MIN(DIVIDE([@d], __MaxD, 0), 1)
+                    + 20 * [@a],
+                0
+            )
+    )
+RETURN
 SELECTCOLUMNS(
     FILTER(
         SUMMARIZECOLUMNS(
@@ -6,7 +35,19 @@ SELECTCOLUMNS(
             "@Eligible", [Cowork Fit: Eligible Users],
             "@Surfaces", [Cowork Readiness: Surfaces Per Day],
             "@Depth", [Cowork Readiness: Prompts Per Session],
-            "@AgentShare", [Cowork Fit: Agent User Share]
+            "@AgentShare", [Cowork Fit: Agent User Share],
+            "@Score",
+                ROUND(
+                    AVERAGEX(
+                        FILTER(
+                            __Scored,
+                            'Chat + Agent Interactions (Audit Logs)'[Audit_UserId]
+                                IN VALUES('Chat + Agent Interactions (Audit Logs)'[Audit_UserId])
+                        ),
+                        [@s]
+                    ),
+                    0
+                )
         ),
         NOT ISBLANK('Chat + Agent Org Data'[Organization])
             && NOT ISBLANK([@Eligible])
@@ -14,8 +55,9 @@ SELECTCOLUMNS(
     ),
     "Organization", 'Chat + Agent Org Data'[Organization],
     "Eligible Users", [@Eligible],
+    "Readiness Score", [@Score],
     "Surfaces Per Day", [@Surfaces],
     "Prompts Per Session", [@Depth],
     "Agent User Share", [@AgentShare]
 )
-ORDER BY [Surfaces Per Day] DESC
+ORDER BY [Readiness Score] DESC, [Eligible Users] DESC, [Organization]

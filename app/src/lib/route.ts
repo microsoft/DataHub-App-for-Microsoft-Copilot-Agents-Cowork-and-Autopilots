@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 import { destinations, type DestinationId, type StageId } from "@/components/destinations";
+import type { VendorScope } from "./narrative";
 import {
     TENANT_DEFAULT_RANGE,
     tenantDefaultFilters,
@@ -23,6 +24,7 @@ export interface ParsedLocation {
     /** Undefined when the hash names nothing the app knows. */
     route: Route | undefined;
     filters: FilterState;
+    vendorScope: VendorScope;
 }
 
 /*
@@ -90,7 +92,8 @@ export function parseHash(hash: string): ParsedLocation {
         agentTypes: params.getAll("agentType").filter(Boolean),
         agentNames: params.getAll("agent").filter(Boolean),
     };
-    return { route: parseRoute(path), filters };
+    const route = parseRoute(path);
+    return { route, filters, vendorScope: params.get("vendors") === "all" || (route?.kind === "destination" && (route.id === "cross-vendor" || route.id === "finops")) ? "all" : "microsoft" };
 }
 
 function filterParams(filters: FilterState): URLSearchParams {
@@ -112,12 +115,14 @@ function filterParams(filters: FilterState): URLSearchParams {
 }
 
 /** The hash for a route, with the filters that differ from the session's defaults. */
-export function routeHash(route: Route, filters?: FilterState): string {
+export function routeHash(route: Route, filters?: FilterState, scope: VendorScope = "microsoft"): string {
     const path =
         route.kind === "pack"
             ? `/pack/${encodeURIComponent(route.id)}`
             : `/${route.id}${route.stage ? `/${route.stage}` : ""}`;
-    const query = filters ? filterParams(filters).toString() : "";
+    const params = filters ? filterParams(filters) : new URLSearchParams();
+    if (scope === "all") params.set("vendors", "all");
+    const query = params.toString();
     return `#${path}${query ? `?${query}` : ""}`;
 }
 

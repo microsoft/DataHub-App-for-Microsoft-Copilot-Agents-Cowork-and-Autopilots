@@ -68,6 +68,7 @@ export const liveColumns = {
     coworkReadinessByOrg: [
         "[Organization]",
         "[Eligible Users]",
+        "[Readiness Score]",
         "[Surfaces Per Day]",
         "[Prompts Per Session]",
         "[Agent User Share]",

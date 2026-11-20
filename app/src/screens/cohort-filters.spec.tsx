@@ -11,6 +11,7 @@ import { ActivationStage } from "./adoption/activation-stage";
 import { AdoptionStage } from "./adoption/adoption-stage";
 import { TasksStage } from "./value/tasks-stage";
 import { LicenseReadinessStage } from "./readiness/license-readiness-stage";
+import { IdleLicensesStage } from "./efficiency/idle-licenses-stage";
 
 const transport = vi.hoisted(() => ({
     queries: [] as string[],
@@ -33,7 +34,7 @@ beforeEach(() => {
     transport.cache.clear();
 });
 
-it("applies the same org membership projection to readiness inventory cards and dormancy", () => {
+it("applies the same org membership projection to Expand inventory and Optimise dormancy", () => {
     render(
         <FilterContext.Provider value={{
             filters: { ...defaultFilters, orgAttribute: "country", organizations: ["US"] },
@@ -43,6 +44,7 @@ it("applies the same org membership projection to readiness inventory cards and 
             consumptionOrgAttributes: undefined,
         }}>
             <LicenseReadinessStage />
+            <IdleLicensesStage />
         </FilterContext.Provider>,
     );
     for (const marker of ['"License Inventory Usable"', '"Dormancy Bucket Order"']) {

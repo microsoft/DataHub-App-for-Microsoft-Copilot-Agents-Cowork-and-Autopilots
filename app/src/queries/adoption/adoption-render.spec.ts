@@ -14,7 +14,7 @@ import "@/test/vega-formats";
 import type { TopLevelSpec } from "vega-lite";
 import type { ColumnMetadataMap } from "@/lib/to-data-table";
 import { activationByOrg } from "./activation-by-org";
-import { applyTrendHeatmapTheme, trendHeatmap, withoutCellLabels } from "./trend-heatmap";
+import { applyTrendHeatmapTheme, trendHeatmap, trendHeatmapMinWidth } from "./trend-heatmap";
 import heatmapRows from "./__fixtures__/trend-heatmap.rows.json";
 
 type Row = Record<string, string | number | boolean | null>;
@@ -33,13 +33,14 @@ async function renderRects(
     columnMetadata: ColumnMetadataMap,
     valueField: string,
     marktype = "rect",
+    width = 600,
 ) {
     const rename = new Map(Object.entries(columnMetadata).map(([daxName, column]) => [daxName, column.name]));
     const values = rows.map((row) =>
         Object.fromEntries(Object.entries(row).map(([key, value]) => [rename.get(key) ?? key, value])),
     );
 
-    const sized = { ...(spec as object), width: 600, height: 320, data: { values } } as TopLevelSpec;
+    const sized = { ...(spec as object), width, height: 320, data: { values } } as TopLevelSpec;
     const view = new View(parse(compile(sized).spec), { renderer: "none" });
     await view.runAsync();
 
@@ -137,12 +138,31 @@ describe("adoption trend heatmap at scale", () => {
     const rows = heatmapRows as Row[];
     const colors = { quiet: "#f5f5f5", strong: "#0f6cbd", quietText: "#242424", strongText: "#fafafa" };
 
-    it("drops the cell numbers for long ranges but keeps every cell", async () => {
+    it("keeps a whole number in every cell of a half-year range at its minimum width", async () => {
         const { vegaLiteSpec, columnMetadata } = trendHeatmap();
-        const spec = withoutCellLabels(applyTrendHeatmapTheme(vegaLiteSpec, colors));
+        const spec = applyTrendHeatmapTheme(vegaLiteSpec, colors);
+        const weeks = 28;
+        const start = Date.UTC(2026, 3, 6);
+        const long = Array.from({ length: weeks }, (_, week) =>
+            ["Finance", "Sales"].map((organization, index) => ({
+                ...rows[0],
+                "Chat + Agent Org Data[Organization]": organization,
+                "Chat + Agent Interactions (Audit Logs)[WeekStart]": new Date(start + week * 7 * 86_400_000)
+                    .toISOString()
+                    .slice(0, 19),
+                "[Active Users]": index === 0 ? 12_345 : 950 + week,
+            })),
+        ).flat();
+        const width = trendHeatmapMinWidth(weeks) - 176;
+        const labels = (await renderRects(spec, long, columnMetadata, "Active Users", "text", width)) as unknown as {
+            text: string;
+        }[];
+        const cells = await renderRects(spec, long, columnMetadata, "Active Users", "rect", width);
 
-        expect(await renderRects(spec, rows, columnMetadata, "Active Users", "text")).toHaveLength(0);
-        expectDrawable(await renderRects(spec, rows, columnMetadata, "Active Users"), rows.length);
+        expect(labels).toHaveLength(long.length);
+        expect(labels.map((label) => label.text)).toContain("12.3K");
+        for (const label of labels) expect(label.text).toMatch(/^\d[\d.,]*K?$/);
+        for (const cell of cells) expect(cell.width).toBeGreaterThanOrEqual(30);
     });
 
     it("writes large counts compactly so they fit a cell", async () => {

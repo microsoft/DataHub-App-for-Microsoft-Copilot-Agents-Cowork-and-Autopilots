@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { DataTable } from "@microsoft/fabric-visuals-core";
 import { KpiCard } from "@/components/kpi-card";
-import { VegaVisual, type VisualizationSpec } from "@/components/vega-visual";
+import { VegaVisual, type VegaVisualProps, type VisualizationSpec } from "@/components/vega-visual";
 import { useThemeContext } from "@/hooks/theme.context";
 import { BODY, SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
@@ -17,11 +17,11 @@ function table(rows: readonly object[]): DataTable {
     return { columns: columns.map(name => ({ name })), rows: rows.map(r => columns.map(c => (r as Record<string, unknown>)[c])) } as unknown as DataTable;
 }
 
-export function Chart({ title, subtitle, spec, rows, height = 300 }: { title: string; subtitle: string; spec: object; rows: readonly object[]; height?: number }) {
+export function Chart({ title, subtitle, spec, rows, height = 300, capabilities }: { title: string; subtitle: string; spec: object; rows: readonly object[]; height?: number; capabilities?: VegaVisualProps["capabilities"] }) {
     const { theme } = useThemeContext();
     return (
-        <div className={cn(panel, "flex flex-col gap-200")} style={{ height: height + 96 }}>
-            <VegaVisual label={title} spec={{ $schema: "https://vega.github.io/schema/vega-lite/v5.json", width: "container", height: "container", ...spec } as VisualizationSpec} data={table(rows)} theme={theme} header={{ title, subtitle }} />
+        <div className={cn(panel, "flex min-w-0 flex-col gap-200")} style={{ height: height + 96 }}>
+            <VegaVisual label={title} spec={{ $schema: "https://vega.github.io/schema/vega-lite/v5.json", width: "container", height: "container", ...spec } as VisualizationSpec} data={table(rows)} theme={theme} header={{ title, subtitle }} capabilities={capabilities} />
         </div>
     );
 }
