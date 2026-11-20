@@ -71,7 +71,7 @@ describe("attentionItems on the demo tenant", () => {
                 "Licensed seats with no Copilot activity in 30 days or more: 45 never active and 4 inactive 30-89 days. 30 people already use Copilot without a license.",
             reach: 49,
             stake: "22% of seats",
-            link: { destination: "readiness", stage: "license-readiness", label: "Open Readiness" },
+            link: { destination: "efficiency", stage: "idle-licenses", label: "Open Optimise" },
         });
     });
 

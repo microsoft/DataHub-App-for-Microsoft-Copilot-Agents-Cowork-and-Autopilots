@@ -13,6 +13,7 @@ import { isPlainClick, routeHash } from "@/lib/route";
 import { SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
 import type { DestinationId, StageId } from "./destinations";
+import { useVendorScope } from "@/hooks/vendor-scope.context";
 
 interface OpenDestinationLinkProps {
     destination: DestinationId;
@@ -29,10 +30,11 @@ interface OpenDestinationLinkProps {
 export function OpenDestinationLink({ destination, stage, children, className }: OpenDestinationLinkProps) {
     const open = useOpenDestination(destination);
     const { filters } = useFilterContext();
+    const { scope } = useVendorScope();
     if (!open) return null;
     return (
         <a
-            href={routeHash({ kind: "destination", id: destination, stage }, filters)}
+            href={routeHash({ kind: "destination", id: destination, stage }, filters, scope)}
             onClick={(event) => {
                 if (!isPlainClick(event)) return;
                 event.preventDefault();

@@ -9,6 +9,7 @@ import { useStageFilter } from "@/hooks/stage-filter.context";
 import { CoworkFitStage } from "./cowork-fit-stage";
 import { ModelFitStage } from "./model-fit-stage";
 import { CrossVendorPanel } from "@/screens/cross-vendor/page-panel-gate";
+import { IdleLicensesStage } from "./idle-licenses-stage";
 
 /**
  * Whether the right tool and model are doing the job: Cowork fit first, then
@@ -19,6 +20,7 @@ export function EfficiencyScreen() {
     const { show } = useStageFilter();
     return (
         <div className="flex flex-col gap-800">
+            {show("idle-licenses") && <IdleLicensesStage />}
             {show("cowork-fit") && <CoworkFitStage />}
             {show("model-fit") && <ModelFitStage />}
             {show("model-fit") && <CrossVendorPanel page="efficiency" />}

@@ -13,3 +13,6 @@ profiles:
       ae:
         workspaceId: "<Agent Evaluator workspace ID>"
         itemId: "<Agent Evaluator semantic model ID>"
+      bi:
+        workspaceId: "<Optional Business impact workspace ID>"
+        itemId: "<Optional Business impact semantic model ID>"

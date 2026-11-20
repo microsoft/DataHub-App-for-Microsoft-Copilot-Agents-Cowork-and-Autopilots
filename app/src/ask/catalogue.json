@@ -283,7 +283,7 @@
             "query": "licensing/license-priority-by-org.dax",
             "filters": ["dateRange", "organizations"],
             "people": ["Active Unlicensed Users"],
-            "description": "Per organization: active unlicensed users, their active days per week and sessions per user per week."
+            "description": "Per organization: active unlicensed users, the licence priority score of its typical unlicensed user (0-100), their active days per week and sessions per user per week."
         },
         {
             "name": "heavy_unlicensed_users",

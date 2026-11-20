@@ -5,6 +5,7 @@ import { OpenDestinationLink } from "@/components/open-destination-link";
 import { Section } from "@/components/section";
 import { useStageFilter } from "@/hooks/stage-filter.context";
 import { appDisplayName } from "@/lib/app-brand";
+import { crossVendorOn } from "@/lib/optional-modules";
 import { BODY, SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
 import portfolio from "./portfolio.json";
@@ -206,7 +207,7 @@ export function CrossVendorScreen() {
         ["vendor-portfolio", Portfolio], ["vendor-adoption", AdoptionTrends], ["vendor-coding", CodingStage], ["vendor-spend", SpendStage],
         ["vendor-usage", Usage], ["vendor-cost", Cost], ["vendor-coverage", Coverage], ["vendor-methodology", Methodology],
     ];
-    if (import.meta.env.VITE_CROSS_VENDOR_DEMO !== "true") return <p className={BODY}>The synthetic cross-vendor view is not enabled for this build.</p>;
+    if (!crossVendorOn()) return <p className={BODY}>The cross-vendor view is not turned on for this install.</p>;
     return (
         <div className="flex flex-col gap-600">
             {stages.map(([id, Screen]) => show(id) && <Screen key={id} />)}

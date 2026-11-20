@@ -7,27 +7,23 @@
 
 import { useMemo } from "react";
 import { DataGrid, type GridColumnDef } from "@microsoft/fabric-datagrid";
-import { VegaVisual } from "@/components/vega-visual";
 import type { DataTable } from "@microsoft/fabric-visuals-core";
 import { stageAnchor } from "@/components/destinations";
-import { HEADLINE_SPACE, Headlined } from "@/components/headlined";
-import { leaderHeadline } from "@/lib/headline";
 import { KpiCard } from "@/components/kpi-card";
 import { OnDemand } from "@/components/on-demand";
+import { ExpansionMap } from "./expansion-map";
 import { QueryEmpty, QueryError, QueryLoading } from "@/components/query-states";
 import { Section } from "@/components/section";
 import { TruncationNote } from "@/components/truncation-note";
 import { useThemeContext } from "@/hooks/theme.context";
 import { useOrgAttribute } from "@/hooks/filter.context";
 import { useFilteredQuery } from "@/hooks/use-filtered-query";
-import { rowChartHeight } from "@/lib/chart-height";
 import { formatKpi } from "@/lib/format-kpi";
 import { listCount, listTotal } from "@/lib/list-total";
 import { columnFormat, columnHeat, heatRenderer } from "@/lib/heat";
 import { withOrgAttribute } from "@/lib/org-attribute";
 import { readNumber, toSummaryRow } from "@/lib/summary-row";
 import { toDataTable } from "@/lib/to-data-table";
-import { topNote, topRows } from "@/lib/top-n";
 import {
     coworkCandidates,
     coworkReadinessByOrg,
@@ -35,11 +31,19 @@ import {
     isDepthUniform,
 } from "@/queries/agents";
 
-const BY_ORG_HEADLINE = leaderHeadline({
-    label: "Organization",
-    value: "Eligible Users",
-    of: "people yet to try Cowork",
-});
+const MAP_FIELDS = { score: "Readiness Score", people: "Eligible Users" };
+const MAP_TITLES = { score: "Readiness score", people: "People yet to try Cowork" };
+const MAP_DETAILS = [
+    { field: "Surfaces Per Day", title: "Apps per active day", format: ",.1f" },
+    { field: "Prompts Per Session", title: "Prompts per session", format: ",.1f" },
+    { field: "Agent User Share", title: "Already using agents", format: ".0%" },
+] as const;
+const MAP_EMPTY = {
+    title: ({ plural }: { plural: string }) => `No ${plural} to compare`,
+    description: "Nobody without Cowork has recorded Copilot use in this period.",
+};
+const mapMethod = (noun: string) =>
+    `Readiness score: 45% breadth (apps used a day), 35% depth (prompts per session) and 20% agent use, averaged across the ${noun}'s people yet to try Cowork.`;
 
 function candidateColumns(orgLabel: string, table: DataTable | undefined): GridColumnDef[] {
     return [
@@ -67,12 +71,11 @@ function candidateColumns(orgLabel: string, table: DataTable | undefined): GridC
  * next, among everyone who uses Copilot but has not tried it.
  *
  * The model's readiness score weighs breadth of everyday use most, then
- * depth, then whether someone already uses agents. The report plots breadth
- * against depth as a scatter; here breadth takes the chart and the ranked
- * list does the rest. Both wait for a click, so the cards load first.
+ * depth, then whether someone already uses agents. The map places each team
+ * by that score and how many people it could reach; the ranked people wait
+ * for a click, so the cards and map load first.
  */
 export function CoworkReadinessStage() {
-    const org = useOrgAttribute();
     const summary = useFilteredQuery(coworkReadinessSummary());
     const summaryRow = useMemo(
         () => (summary.data?.status === "success" ? toSummaryRow(summary.data.table) : undefined),
@@ -120,13 +123,15 @@ export function CoworkReadinessStage() {
                 </div>
             )}
 
-            <OnDemand
-                id="cowork-readiness-by-org"
-                label={`Show by ${org.noun}`}
-                note={`Breadth of everyday use for each ${org.noun}, among people yet to try Cowork.`}
-            >
-                <CoworkReadinessByOrg />
-            </OnDemand>
+            <ExpansionMap
+                query={coworkReadinessByOrg}
+                fields={MAP_FIELDS}
+                titles={MAP_TITLES}
+                unit="people yet to try Cowork"
+                details={MAP_DETAILS}
+                method={mapMethod}
+                empty={MAP_EMPTY}
+            />
 
             <OnDemand
                 id="cowork-candidates"
@@ -136,61 +141,6 @@ export function CoworkReadinessStage() {
                 <CoworkCandidates />
             </OnDemand>
         </Section>
-    );
-}
-
-function CoworkReadinessByOrg() {
-    const { theme } = useThemeContext();
-    const org = useOrgAttribute();
-    const byOrg = useMemo(() => withOrgAttribute(coworkReadinessByOrg(), org), [org]);
-    const byOrgResult = useFilteredQuery({
-        connection: byOrg.connection,
-        query: byOrg.query,
-        columnMetadata: byOrg.columnMetadata,
-    });
-    const byOrgTable = useMemo(
-        () =>
-            byOrgResult.data?.status === "success"
-                ? toDataTable(byOrgResult.data.table, byOrg.columnMetadata)
-                : undefined,
-        [byOrgResult.data, byOrg.columnMetadata],
-    );
-    // The headline reads every organization; the chart shows the fifteen with the most eligible people.
-    const byOrgHeadline = useMemo(() => (byOrgTable ? BY_ORG_HEADLINE(byOrgTable) : undefined), [byOrgTable]);
-    const top = useMemo(
-        () => (byOrgTable ? topRows(byOrgTable, { label: "Organization", by: "Eligible Users" }) : undefined),
-        [byOrgTable],
-    );
-
-    return (
-        <div className="h-[340px]" style={top ? { height: rowChartHeight(top.table.rows.length, { perRow: 40, chrome: 100 }) + (byOrgHeadline ? HEADLINE_SPACE : 0) } : undefined}>
-            {byOrgResult.data?.status === "error" ? (
-                <QueryError className="h-full" message={byOrgResult.data.error.message} onRetry={byOrgResult.refetch} />
-            ) : byOrgResult.isLoading || !top ? (
-                <QueryLoading className="h-full" />
-            ) : top.table.rows.length === 0 ? (
-                <QueryEmpty
-                    className="h-full"
-                    title={`No ${org.plural} to compare`}
-                    description="Nobody without Cowork has recorded Copilot use in this period."
-                />
-            ) : (
-                <Headlined text={byOrgHeadline}>
-                    <VegaVisual
-                        label={`Breadth of use by ${org.noun}`}
-                        spec={byOrg.vegaLiteSpec}
-                        data={top.table}
-                        theme={theme}
-                        header={{
-                            title: `Breadth of use by ${org.noun}`,
-                            subtitle:
-                                topNote(top, org.plural, "eligible users") ??
-                                "Apps used per active day, among people who have not tried Cowork",
-                        }}
-                    />
-                </Headlined>
-            )}
-        </div>
     );
 }
 

@@ -5,8 +5,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { GuideButton, GuideContext, GuideStore } from "./visual-guide";
 
 interface SectionProps {
     /** Anchor the sidebar scrolls to; see `stageAnchor`. */
@@ -22,30 +23,37 @@ interface SectionProps {
 
 /**
  * A titled band of content. The hairline rule under the heading is the
- * repeating structural motif that ties the screens together.
+ * repeating structural motif that ties the screens together. Its info button
+ * explains each chart and headline figure inside it.
  */
 export function Section({ id, title, description, actions, children, className }: SectionProps) {
+    const [guide] = useState(() => new GuideStore());
     return (
-        <section
-            id={id}
-            // Focusable only by script, so a sidebar jump moves keyboard focus with the scroll.
-            tabIndex={id ? -1 : undefined}
-            className={cn("flex scroll-mt-600 flex-col gap-400 outline-none", className)}
-        >
-            <div className="flex flex-wrap items-end justify-between gap-300 border-b border-border pb-300">
-                <div className="flex flex-col gap-100">
-                    <h2 className="text-[length:var(--text-400)] leading-400 font-semibold text-foreground">
-                        {title}
-                    </h2>
-                    {description && (
-                        <p className="max-w-[68ch] text-[length:var(--text-300)] leading-300 text-muted-foreground">
-                            {description}
-                        </p>
-                    )}
+        <GuideContext.Provider value={guide}>
+            <section
+                id={id}
+                // Focusable only by script, so a sidebar jump moves keyboard focus with the scroll.
+                tabIndex={id ? -1 : undefined}
+                className={cn("flex scroll-mt-600 flex-col gap-400 outline-none", className)}
+            >
+                <div className="flex flex-wrap items-end justify-between gap-300 border-b border-border pb-300">
+                    <div className="flex flex-col gap-100">
+                        <div className="flex items-center gap-100">
+                            <h2 className="text-[length:var(--text-400)] leading-400 font-semibold text-foreground">
+                                {title}
+                            </h2>
+                            <GuideButton store={guide} section={title} />
+                        </div>
+                        {description && (
+                            <p className="max-w-[68ch] text-[length:var(--text-300)] leading-300 text-muted-foreground">
+                                {description}
+                            </p>
+                        )}
+                    </div>
+                    {actions && <div className="flex items-center gap-200">{actions}</div>}
                 </div>
-                {actions && <div className="flex items-center gap-200">{actions}</div>}
-            </div>
-            {children}
-        </section>
+                {children}
+            </section>
+        </GuideContext.Provider>
     );
 }

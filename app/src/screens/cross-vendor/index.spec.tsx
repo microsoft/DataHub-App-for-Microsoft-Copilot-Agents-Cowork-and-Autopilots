@@ -59,7 +59,7 @@ describe("cross-vendor extension", () => {
     it("uses the view name in the disabled-build message", () => {
         vi.stubEnv("VITE_CROSS_VENDOR_DEMO", "");
         render(<StageFilterContext.Provider value={pageStages("vendor-usage")}><CrossVendorScreen /></StageFilterContext.Provider>);
-        expect(screen.getByText("The synthetic cross-vendor view is not enabled for this build.")).toBeInTheDocument();
+        expect(screen.getByText("The cross-vendor view is not turned on for this install.")).toBeInTheDocument();
     });
 
     it("uses the preview brand in the portfolio description", () => {

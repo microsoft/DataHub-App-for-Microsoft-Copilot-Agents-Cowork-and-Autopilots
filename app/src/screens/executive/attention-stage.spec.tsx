@@ -124,8 +124,8 @@ describe("What needs attention", () => {
 
     it("opens the page behind each decision at the right stage", () => {
         const navigate = renderStage();
-        fireEvent.click(within(items()[2]).getByRole("link", { name: /Open Readiness/ }));
-        expect(navigate).toHaveBeenCalledWith("readiness", "license-readiness");
+        fireEvent.click(within(items()[2]).getByRole("link", { name: /Open Optimise/ }));
+        expect(navigate).toHaveBeenCalledWith("efficiency", "idle-licenses");
     });
 
     it("leaves the links out when there's no app shell to open them in", () => {

@@ -5,15 +5,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import type { VisualizationSpec } from "@microsoft/fabric-visuals";
 import type { ColumnMetadataMap } from "@/lib/to-data-table";
 import { connection, FORMAT_PERCENT, FORMAT_RATE, FORMAT_WHOLE } from "../shared";
 import query from "./cowork-readiness-by-org.dax?raw";
-import spec from "./cowork-readiness-by-org.json";
 
 const columnMetadata: ColumnMetadataMap = {
     "[Organization]": { name: "Organization", displayName: "Organization" },
     "[Eligible Users]": { name: "Eligible Users", displayName: "Eligible users", format: FORMAT_WHOLE },
+    "[Readiness Score]": { name: "Readiness Score", displayName: "Readiness score", format: FORMAT_WHOLE },
     "[Surfaces Per Day]": { name: "Surfaces Per Day", displayName: "Apps per active day", format: FORMAT_RATE },
     "[Prompts Per Session]": {
         name: "Prompts Per Session",
@@ -28,14 +27,11 @@ const columnMetadata: ColumnMetadataMap = {
 };
 
 /**
- * Readiness signals per organization, ranked by breadth of everyday use.
- *
- * The report plots breadth against depth as a scatter. Depth — prompts per
- * session — only separates organizations once the audit log records
- * multi-turn sessions; where every session is a single prompt the scatter
- * collapses onto one line. Breadth carries the most weight in the readiness
- * score, so it takes the axis and depth rides along in the tooltip.
+ * Cowork readiness per organization, for the expansion map: how many people
+ * could be offered Cowork, and their mean readiness score (45% breadth of
+ * everyday use, 35% depth, 20% agent use), each person scored against
+ * everyone yet to try Cowork in the selection.
  */
 export function coworkReadinessByOrg() {
-    return { connection, query, columnMetadata, vegaLiteSpec: spec as VisualizationSpec };
+    return { connection, query, columnMetadata };
 }

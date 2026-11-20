@@ -1,0 +1,8 @@
+{
+  "mark": {"type": "bar", "tooltip": true},
+  "encoding": {
+    "x": {"field": "period", "type": "ordinal", "sort": "ascending", "title": "Source month", "axis": {"labelOverlap": true, "labelAngle": -35}},
+    "y": {"field": "count", "type": "quantitative", "title": "Transactions", "scale": {"zero": true}, "axis": {"format": "~s"}},
+    "tooltip": [{"field": "period", "title": "Month"}, {"field": "count", "type": "quantitative", "format": ",d", "title": "Count"}]
+  }
+}

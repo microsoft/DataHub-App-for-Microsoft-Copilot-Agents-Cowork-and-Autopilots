@@ -1,0 +1,111 @@
+EVALUATE
+VAR _Basis = "__ALLOCATION_BASIS__"
+VAR _Lo = [Reporting Start]
+VAR _Hi = [Reporting End]
+VAR _Dates =
+    FILTER(
+        ALL('CreditsWeekly'[MetricDate]),
+        'CreditsWeekly'[MetricDate] >= _Lo && 'CreditsWeekly'[MetricDate] <= _Hi
+    )
+// The pool ignores the app's org selection, never the model's security.
+// One capacity balance is shared across the entire viewer-visible window.
+VAR _PoolCredits =
+    CALCULATE(
+        SUM('CreditsWeekly'[CreditsUsed]),
+        REMOVEFILTERS('Org'), REMOVEFILTERS('Date'), KEEPFILTERS(_Dates)
+    )
+VAR _PoolPrepaid = MIN(_PoolCredits, [Cowork Capacity Pack Balance Value])
+VAR _PoolCost =
+    _PoolPrepaid * [Cowork Prepaid Rate Value]
+        + (_PoolCredits - _PoolPrepaid) * [Cowork PAYG Rate Value]
+VAR _Grain =
+    CALCULATETABLE(
+        SUMMARIZECOLUMNS(
+            'CreditsWeekly'[UserPrincipalName],
+            'CreditsWeekly'[SpendingPolicyId],
+            "Usage Credits", SUM('CreditsWeekly'[CreditsUsed])
+        ),
+        REMOVEFILTERS('Date'), KEEPFILTERS(_Dates)
+    )
+VAR _Mapped =
+    GENERATE(
+        _Grain,
+        VAR _Upn = 'CreditsWeekly'[UserPrincipalName]
+        VAR _Policy = 'CreditsWeekly'[SpendingPolicyId]
+        VAR _PolicyName =
+            CALCULATE(
+                SELECTEDVALUE('SpendingPolicy'[Policy Name]),
+                REMOVEFILTERS('SpendingPolicy'),
+                'SpendingPolicy'[SpendingPolicyId] = _Policy
+            )
+        VAR _KnownPerson =
+            NOT ISBLANK(_Upn)
+                && CONTAINS(ALL('Org'[UserPrincipalName]), 'Org'[UserPrincipalName], _Upn)
+        VAR _Values =
+            FILTER(
+                CALCULATETABLE(
+                    VALUES('Org Attribute Source'[Value]),
+                    REMOVEFILTERS('Org Attribute Source'),
+                    'Org Attribute Source'[Attribute] = "Cost Centre Label",
+                    'Org Attribute Source'[UserPrincipalName] = _Upn
+                ),
+                NOT ISBLANK('Org Attribute Source'[Value])
+                    && TRIM('Org Attribute Source'[Value]) <> ""
+                    && TRIM('Org Attribute Source'[Value]) <> "(Not set)"
+            )
+        VAR _Count = COUNTROWS(_Values)
+        VAR _Status =
+            IF(
+                _Basis = "policy",
+                IF(ISBLANK(_Policy) || TRIM(_Policy) = "", "Missing policy", "Assigned"),
+                SWITCH(
+                    TRUE(),
+                    NOT _KnownPerson, "Unmatched person",
+                    _Count = 0, "Missing cost centre",
+                    _Count > 1, "Ambiguous cost centre",
+                    "Assigned"
+                )
+            )
+        RETURN
+            ROW(
+                "Allocation", IF(_Status <> "Assigned", "(Unallocated)",
+                    IF(_Basis = "policy", COALESCE(_PolicyName, _Policy), MAXX(_Values, 'Org Attribute Source'[Value]))),
+                "Policy ID", IF(_Basis = "policy", _Policy),
+                "Allocation Status", _Status
+            )
+    )
+VAR _Groups =
+    GROUPBY(
+        _Mapped, [Allocation], [Policy ID], [Allocation Status],
+        "Credits", SUMX(CURRENTGROUP(), [Usage Credits])
+    )
+VAR _SelectedCredits = SUMX(_Grain, [Usage Credits])
+VAR _AllocatedCredits = COALESCE(SUMX(FILTER(_Groups, [Allocation Status] = "Assigned"), [Credits]), 0)
+VAR _ReconciledCredits = SUMX(_Groups, [Credits])
+VAR _Total = COUNTROWS(_Groups)
+VAR _Shown = TOPN(500, _Groups, [Credits], DESC, [Allocation], ASC, [Policy ID], ASC, [Allocation Status], ASC)
+RETURN
+    UNION(
+        ROW(
+            "Part", "Summary", "Allocation", BLANK(), "Policy ID", BLANK(), "Allocation Status", BLANK(),
+            "Credits", _SelectedCredits, "Pool Share", DIVIDE(_SelectedCredits, _PoolCredits),
+            "Prepaid Credits", DIVIDE(_SelectedCredits, _PoolCredits) * _PoolPrepaid,
+            "PAYG Credits", DIVIDE(_SelectedCredits, _PoolCredits) * (_PoolCredits - _PoolPrepaid),
+            "Estimated Cost", DIVIDE(_SelectedCredits, _PoolCredits) * _PoolCost,
+            "Pool Credits", _PoolCredits, "Pool Cost", _PoolCost,
+            "Assigned Credits", _AllocatedCredits, "Reconciled Credits", _ReconciledCredits,
+            "Window Start", FORMAT(_Lo, "yyyy-MM-dd"), "Window End", FORMAT(_Hi, "yyyy-MM-dd"), "Total", _Total
+        ),
+        SELECTCOLUMNS(
+            _Shown,
+            "Part", "Allocation", "Allocation", [Allocation], "Policy ID", [Policy ID], "Allocation Status", [Allocation Status],
+            "Credits", [Credits], "Pool Share", DIVIDE([Credits], _PoolCredits),
+            "Prepaid Credits", DIVIDE([Credits], _PoolCredits) * _PoolPrepaid,
+            "PAYG Credits", DIVIDE([Credits], _PoolCredits) * (_PoolCredits - _PoolPrepaid),
+            "Estimated Cost", DIVIDE([Credits], _PoolCredits) * _PoolCost,
+            "Pool Credits", BLANK(), "Pool Cost", BLANK(),
+            "Assigned Credits", BLANK(), "Reconciled Credits", BLANK(),
+            "Window Start", BLANK(), "Window End", BLANK(), "Total", _Total
+        )
+    )
+ORDER BY [Part] DESC, [Credits] DESC, [Allocation], [Policy ID], [Allocation Status]

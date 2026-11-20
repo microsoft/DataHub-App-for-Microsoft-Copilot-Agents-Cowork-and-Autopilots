@@ -10,6 +10,7 @@ import { FilterContext } from "@/hooks/filter.context";
 import { useSemanticModelQuery, useSpeculativeQuery } from "@/hooks/use-semantic-model-query";
 import { isConnectionConfigured } from "@/lib/connections";
 import { tenantDefaultFilters, type FilterKey, type FilterState } from "@/lib/filters";
+import { valueLensOn } from "@/lib/optional-modules";
 import { DEFAULT_ORG_ATTRIBUTE, describeOrgAttribute } from "@/lib/org-attribute";
 import { runtimeConfig } from "@/lib/runtime-config";
 import {
@@ -65,9 +66,12 @@ function consumptionAttributesConfig() {
  * is in use, so a menu never offers one column's values under another's name.
  * Until then the values of the column in use now load beside them: it seldom
  * changes, so a menu opened early waits for the slower of the two, not both.
+ *
+ * The choices come from ValueLens, so an install without it offers only the
+ * dates, which each query works out for itself.
  */
 export function FilterProvider({
-    applicable,
+    applicable: wanted,
     initial,
     children,
 }: {
@@ -82,6 +86,7 @@ export function FilterProvider({
     const [orgColumnsWanted, setOrgColumnsWanted] = useState(false);
     const requestFilterChoices = useCallback(() => setMenuOpened(true), []);
     const requestOrgAttributes = useCallback(() => setOrgColumnsWanted(true), []);
+    const applicable = useMemo(() => (valueLensOn() ? wanted : wanted.filter((key) => key === "dateRange")), [wanted]);
     const { data, error, refetch: retryFilterOptions } = useSemanticModelQuery(optionsConfig);
     const attributesResult = useSemanticModelQuery({ ...attributesConfig, background: !(menuOpened || orgColumnsWanted) });
     const candidates = useMemo(

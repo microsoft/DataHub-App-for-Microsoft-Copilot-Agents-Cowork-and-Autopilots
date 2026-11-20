@@ -1,7 +1,16 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  /** Deployment-specific name; defaults to the standard DataHub branding. */
+  readonly VITE_APP_NAME?: string;
   readonly VITE_CROSS_VENDOR_DEMO?: string;
+  /** Shows the synthetic Business impact (SAP process data) preview. */
+  readonly VITE_BUSINESS_IMPACT_DEMO?: string;
+  /** Enables the optional public-reference explorer in the demo; does not configure any connectors. */
+  readonly VITE_BUSINESS_OUTCOME_SAMPLES?: string;
+  readonly VITE_GITHUB_COPILOT_DEMO?: string;
+  /** Shows the synthetic Cloud and AI spend mock-up (FOCUS-style cost reporting). */
+  readonly VITE_FINOPS_DEMO?: string;
   readonly VITE_DATAHUB_PREVIEW?: string;
   /** Rayfin API base URL (e.g. http://localhost:5168). */
   readonly VITE_RAYFIN_API_URL?: string;

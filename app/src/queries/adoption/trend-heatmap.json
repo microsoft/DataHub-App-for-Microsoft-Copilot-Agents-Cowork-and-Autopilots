@@ -22,7 +22,11 @@
       "type": "ordinal",
       "title": null,
       "sort": { "field": "Week Date", "order": "ascending" },
-      "axis": { "labelAngle": 0, "labelPadding": 8 }
+      "axis": {
+        "labelAngle": 0,
+        "labelPadding": 8,
+        "labelExpr": "datum.index === 0 || toNumber(split(datum.value, ' ')[0]) <= 7 ? datum.value : split(datum.value, ' ')[0]"
+      }
     },
     "y": {
       "field": "__ORG__",
@@ -61,9 +65,7 @@
         "baseline": "middle",
         "align": "center",
         "fontWeight": 600,
-        "fontSize": 11,
-        "limit": 42,
-        "ellipsis": ""
+        "fontSize": 10
       },
       "encoding": {
         "text": { "field": "Heatmap Label", "type": "nominal" }

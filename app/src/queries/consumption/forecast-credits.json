@@ -1,0 +1,42 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "width": "container",
+  "height": "container",
+  "data": { "name": "dataset" },
+  "transform": [
+    { "calculate": "toDate(datum['Month'])", "as": "Forecast Date" }
+  ],
+  "encoding": {
+    "x": {
+      "field": "Forecast Date",
+      "type": "temporal",
+      "title": null,
+      "scale": { "type": "utc" },
+      "axis": { "labelExpr": "utcFormat(datum.value, '%b %Y')", "tickCount": 6, "labelOverlap": true }
+    }
+  },
+  "layer": [
+    {
+      "mark": { "type": "area", "opacity": 0.18, "aria": true },
+      "encoding": {
+        "y": { "field": "Low", "type": "quantitative", "title": "Estimated credits", "scale": { "zero": true } },
+        "y2": { "field": "High" },
+        "tooltip": [
+          { "field": "Month", "type": "nominal", "title": "Month" },
+          { "field": "Low", "type": "quantitative", "title": "Low credits", "format": ",.0f" },
+          { "field": "High", "type": "quantitative", "title": "High credits", "format": ",.0f" }
+        ]
+      }
+    },
+    {
+      "mark": { "type": "line", "point": true, "aria": true },
+      "encoding": {
+        "y": { "field": "Base", "type": "quantitative", "title": "Estimated credits", "scale": { "zero": true } },
+        "tooltip": [
+          { "field": "Month", "type": "nominal", "title": "Month" },
+          { "field": "Base", "type": "quantitative", "title": "Base credits", "format": ",.0f" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,9 +1,13 @@
 EVALUATE
+-- The model scores a team as it scores a person, from the team's median
+-- unlicensed user: 60 for tasks a week, capped at 30, and 40 for active days
+-- a week, capped at 5.
 SELECTCOLUMNS(
     FILTER(
         SUMMARIZECOLUMNS(
             'Chat + Agent Org Data'[Organization],
             "@ActiveUnlicensed", [Active Unlicensed Users],
+            "@Score", [License Priority Score (User)],
             "@ActiveDays", [Average Active Days Per User Per Week (Unlicensed Chat)],
             "@Sessions", [Observed Unlicensed Sessions per User per Week]
         ),
@@ -12,7 +16,8 @@ SELECTCOLUMNS(
     ),
     "Organization", 'Chat + Agent Org Data'[Organization],
     "Active Unlicensed Users", [@ActiveUnlicensed],
+    "Priority Score", [@Score],
     "Active Days Per Week", [@ActiveDays],
     "Sessions Per User Per Week", [@Sessions]
 )
-ORDER BY [Sessions Per User Per Week] DESC, [Active Unlicensed Users] DESC, [Organization]
+ORDER BY [Priority Score] DESC, [Active Unlicensed Users] DESC, [Organization]

@@ -113,7 +113,7 @@ function idleSeats({ summary, dormancy, estate }: AttentionInputs): AttentionIte
         evidence: `Licensed seats with no Copilot activity in 30 days or more: ${breakdown}.${demand}`,
         reach: idleSeats,
         stake: `${wholePercent.format(idleSeats / total)} of seats`,
-        link: { destination: "readiness", stage: "license-readiness", label: "Open Readiness" },
+        link: { destination: "efficiency", stage: "idle-licenses", label: "Open Optimise" },
     };
 }
 
@@ -136,7 +136,7 @@ function coworkOverAllowance({ cowork }: AttentionInputs): AttentionItem | undef
         evidence: `${wholePercent.format(share)} of the ${formatKpi(users, "whole")} people using Cowork${period ? ` in ${period}` : ""} went past their spending policy's credit limit${across}.`,
         reach: over,
         stake: `${wholePercent.format(share)} of Cowork users`,
-        link: { destination: "consumption", stage: "cowork-credits", label: "Open Consumption" },
+        link: { destination: "consumption", stage: "cowork-credits", label: "Open Cost & consumption" },
     };
 }
 

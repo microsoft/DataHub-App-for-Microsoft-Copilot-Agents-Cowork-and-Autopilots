@@ -463,6 +463,15 @@ describe("parseSemanticModels", () => {
             expect(parseModules({ modules: { ...deployedModels.modules, resourceGraph: "yes" } })).toEqual(deployedModels.modules);
             expect(parseModules(deployedModels)).not.toHaveProperty("resourceGraph");
         });
+
+        it("reads the ValueLens and cross-vendor choices only when the config states them", () => {
+            expect(parseModules({ modules: { ...deployedModels.modules, core: false, crossVendor: true } })).toEqual({
+                ...deployedModels.modules,
+                core: false,
+                crossVendor: true,
+            });
+            expect(parseModules({ modules: { ...deployedModels.modules, core: "no", crossVendor: 1 } })).toEqual(deployedModels.modules);
+        });
     });
 
     describe("parseReporting", () => {

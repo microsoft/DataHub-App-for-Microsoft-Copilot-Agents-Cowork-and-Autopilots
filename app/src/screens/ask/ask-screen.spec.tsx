@@ -11,12 +11,13 @@ import { askCatalogue } from "@/ask/catalogue";
 import { destinations } from "@/components/destinations";
 import { AskError } from "@/lib/ask-api";
 import type { AskConfig } from "@/lib/runtime-config";
-import { runSummary, suggestedPages } from "./ask-helpers";
+import { BUSINESS_IMPACT_QUESTIONS, runSummary, suggestedPages } from "./ask-helpers";
 import { AskScreen } from "./index";
 
 const runtime = vi.hoisted(() => ({
     host: "fabric" as "fabric" | "azure",
     ask: undefined as AskConfig | undefined,
+    models: {} as Record<string, { workspaceId: string; itemId: string }>,
 }));
 
 const api = vi.hoisted(() => ({ askQuestion: vi.fn() }));
@@ -25,7 +26,7 @@ vi.mock("@/lib/runtime-config", () => ({
     runtimeConfig: () => ({
         host: runtime.host,
         rayfin: {},
-        semanticModels: { vl: { workspaceId: "ws-1", itemId: "vl-1" } },
+        semanticModels: runtime.models,
         ask: runtime.ask,
     }),
 }));
@@ -72,6 +73,7 @@ describe("AskScreen", () => {
         vi.clearAllMocks();
         runtime.host = "fabric";
         runtime.ask = undefined;
+        runtime.models = { vl: { workspaceId: "ws-1", itemId: "vl-1" } };
     });
 
     it("says how to turn Ask on, and still suggests questions to copy", async () => {
@@ -80,7 +82,7 @@ describe("AskScreen", () => {
         render(<AskScreen />);
 
         expect(screen.getByText(/paid Fabric capacity \(F2 or larger/)).toBeTruthy();
-        const executive = screen.getByRole("region", { name: "Executive summary questions" });
+        const executive = screen.getByRole("region", { name: "Overview questions" });
         fireEvent.click(within(executive).getByRole("button", { name: `Copy: ${executiveQuestion}` }));
 
         await waitFor(() => expect(writeText).toHaveBeenCalledWith(executiveQuestion));
@@ -92,7 +94,7 @@ describe("AskScreen", () => {
         const groups = screen.getAllByRole("region", { name: / questions$/ }).map((group) => group.getAttribute("aria-label"));
         const menu = destinations.map((destination) => `${destination.label} questions`);
         expect(groups).toEqual(menu.filter((label) => groups.includes(label)));
-        expect(groups.slice(0, 2)).toEqual(["Executive summary questions", "Adoption questions"]);
+        expect(groups.slice(0, 2)).toEqual(["Overview questions", "Adoption questions"]);
     });
 
     it("tells an Azure install without a model to turn Ask on in the installer", () => {
@@ -109,6 +111,20 @@ describe("AskScreen", () => {
         expect(link.getAttribute("href")).toBe("https://app.fabric.microsoft.com/groups/ws-2/aiskills/agent-1?ctid=t-1");
         expect(link.getAttribute("target")).toBe("_blank");
         expect(screen.getByText(/Microsoft 365 Copilot/)).toBeTruthy();
+        expect(screen.getByText(/Sources shown in this app are not automatically added to the agent/)).toBeTruthy();
+    });
+
+    it("suggests Business impact questions only for a data agent beside the live process model", () => {
+        const bi = { workspaceId: "11111111-1111-4111-8111-111111111111", itemId: "22222222-2222-4222-8222-222222222222" };
+        runtime.models = { ...runtime.models, bi };
+        const { unmount } = render(<AskScreen />);
+        expect(screen.queryByRole("region", { name: "Business impact questions" })).toBeNull();
+        unmount();
+
+        runtime.ask = { mode: "fabric", workspaceId: bi.workspaceId, itemId: "agent-1" };
+        render(<AskScreen />);
+        const impact = screen.getByRole("region", { name: "Business impact questions" });
+        expect(within(impact).getAllByRole("button").map((button) => button.textContent)).toEqual([...BUSINESS_IMPACT_QUESTIONS]);
     });
 
     it("answers on Azure, shows the queries behind the answer, and sends the conversation so far", async () => {

@@ -7,6 +7,7 @@
 
 import { useMemo } from "react";
 import { ACCESS_SCOPE_QUERY, readAccessScope, type AccessScopeState } from "@/lib/access-scope";
+import { valueLensOn } from "@/lib/optional-modules";
 import { runtimeConfig } from "@/lib/runtime-config";
 import { toRecords } from "@/lib/summary-row";
 import { connection } from "@/queries/shared";
@@ -21,7 +22,7 @@ const OFF: AccessScopeState = { kind: "off" };
  * one the model isn't asked at all.
  */
 export function useAccessScope(): AccessScopeState {
-    const scoped = Boolean(runtimeConfig().access?.rlsOrgAttribute);
+    const scoped = Boolean(runtimeConfig().access?.rlsOrgAttribute) && valueLensOn();
     const { data, error } = useSemanticModelQuery({ connection, query: scoped ? ACCESS_SCOPE_QUERY : "" });
     return useMemo(
         () =>

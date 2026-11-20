@@ -12,6 +12,7 @@ import { formatKpi, type KpiFormat } from "@/lib/format-kpi";
 import { fitFontSize } from "@/lib/kpi-fit";
 import type { Delta } from "@/lib/month-over-month";
 import { cn } from "@/lib/utils";
+import { useVisualGuide } from "./visual-guide";
 
 /** A month-on-month change, and whether a rise is good news. */
 export interface KpiDelta extends Delta {
@@ -55,6 +56,16 @@ export function KpiCard({ label, value, format = "whole", prefix, delta, trend, 
     const isBlank = value === undefined;
     const shown = isBlank && emptyValue ? emptyValue : formatKpi(value, format, { prefix, compact: true });
     const exact = formatKpi(value, format, { prefix });
+    useVisualGuide({
+        kind: "Headline figure",
+        title: label,
+        what: typeof detail === "string" ? detail : undefined,
+        how: [
+            "The large number is the figure itself; hover over a shortened one for the exact value.",
+            delta ? "The ▲ ▼ line is the change against the period named beside it: teal is good news, coral is not, grey is neither." : "",
+            trend ? "The small line underneath shows its recent run." : "",
+        ].filter(Boolean).join(" "),
+    });
 
     return (
         <div

@@ -74,6 +74,10 @@ export interface RuntimeModules {
     defender?: boolean;
     /** Azure Resource Graph. Absent from configs written before it was a choice. */
     resourceGraph?: boolean;
+    /** ValueLens and the Purview audit it reads. Absent from installs made before it was optional, where it is always on. */
+    core?: boolean;
+    /** The cross-vendor view. Absent unless the installer recorded it as chosen. */
+    crossVendor?: boolean;
 }
 
 export class RuntimeConfigError extends Error {
@@ -131,6 +135,7 @@ export function setDemoRuntimeConfig(): void {
             agentEvaluator: true,
             defender: true,
             resourceGraph: true,
+            core: true,
         },
         ask: { mode: "chat" },
         demo: true,
@@ -354,6 +359,8 @@ export function parseModules(json: unknown): RuntimeModules | undefined {
         ...parsed,
         ...(typeof modules.defender === "boolean" ? { defender: modules.defender } : {}),
         ...(typeof modules.resourceGraph === "boolean" ? { resourceGraph: modules.resourceGraph } : {}),
+        ...(typeof modules.core === "boolean" ? { core: modules.core } : {}),
+        ...(typeof modules.crossVendor === "boolean" ? { crossVendor: modules.crossVendor } : {}),
     };
 }
 

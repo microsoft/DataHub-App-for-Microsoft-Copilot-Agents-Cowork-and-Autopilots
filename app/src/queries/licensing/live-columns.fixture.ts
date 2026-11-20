@@ -28,6 +28,7 @@ export const liveColumns = {
     licensePriorityByOrg: [
         "[Organization]",
         "[Active Unlicensed Users]",
+        "[Priority Score]",
         "[Active Days Per Week]",
         "[Sessions Per User Per Week]",
     ],
