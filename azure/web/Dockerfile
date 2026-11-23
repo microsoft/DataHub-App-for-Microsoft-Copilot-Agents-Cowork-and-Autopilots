@@ -1,18 +1,18 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-alpine AS spa-build
+FROM node:26-alpine AS spa-build
 WORKDIR /src/fabric-app
 COPY ["app/package.json", "app/package-lock.json", "./"]
 RUN npm ci
 COPY ["app/", "./"]
 RUN npm run build
 
-FROM node:24-alpine AS web-deps
+FROM node:26-alpine AS web-deps
 WORKDIR /app
 COPY ["azure/web/package.json", "azure/web/package-lock.json", "./"]
 RUN npm ci --omit=dev
 
-FROM node:24-alpine AS final
+FROM node:26-alpine AS final
 ENV NODE_ENV=production \
     PORT=8080 \
     VALUELENS_PUBLIC_DIR=/app/public \
