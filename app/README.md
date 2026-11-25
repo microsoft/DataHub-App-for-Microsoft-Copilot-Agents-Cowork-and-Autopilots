@@ -69,9 +69,12 @@ bundle file except itself. The build uses Vite's `demo` mode and relative asset 
 can live below a site subdirectory. Do not copy deployment settings or real identifiers into the
 demo bundle.
 
-The demo includes the Cross-vendor view (Portfolio, Adoption trends, Coding output,
+The demo includes optional cross-vendor topics (Portfolio, Adoption trends, Coding output,
 Spend & credits, Native usage, Cost & evidence, Source coverage and Methodology), plus
-comparison panels on Executive summary, Adoption, Consumption, Efficiency and Leaderboards.
+comparison panels on Overview, Adoption, Cost & consumption, Optimise and Leaderboards.
+These appear when **Vendor scope** is **All connected vendors**; **Microsoft** is the default.
+The switch adds source-specific views, not a filter that combines identities, currencies or
+usage units. Existing cross-vendor deep links open the all-vendor scope.
 Its seeded 91-day comparison keeps a separate four-organization, 278-person scenario, not the
 170-person CSV sample or a Fabric export. Monthly active users cover their labelled month,
 not the app's all-date totals. Vendor counts can overlap; native units, credits and USD spend
@@ -80,12 +83,195 @@ a population total. The Microsoft Copilot snapshot uses the same seeded monthly 
 and credits as the scenario charts, not a live export; GitHub usage remains deferred.
 The view's own vendor/product filters work locally; app-wide filters do
 not apply. `.env.demo` enables this view only for the static demo build; ordinary builds keep
-it disabled unless `VITE_CROSS_VENDOR_DEMO=true` is explicitly set.
+it disabled unless `VITE_CROSS_VENDOR_DEMO=true` is explicitly set, or the installer records
+the optional `crossVendor` module (`"modules": { "crossVendor": true }` in `fabric.config.json`
+or `app.config.json`). An installed app labels the view as a preview: it shows the same seeded
+scenario until collectors for each vendor's own usage data ship.
+
+ValueLens (and the Purview audit it reads) is an optional installer module too. An install
+without it records `"modules": { "core": false }` and leaves the `vl` model out; the app then
+lists Cost & consumption, Cowork right-sizing under Optimise and Agent quality under Governance
+(plus optional vendor topics when chosen), never
+asks the ValueLens model, and offers only the date filter, since the other filters' choices
+come from ValueLens. Configs with no `core` value keep ValueLens on.
+
+The static demo also includes **DataHub Business impact**, a separate seeded scenario that previews an
+optional module for SAP process data, with a separate D365 Sales preview. It shows functional personas,
+process KPIs with a difference-in-differences estimate against a comparison group, a fuller
+scorecard of speed, throughput, cash and quality-check measures, agents mapped to SAP processes,
+cost per transaction and separate value categories. It sits after Value in the menu and reuses
+Value's expert-equivalent-hours approach as its estimated level of evidence, not the Value demo's
+cohort or totals. The Bottom line presents eight SAP process outcomes across speed, throughput, cash
+and quality, including inconclusive results. Three separate D365 examples show lead qualification,
+opportunity win rate and sales cycle as observed changes only. They are excluded from SAP totals.
+Each scorecard measure is labelled **Computed** (from process source fields), **Proxy**
+(indirect or team-level) or **Needs source** (outside the proposed process data), with a plain-language
+description of how it would be computed. The Data and method page adds the source areas the
+module would read, the persona join levels (team by default; person-level only through a
+customer-supplied SAP-user-to-UPN map and privacy review) and readiness checks to run first:
+data window, last load, link coverage, field population and volume.
+No SAP or D365 data is connected in the static demo. Source areas are illustrative
+and every value is synthetic. App-wide filters do not apply to these fixed scenarios. `.env.demo` enables it; ordinary builds
+keep it hidden unless `VITE_BUSINESS_IMPACT_DEMO=true` is set.
+
+The synthetic Business impact pages are chart-first. Each tab opens on a headline and varied
+charts (lollipop, dumbbell, heatmap, interval, stacked-bar and scatter views in
+`src/screens/business-impact/visuals.tsx`). Tables, definitions and the discovery workflow sit in
+collapsed "More detail" blocks. `StageRun` in `src/components/stage-detail.tsx` takes an optional
+`open` list of stages that start expanded: Process outcomes and Cost per transaction use it so their
+charts show by default. The charts keep the same evidence boundaries as the text they replace:
+simulated process-level changes are not an agent's own effect, session resolution is not a
+completed case, and value categories are never summed into one ROI. The connected view
+(`live.tsx`), the Connect page and the Outcome explorer follow the same pattern: status tiles,
+stacked and progress bars, step flows and matrices first, with source tables and rules in
+"More detail" blocks. Connected values remain source observations only.
+
+Every page section has a **How to read** ⓘ button beside its heading
+(`src/components/visual-guide.tsx`). It lists each visual in the section with what it shows and how
+to read it. `Section` provides the registry. `VegaVisual` (with an optional `about` prop) and
+`KpiCard` register automatically, Vega-Lite descriptions come from the spec's marks and encodings,
+and custom DOM visuals call `useVisualGuide`. A visual rendered outside a `Section` is not listed.
+
+### Optional connected Business impact
+
+The demo also has an **Outcome explorer** tab (`#/business-impact/impact-samples`).
+Set `VITE_BUSINESS_OUTCOME_SAMPLES=true` in a build that already enables Business impact
+to show it. It can sit alongside a configured `bi` connection, but selecting this tab
+reads only bundled public aggregates. It never substitutes samples for a failed model query.
+
+The explorer uses historical ServiceNow, purchase-to-pay and marketing records and a
+Salesforce CRM test dataset. It preserves their separate periods and populations.
+Use **Business systems** to inspect source requirements, **Persona scorecard** for process
+measures and coverage, **Agents & automation** for proposed process-step/agent mappings,
+and **AI cost scenario** to divide an illustrative allocation by
+the sample's stated volume. Role templates are not employee mappings. No native Dynamics 365
+or HR records, measured AI costs, or rollout comparisons are included.
+See the [sample pack](../samples/business-outcomes/) for sources, licences, rebuild and
+optional Lakehouse import. Source files are not included in the app.
+
+An ordinary, authenticated install can instead bind a separately published Business impact
+semantic model under the **`bi`** alias in `fabric.yaml` or the ignored runtime
+`public/fabric.config.json`. A valid binding enables the eight Business impact stages without
+the synthetic-demo flag. The connected view takes precedence over that flag, never substitutes
+synthetic values after a query failure, and is never selected by a static `demo` build.
+
+The model contract is in [`src/queries/business-impact`](src/queries/business-impact):
+business-friendly fact tables, a shared `Date` calendar, and explicit measures for clearing
+intervals, payment blocks, invoice variance flags, requisition release and reference coverage,
+contract-reference item coverage, sales blocking reasons and journal reversal flags. This is
+an optional model connection, **not an automatic SAP or D365 ingestion installer**. The
+source-specific bindings and ingestion remain separately managed. The intended product is an
+optional DataHub Business impact module with source-specific adapters; describing that direction
+does not mean its extraction, transformation or mapping setup has been implemented.
+
+The connected Bottom line shows eight source-backed measures; the full scorecard shows eleven.
+Each includes its eligible population and definition. The source-year selector filters the
+process model only, not the other DataHub models. The coverage chart always shows all source
+years. Snapshot status flags are not reconstructed historical balances. Line-item populations
+overlap and must not be added together or treated as completed cases.
+
+The persona cards remain role templates until an approved organisation/identity bridge exists.
+The Personas stage traces each template to its SAP source view, rows, fields and measures; the
+Agents stage shows that the agent-to-process link is still missing and the ways to add one.
+Agent attribution, cost allocation, baseline/comparison studies and D365 are explicitly
+unconfigured; the app does not infer them from names or divide current AI spend by old process
+history. Keep all private source definitions, identifiers and query captures out of the public
+repository and public feedback demo.
+
+### Agents and automation impact
+
+**Agents & automation** is a first-class Business impact tab, linked from the Bottom line.
+The static scenario lets the reader select an agent and follow its explicit persona/process
+assignment to a process step, intended mode, accountable owner, outcome and quality measures.
+The outcome comparison remains a **simulated process-level rollout result**, not an isolated
+agent effect. Its 12-week comparison is separate from the last-30-days agent activity window.
+Session resolution is not business completion; scenario cost per linked case uses linked cases
+directly and does not apply the session-resolution rate.
+
+The public Outcome explorer offers a candidate workflow for each role, including roles without
+source records. These are authored concepts, not installed agents, discovered mappings or
+observed automation. It reports no automation rate, agent cost or attributable change from the
+public samples. The connected view likewise keeps the missing mapping and execution evidence visible.
+
+The proposed integration needs three distinct layers: owner-approved mappings keyed by source,
+environment and stable agent ID/version to process/step, persona/team and rollout/validity dates;
+run/action events linked to source-scoped business cases with completion and intervention evidence;
+and an outcome comparison with aligned cohorts, baseline, quality checks and uncertainty.
+Intended autonomy is not observed straight-through completion. Unknown intervention history
+remains unknown, and cases touched by multiple agents or personas are deduplicated.
+Mapping persistence, execution ingestion and causal estimation are **not implemented** by this preview.
+
+### Where personas and mappings come from
+
+There are two deliberately separate implementations:
+
+- **Connected view:** `impactPersonas` in
+  `src/queries/business-impact/process-scorecard.ts` is an authored list of six role templates.
+  Each entry explicitly selects a process, headline metric ID, review signal and source lineage.
+  `live.tsx` finds the reading by that metric ID; `impact-lineage.tsx` lists metrics with the
+  same process. This attaches **process measures to a role template**, not documents to a
+  verified employee cohort. No title classifier, employee-membership query or AI inference runs.
+- **Static preview:** `personas` and `processAgents` in `scenario.ts` are authored fixtures.
+  `discovery.ts` adds title aliases, fit labels, initial statuses and suggested processes by hand.
+  `fromPersona()` copies the scenario's assigned process and counts; it does not match titles.
+  Agent assignments are explicit fixture fields. A non-empty owner seeds the sample
+  `Confirmed` status; that is not proof of approval. Connect changes React state on that page
+  only, does not persist, and does not change the Personas page or join live data.
+
+The connected role-to-process assignments are:
+
+| Authored role | Assigned process | Source population |
+|---|---|---|
+| Accounts payable | Invoice to pay | Supplier accounting lines (account type `K`) and invoice items |
+| Accounts receivable | Order to cash | Customer accounting lines (account type `D`) |
+| Procurement operations | Requisition to order | Non-deleted requisition items |
+| Strategic sourcing | Source to contract | Non-deleted purchase order items |
+| Sales operations | Order fulfilment | Sales document items |
+| Finance and close | Record to report | General ledger lines |
+
+Real persona membership needs three distinct, owner-approved mappings. These names describe
+the **proposed contract**; this app does not yet provision, import or query these tables:
+
+| Proposed table | Mapping |
+|---|---|
+| `impact_persona_map` | Job title or role, scoped by department/organisation, to persona |
+| `impact_org_map` | Source system + company + cost centre/purchasing/sales group to DataHub org key, with effective dates |
+| `impact_agent_process_map` | Stable agent ID to process, with owner and explicit approval |
+
+An optional `impact_user_map` would map source-system user/personnel IDs to DataHub identities
+only after validation and privacy review. A supplier, customer or creator ID is not a safe
+employee join. Agent-case links additionally need run/action events carrying stable business
+document keys; an agent's title, declared purpose or process assignment does not establish them.
+AI attribution still needs aligned periods, rollout dates and a defensible comparison design.
+
+For example, approved AP-title rules would identify an AP cohort; a separate team bridge would
+select the corresponding supplier items; and an owner-approved agent mapping would identify an
+invoice-support agent. Only then could DataHub place that cohort's AI use beside the team's
+process outcomes. Actual agent intervention on an invoice would require case-level event evidence.
+Unmatched or ambiguous records must remain visible rather than being silently assigned.
+
+For private-data regression checks, set `DATAHUB_IMPACT_FIXTURES` to an external directory with
+SDK JSON captures named `scorecard.json`, `history.json`, `scorecard-year.json` and
+`scorecard-empty.json`. The scoped captures also record their `selectionYear`. Then run
+`npx vitest run src/queries/business-impact src/screens/business-impact` from this folder.
+Without that directory, private-data and chart-geometry cases are skipped; error-handling,
+configuration and query-filter tests still run.
+
+For a team-feedback build, run `npm run build:demo:impact`. It produces the same
+static bundle, opening Business impact by default while preserving explicit hash links to
+other pages. Both HTML entry points request `noindex, nofollow, noarchive`; this is **not access
+control**. Host the whole `dist-demo` directory at a new site path and keep existing demos
+unchanged. If the preview should be unlisted, do not add navigation links to it. Anyone who
+discovers the URL or public repository can access it. Use only
+synthetic data, and verify in a signed-out browser before sharing. No download or sign-in is
+needed for viewers of the hosted version.
 
 The demo build retains the compatibility flag `VITE_DATAHUB_PREVIEW=true` to use DataHub App in desktop and mobile
 navigation, cross-vendor copy and report exports. Its HTML title, description and bundled
 README use DataHub App too. Existing demo links remain unchanged. Ordinary builds also retain
 main's DataHub App branding; deployment identifiers and access-group names are unchanged.
+Set the build-time `VITE_APP_NAME` only when a deployment needs its own display name, such as
+`DataHub - Demo`; this does not rename its Fabric item or change other deployments.
 
 ## Deploy it by hand
 
@@ -103,6 +289,7 @@ From this folder (`app`):
    ValueLens model's IDs. They're in the model's URL:
    `app.powerbi.com/groups/<workspaceId>/datasets/<itemId>`. Do the same under `cc` for
    Consumption Central and `ae` for Agent Evaluator, or delete those blocks to hide their pages.
+   Optionally configure `bi` for the connected Business impact model described above.
 3. Deploy, and sign in when asked:
    ```powershell
    npx rayfin up --workspace-uri "https://app.fabric.microsoft.com/groups/<workspace-id>"
@@ -122,7 +309,9 @@ From this folder (`app`):
 6. Optional: to link the **Ask** page to a Fabric data agent, add
    `"ask": { "workspaceId": "<workspace id>", "itemId": "<data agent id>" }` to `fabric.config.json`.
    The installer creates the agent and adds this for you; see [Ask](../installer/README.md#ask).
-   Without it the page lists suggested questions and how to turn Ask on.
+   Without it the page lists suggested questions and how to turn Ask on. When the connected
+   Business impact model is also bound, the page suggests Business impact questions too; the
+   agent needs that model as a source to answer them (the installer's agent does not add it).
 
 To update it, get the released app source and dependencies, keep the existing deployment and
 model bindings, then run `npx rayfin up` again. Changes that require new model definitions,
@@ -131,6 +320,49 @@ app-only redeploy is not enough. For installer-managed deployments, use
 [Update](../docs/UPDATE.md#update-an-existing-installation-for-the-expanded-group-by) instead.
 
 ## Settings in the app
+
+### Question-led navigation
+
+The sidebar follows Overview, Adoption, Cost & consumption, Value, Business impact, Optimise,
+Expand and Governance. Chapters only appear when their underlying models are available.
+Adoption includes Engagement, Leaderboards, Work patterns and Feedback. Governance includes
+Agent quality. Expand includes rollout readiness and optional Business impact opportunities.
+Licence and Cowork readiness each open with a map of where to expand next: the current Group by
+(Organization by default) placed in tiers relative to the median group. Tiers rank groups for
+review; they are not a forecast. The Adoption heatmap shows every cell's value; long ranges open
+at the earliest weeks so the group labels stay in view.
+Idle licences sit in Optimise; the separate heavy-users-without-a-licence stage is retired.
+Ask agent opens alongside the report (full-screen on smaller displays); its Fabric mode still
+opens the configured data agent in Fabric rather than claiming an embedded chat backend.
+Adding a source to the app does not automatically connect it to that agent.
+Reference and report packs remain separate.
+
+Existing destination URLs continue to work under the new chapter labels. Source-specific filters,
+permissions and freshness remain attached to the underlying view rather than applying a
+chapter-wide filter to unrelated models. Vendor scope is preserved in shared URLs.
+Microsoft is the default; All connected vendors reveals contextual vendor topics and panels.
+The current vendor integration preview remains explicitly synthetic, not live tenant data.
+
+Chargeback / showback allocates Cowork and Work IQ weekly usage by its recorded spending policy
+or the current `Cost Centre Label` organization attribute. Missing, placeholder and ambiguous
+values remain unallocated. The viewer-visible credit pool applies configured prepaid capacity
+once before distributing prepaid/PAYG usage cost pro rata. It reconciles allocations to selected
+usage, respects model access, and does not present allowances as finance budgets or estimates as
+invoice postings. Current organization membership is not historical funding responsibility.
+Studio, Azure and GitHub are excluded; their allocation mappings and native units are separate.
+
+Cowork right-sizing under Optimise reads the model's existing seat actions, recommended limits,
+usage cohorts and breach signals from the latest billing snapshot. It does not recompute
+thresholds, mutate policies or equate lower allowances with realised savings. The public CSV
+demo has no recommendation snapshot and shows that limitation rather than inventing actions.
+
+Forecast is a local what-if planner under Cost & consumption. It uses up to four reported complete
+weeks available to the viewer, with explicit adoption, intensity, rollout-wave and prepaid-credit
+assumptions. Credits deplete cumulatively; purchases and consumed cost are separate.
+Low/base/high are sensitivity scenarios, not confidence intervals. The planner excludes expiry,
+tax and invoice reconciliation, never orders packs, and does not change saved commercial terms.
+
+### Shared commercial settings
 
 Anyone who can open the app can change these, and the change applies for everyone. Share the item
 only with people who should.

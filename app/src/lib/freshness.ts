@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import type { DestinationId } from "@/components/destinations";
+import type { DestinationId, StageId } from "@/components/destinations";
 
 /** A source whose last loaded date a page can report. */
 export type FreshnessSource =
@@ -84,6 +84,9 @@ const WEEKLY: ReadonlySet<FreshnessSource> = new Set(["cowork"]);
 /** The sources each page draws on, in the order its label lists them. */
 export const PAGE_SOURCES: Readonly<Record<DestinationId, readonly FreshnessSource[]>> = {
     "cross-vendor": [],
+    "business-impact": [],
+    "github-copilot": [],
+    finops: [],
     executive: ["auditLog"],
     adoption: ["auditLog"],
     leaderboards: ["auditLog"],
@@ -94,11 +97,21 @@ export const PAGE_SOURCES: Readonly<Record<DestinationId, readonly FreshnessSour
     consumption: ["cowork", "copilotStudio", "azure"],
     value: ["auditLog"],
     efficiency: ["auditLog"],
+    optimization: ["cowork"],
     feedback: ["productFeedback"],
     ask: [],
     assumptions: [],
     appendix: [],
 };
+
+export function sourcesForStage(destination: DestinationId, stage?: StageId): readonly FreshnessSource[] {
+    if (destination === "consumption") {
+        if (stage === "cowork-credits" || stage === "chargeback" || stage === "forecast") return ["cowork"];
+        if (stage === "studio-credits") return ["copilotStudio"];
+        if (stage === "azure-spend") return ["azure"];
+    }
+    return PAGE_SOURCES[destination];
+}
 
 const sameYear = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 const otherYear = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });

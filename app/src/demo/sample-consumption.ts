@@ -1,4 +1,5 @@
 import { samples, type RecordRow, cuts, dateRange, groups, literals, nameOf, orgAttribute, project, ratio, sum, unique } from "./sample-data";
+import { sampleCcAllocationRows } from "./sample-cc-allocation";
 
 type NativeRow = Record<string, string>;
 const source = samples.consumption;
@@ -33,6 +34,8 @@ export const consumptionLast = allDates.at(-1)!;
 
 /** Source-native totals deliberately keep dated tenant exports separate from undated user snapshots. */
 export function sampleConsumptionRows(query: string, columns: readonly string[]): unknown[][] | undefined {
+    const allocation = sampleCcAllocationRows(query, columns);
+    if (allocation !== undefined) return allocation;
     const names = columns.map(nameOf);
     const has = (...keys: string[]) => keys.every(key => names.includes(key));
     const output = (...records: RecordRow[]) => project(columns, records);

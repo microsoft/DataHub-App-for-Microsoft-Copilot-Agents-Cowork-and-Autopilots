@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 import { createContext, useContext } from "react";
-import type { StageId } from "@/components/destinations";
+import { stageParent, type StageId } from "@/components/destinations";
 
 export interface StageFilter {
     /** Whether the screen should render this stage. */
@@ -43,7 +43,7 @@ export function onlyStages(stages: readonly StageId[]): StageFilter {
     return { show: (stage) => wanted.has(stage), inPack: true, deferDetail: false };
 }
 
-/** A filter showing one destination stage, or every stage, as when a whole page is downloaded. */
+/** A filter showing one destination tab, with any stages within it, or every stage, as when a whole page is downloaded. */
 export function pageStages(stage: StageId | "all"): StageFilter {
-    return stage === "all" ? ALL : { show: (id) => id === stage, inPack: false, deferDetail: true };
+    return stage === "all" ? ALL : { show: (id) => stageParent(id) === stage, inPack: false, deferDetail: true };
 }

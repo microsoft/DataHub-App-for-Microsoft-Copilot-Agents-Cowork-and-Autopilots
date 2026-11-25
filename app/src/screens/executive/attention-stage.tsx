@@ -82,7 +82,7 @@ function registryNote(linkage: RegistryLinkage, registryAgents: number | undefin
 function inventoryNote(usable: number | undefined): string | undefined {
     if (usable === undefined) return undefined;
     return usable === 0
-        ? "Doesn't reconcile with activity yet, so idle seats can't be counted. Readiness explains why."
+        ? "Doesn't reconcile with activity yet, so idle seats can't be counted. Optimise explains why."
         : "Reconciles with activity";
 }
 

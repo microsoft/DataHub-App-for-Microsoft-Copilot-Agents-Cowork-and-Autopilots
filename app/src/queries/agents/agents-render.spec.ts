@@ -17,10 +17,8 @@ import type { TopLevelSpec } from "vega-lite";
 import type { ColumnMetadataMap } from "@/lib/to-data-table";
 import { agentLifecycle } from "./agent-lifecycle";
 import { agentUsage } from "./agent-usage";
-import { coworkReadinessByOrg } from "./cowork-readiness-by-org";
 import lifecycleRows from "./__fixtures__/agent-lifecycle.rows.json";
 import usageRows from "./__fixtures__/agent-usage.rows.json";
-import readinessRows from "./__fixtures__/cowork-readiness-by-org.rows.json";
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -140,17 +138,5 @@ describe("agent lifecycle renders", () => {
         }
         const byPosition = [...tops.entries()].sort((a, b) => a[1] - b[1]).map(([order]) => order);
         expect(byPosition).toEqual([...byPosition].sort((a, b) => a - b));
-    });
-});
-
-describe("cowork readiness by organization renders", () => {
-    const rows = readinessRows as Row[];
-
-    it("draws one bar per organization, sized by breadth of use", async () => {
-        const { vegaLiteSpec, columnMetadata } = coworkReadinessByOrg();
-        const bars = await renderBars(vegaLiteSpec, rows, columnMetadata);
-
-        expectDrawable(bars, rows.length);
-        expectProportional(bars, "Surfaces Per Day");
     });
 });

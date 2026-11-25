@@ -454,11 +454,18 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
                 "Active Days": days, Cohort: stage(days), Total: candidates.length };
         }));
     }
-    if (has("Active Unlicensed Users", "Organization")) return output(...groups(unlicensed, row => personGroup(row, query)).map(([Organization, values]) => ({
-        Organization, "Active Unlicensed Users": distinct(values),
-        "Active Days Per Week": ratio(unique(values, row => `${row.user}|${row.date}`), distinct(values) * weeks(values)),
-        "Sessions Per User Per Week": ratio(sessions(values).length, distinct(values) * weeks(values)),
-    })));
+    if (has("Active Unlicensed Users", "Organization")) return output(...groups(unlicensed, row => personGroup(row, query)).map(([Organization, values]) => {
+        // The model scores a team from its median unlicensed user; sessions stand in for tasks here.
+        const users = groups(values, row => row.user);
+        const perWeek = (pick: (rows: typeof values) => number) => median(users.map(([, own]) => ratio(pick(own), weeks(own)))) ?? 0;
+        return {
+            Organization, "Active Unlicensed Users": distinct(values),
+            "Priority Score": Math.round(60 * Math.min(perWeek(own => sessions(own).length) / 30, 1)
+                + 40 * Math.min(perWeek(own => unique(own, row => row.date)) / 5, 1)),
+            "Active Days Per Week": ratio(unique(values, row => `${row.user}|${row.date}`), distinct(values) * weeks(values)),
+            "Sessions Per User Per Week": ratio(sessions(values).length, distinct(values) * weeks(values)),
+        };
+    }));
     if (has("Eligible Users", "Surfaces Per Day") || has("Surfaces Per Day", "Uses Agents")) {
         const triedCowork = new Set(samples.activity.filter(row => row.cowork).map(row => row.user));
         const candidates = groups(rows.filter(row => !row.cowork && !triedCowork.has(row.user)), row => row.user).map(([User, values]) => ({
@@ -484,9 +491,15 @@ export function sampleQueryRows(query: string, columns: readonly string[]): unkn
                 Depths: new Set(eligible.map(value => value["Prompts Per Session"])).size, Total: eligible.length,
             })));
         }
-        return has("Organization") ? output(...groups(candidates, row => row.Organization).map(([Organization, values]) => ({
-            Organization, ...summarize(values),
-        }))) : output(summarize(candidates));
+        if (!has("Organization")) return output(summarize(candidates));
+        // A team's readiness is its people's mean score, each scored against everyone yet to try Cowork.
+        const maxBreadth = Math.max(0, ...candidates.map(row => row["Surfaces Per Day"]));
+        const maxDepth = Math.max(0, ...candidates.map(row => row["Prompts Per Session"]));
+        const personScore = (row: (typeof candidates)[number]) => Math.round(45 * Math.min(ratio(row["Surfaces Per Day"], maxBreadth), 1)
+            + 35 * Math.min(ratio(row["Prompts Per Session"], maxDepth), 1) + 20 * Number(row["Uses Agents"]));
+        return output(...groups(candidates, row => row.Organization).map(([Organization, values]) => ({
+            Organization, ...summarize(values), "Readiness Score": Math.round(mean(values.map(personScore))),
+        })));
     }
     if (has("Agent Users", "Agent User Share", "Agent Sessions")) return output({
         "Agent Users": distinct(agents), "Agent User Share": ratio(distinct(agents), distinct(rows)),

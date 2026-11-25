@@ -15,12 +15,29 @@ export interface SuggestedPage {
     questions: string[];
 }
 
-/** The catalogue's suggested questions for the pages this install shows, in sidebar order. */
-export function suggestedPages(available: readonly { id: DestinationId; label: string }[]): SuggestedPage[] {
+/**
+ * Questions for a data agent that has the Business impact process model as a source. The shared
+ * catalogue leaves them out because the installer's agent never has that model.
+ */
+export const BUSINESS_IMPACT_QUESTIONS: readonly string[] = [
+    "Which SAP process has the highest exception rate?",
+    "How long do payables take to clear, and what share are blocked?",
+    "What share of customer items are collected late?",
+    "What share of purchase order items reference a contract?",
+];
+
+/**
+ * The catalogue's suggested questions for the pages this install shows, in sidebar order, plus
+ * any `extra` questions a page's own source adds.
+ */
+export function suggestedPages(
+    available: readonly { id: DestinationId; label: string }[],
+    extra: Partial<Record<DestinationId, readonly string[]>> = {},
+): SuggestedPage[] {
     const byId = new Map(askCatalogue.pages.map((page) => [page.destination, page.questions]));
     return available.flatMap(({ id, label }) => {
-        const questions = byId.get(id);
-        return questions?.length ? [{ destination: id, label, questions }] : [];
+        const questions = [...(byId.get(id) ?? []), ...(extra[id] ?? [])];
+        return questions.length ? [{ destination: id, label, questions }] : [];
     });
 }
 

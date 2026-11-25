@@ -1,0 +1,16 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "width": "container",
+    "height": "container",
+    "mark": { "type": "rect" },
+    "encoding": {
+        "x": { "field": "Year", "type": "ordinal", "sort": "ascending", "title": "Source year", "axis": { "labelAngle": 0 } },
+        "y": { "field": "Process", "type": "nominal", "title": null, "axis": { "labelLimit": 180 } },
+        "color": { "field": "Items", "type": "quantitative", "scale": { "type": "log" }, "title": "Line items", "legend": { "orient": "top" } },
+        "tooltip": [
+            { "field": "Year", "type": "ordinal", "title": "Source year" },
+            { "field": "Process", "type": "nominal" },
+            { "field": "Items", "type": "quantitative", "format": ",.0f", "title": "Line items" }
+        ]
+    }
+}

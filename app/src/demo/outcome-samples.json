@@ -1,0 +1,1296 @@
+{
+  "service": {
+    "source": "ServiceNow incident event log",
+    "period": "2016-02-29 to 2017-02-18 (incident closures)",
+    "kind": "Anonymised historical IT service-desk log",
+    "credit": "C. Amaral, M. Fantinato and S. Peres (2018), UCI Machine Learning Repository.",
+    "url": "https://doi.org/10.24432/C57S4H",
+    "license": "CC BY 4.0",
+    "unit": "closed incident",
+    "completed": 24918,
+    "metrics": [
+      {
+        "label": "Closed incidents",
+        "value": "24,918",
+        "basis": "24,918 of 24,918 distinct incidents are closed in their final state; 141,712 event rows reduced to one state per incident."
+      },
+      {
+        "label": "Median elapsed resolution time",
+        "value": "22.1 hours",
+        "basis": "Opened to resolved for 23,362 of 24,918 closed incidents; 1,556 missing resolution times and 0 negative durations excluded."
+      },
+      {
+        "label": "Reopened at least once",
+        "value": "275",
+        "basis": "Positive final reopen count among 24,918 closed incidents; not a count of reopen events."
+      },
+      {
+        "label": "Reassigned at least once",
+        "value": "11,369",
+        "basis": "Positive final reassignment count among 24,918 closed incidents."
+      }
+    ],
+    "trend": [
+      {
+        "period": "2016-02",
+        "count": 1
+      },
+      {
+        "period": "2016-03",
+        "count": 5848
+      },
+      {
+        "period": "2016-04",
+        "count": 8326
+      },
+      {
+        "period": "2016-05",
+        "count": 8425
+      },
+      {
+        "period": "2016-06",
+        "count": 1598
+      },
+      {
+        "period": "2016-07",
+        "count": 205
+      },
+      {
+        "period": "2016-08",
+        "count": 71
+      },
+      {
+        "period": "2016-09",
+        "count": 60
+      },
+      {
+        "period": "2016-10",
+        "count": 69
+      },
+      {
+        "period": "2016-11",
+        "count": 63
+      },
+      {
+        "period": "2016-12",
+        "count": 63
+      },
+      {
+        "period": "2017-01",
+        "count": 78
+      },
+      {
+        "period": "2017-02",
+        "count": 111
+      }
+    ],
+    "trendBasis": "Month of closed_at for all 24,918 final closed incidents. Latest sys_updated_at wins, then highest sys_mod_count. Closure does not require a resolution timestamp.",
+    "limitation": "Calendar elapsed time is not analyst handling time. This historical log does not measure current backlog or SLA attainment.",
+    "outcomeSeries": [
+      {
+        "label": "Median elapsed resolution time",
+        "unit": "hours",
+        "basis": "By closure month, not opening month. Median opened_at to resolved_at among the 23,362 closed incidents with usable resolution times; 1,556 missing and 0 negative durations excluded. Only eligible months shown.",
+        "points": [
+          {
+            "period": "2016-02",
+            "value": 4.88,
+            "eligible": 1
+          },
+          {
+            "period": "2016-03",
+            "value": 42.2,
+            "eligible": 5385
+          },
+          {
+            "period": "2016-04",
+            "value": 17.48,
+            "eligible": 7701
+          },
+          {
+            "period": "2016-05",
+            "value": 2.83,
+            "eligible": 7999
+          },
+          {
+            "period": "2016-06",
+            "value": 163.94,
+            "eligible": 1566
+          },
+          {
+            "period": "2016-07",
+            "value": 1989.03,
+            "eligible": 205
+          },
+          {
+            "period": "2016-08",
+            "value": 2273.48,
+            "eligible": 71
+          },
+          {
+            "period": "2016-09",
+            "value": 3335.82,
+            "eligible": 60
+          },
+          {
+            "period": "2016-10",
+            "value": 3915.95,
+            "eligible": 69
+          },
+          {
+            "period": "2016-11",
+            "value": 4321.4,
+            "eligible": 63
+          },
+          {
+            "period": "2016-12",
+            "value": 5095.92,
+            "eligible": 63
+          },
+          {
+            "period": "2017-01",
+            "value": 42.35,
+            "eligible": 78
+          },
+          {
+            "period": "2017-02",
+            "value": 72.47,
+            "eligible": 101
+          }
+        ]
+      },
+      {
+        "label": "Reopened at least once",
+        "unit": "%",
+        "basis": "By closure month: incidents with a positive final reopen count / all final closed incidents. Counts an incident only once, regardless of the number of reopens.",
+        "points": [
+          {
+            "period": "2016-02",
+            "value": 0.0,
+            "eligible": 1
+          },
+          {
+            "period": "2016-03",
+            "value": 1.06,
+            "eligible": 5848
+          },
+          {
+            "period": "2016-04",
+            "value": 1.13,
+            "eligible": 8326
+          },
+          {
+            "period": "2016-05",
+            "value": 0.84,
+            "eligible": 8425
+          },
+          {
+            "period": "2016-06",
+            "value": 2.0,
+            "eligible": 1598
+          },
+          {
+            "period": "2016-07",
+            "value": 2.44,
+            "eligible": 205
+          },
+          {
+            "period": "2016-08",
+            "value": 2.82,
+            "eligible": 71
+          },
+          {
+            "period": "2016-09",
+            "value": 0.0,
+            "eligible": 60
+          },
+          {
+            "period": "2016-10",
+            "value": 4.35,
+            "eligible": 69
+          },
+          {
+            "period": "2016-11",
+            "value": 4.76,
+            "eligible": 63
+          },
+          {
+            "period": "2016-12",
+            "value": 1.59,
+            "eligible": 63
+          },
+          {
+            "period": "2017-01",
+            "value": 0.0,
+            "eligible": 78
+          },
+          {
+            "period": "2017-02",
+            "value": 1.8,
+            "eligible": 111
+          }
+        ]
+      }
+    ]
+  },
+  "sales": {
+    "source": "Salesforce Opportunity (sfdc-kittycorn)",
+    "period": "2020-01-21 to 2024-12-31 (eligible opportunity closures)",
+    "kind": "Public Salesforce test-harness data",
+    "credit": "Google Cloud, sfdc-kittycorn public test harness; cleaned and augmented by vladkol and lsubatin.",
+    "url": "https://github.com/GoogleCloudPlatform/devrel-demo-datasets/tree/main/sfdc-kittycorn",
+    "license": "Apache-2.0",
+    "unit": "closed opportunity",
+    "completed": 185403,
+    "metrics": [
+      {
+        "label": "Closures with valid dates",
+        "value": "185,403",
+        "basis": "185,709 of 354,541 records flagged closed; 168,832 not closed. Of the closed records, 0 missing dates and 306 closes before creation excluded from dated throughput and duration (185,403 eligible)."
+      },
+      {
+        "label": "Win rate among all closed opportunities",
+        "value": "92.29%",
+        "basis": "171,388 won out of 185,709 flagged closed. This status measure does not require valid cycle dates."
+      },
+      {
+        "label": "Median closed-deal cycle",
+        "value": "76 days",
+        "basis": "CloseDate minus UTC creation date for 185,403 eligible closures; 306 negative cycles and 0 missing dates excluded."
+      }
+    ],
+    "trend": [
+      {
+        "period": "2020-01",
+        "count": 327
+      },
+      {
+        "period": "2020-02",
+        "count": 868
+      },
+      {
+        "period": "2020-03",
+        "count": 2443
+      },
+      {
+        "period": "2020-04",
+        "count": 5645
+      },
+      {
+        "period": "2020-05",
+        "count": 5783
+      },
+      {
+        "period": "2020-06",
+        "count": 5828
+      },
+      {
+        "period": "2020-07",
+        "count": 5789
+      },
+      {
+        "period": "2020-08",
+        "count": 6138
+      },
+      {
+        "period": "2020-09",
+        "count": 6158
+      },
+      {
+        "period": "2020-10",
+        "count": 6053
+      },
+      {
+        "period": "2020-11",
+        "count": 5782
+      },
+      {
+        "period": "2020-12",
+        "count": 5629
+      },
+      {
+        "period": "2021-01",
+        "count": 5394
+      },
+      {
+        "period": "2021-02",
+        "count": 4846
+      },
+      {
+        "period": "2021-03",
+        "count": 5278
+      },
+      {
+        "period": "2021-04",
+        "count": 4789
+      },
+      {
+        "period": "2021-05",
+        "count": 5522
+      },
+      {
+        "period": "2021-06",
+        "count": 4595
+      },
+      {
+        "period": "2021-07",
+        "count": 4656
+      },
+      {
+        "period": "2021-08",
+        "count": 5051
+      },
+      {
+        "period": "2021-09",
+        "count": 4591
+      },
+      {
+        "period": "2021-10",
+        "count": 5232
+      },
+      {
+        "period": "2021-11",
+        "count": 5046
+      },
+      {
+        "period": "2021-12",
+        "count": 4922
+      },
+      {
+        "period": "2022-01",
+        "count": 5598
+      },
+      {
+        "period": "2022-02",
+        "count": 5478
+      },
+      {
+        "period": "2022-03",
+        "count": 6678
+      },
+      {
+        "period": "2022-04",
+        "count": 6061
+      },
+      {
+        "period": "2022-05",
+        "count": 6308
+      },
+      {
+        "period": "2022-06",
+        "count": 5204
+      },
+      {
+        "period": "2022-07",
+        "count": 5854
+      },
+      {
+        "period": "2022-08",
+        "count": 4496
+      },
+      {
+        "period": "2022-09",
+        "count": 5213
+      },
+      {
+        "period": "2022-10",
+        "count": 3899
+      },
+      {
+        "period": "2022-11",
+        "count": 2431
+      },
+      {
+        "period": "2022-12",
+        "count": 2989
+      },
+      {
+        "period": "2023-01",
+        "count": 1134
+      },
+      {
+        "period": "2023-02",
+        "count": 3
+      },
+      {
+        "period": "2023-03",
+        "count": 3
+      },
+      {
+        "period": "2023-04",
+        "count": 3
+      },
+      {
+        "period": "2023-05",
+        "count": 3467
+      },
+      {
+        "period": "2024-01",
+        "count": 390
+      },
+      {
+        "period": "2024-02",
+        "count": 373
+      },
+      {
+        "period": "2024-03",
+        "count": 371
+      },
+      {
+        "period": "2024-04",
+        "count": 355
+      },
+      {
+        "period": "2024-05",
+        "count": 369
+      },
+      {
+        "period": "2024-06",
+        "count": 343
+      },
+      {
+        "period": "2024-07",
+        "count": 359
+      },
+      {
+        "period": "2024-08",
+        "count": 357
+      },
+      {
+        "period": "2024-09",
+        "count": 326
+      },
+      {
+        "period": "2024-10",
+        "count": 319
+      },
+      {
+        "period": "2024-11",
+        "count": 318
+      },
+      {
+        "period": "2024-12",
+        "count": 339
+      }
+    ],
+    "trendBasis": "Month of recorded CloseDate for 185,403 closed records with nonnegative elapsed time. 0 missing and 306 out-of-order dates excluded.",
+    "limitation": "CloseDate has day precision. The win rate describes test-harness records, not an industry benchmark.",
+    "outcomeSeries": [
+      {
+        "label": "Win rate among dated closures",
+        "unit": "%",
+        "basis": "By recorded CloseDate month: IsWon among 185,403 eligible closed opportunities. Excludes 0 missing dates and 306 negative cycles, unlike the all-closures win rate.",
+        "points": [
+          {
+            "period": "2020-01",
+            "value": 100.0,
+            "eligible": 327
+          },
+          {
+            "period": "2020-02",
+            "value": 100.0,
+            "eligible": 868
+          },
+          {
+            "period": "2020-03",
+            "value": 96.03,
+            "eligible": 2443
+          },
+          {
+            "period": "2020-04",
+            "value": 98.23,
+            "eligible": 5645
+          },
+          {
+            "period": "2020-05",
+            "value": 94.52,
+            "eligible": 5783
+          },
+          {
+            "period": "2020-06",
+            "value": 92.47,
+            "eligible": 5828
+          },
+          {
+            "period": "2020-07",
+            "value": 92.31,
+            "eligible": 5789
+          },
+          {
+            "period": "2020-08",
+            "value": 92.13,
+            "eligible": 6138
+          },
+          {
+            "period": "2020-09",
+            "value": 96.52,
+            "eligible": 6158
+          },
+          {
+            "period": "2020-10",
+            "value": 92.53,
+            "eligible": 6053
+          },
+          {
+            "period": "2020-11",
+            "value": 97.04,
+            "eligible": 5782
+          },
+          {
+            "period": "2020-12",
+            "value": 93.69,
+            "eligible": 5629
+          },
+          {
+            "period": "2021-01",
+            "value": 92.34,
+            "eligible": 5394
+          },
+          {
+            "period": "2021-02",
+            "value": 93.09,
+            "eligible": 4846
+          },
+          {
+            "period": "2021-03",
+            "value": 95.23,
+            "eligible": 5278
+          },
+          {
+            "period": "2021-04",
+            "value": 91.21,
+            "eligible": 4789
+          },
+          {
+            "period": "2021-05",
+            "value": 92.74,
+            "eligible": 5522
+          },
+          {
+            "period": "2021-06",
+            "value": 90.14,
+            "eligible": 4595
+          },
+          {
+            "period": "2021-07",
+            "value": 88.92,
+            "eligible": 4656
+          },
+          {
+            "period": "2021-08",
+            "value": 94.85,
+            "eligible": 5051
+          },
+          {
+            "period": "2021-09",
+            "value": 90.0,
+            "eligible": 4591
+          },
+          {
+            "period": "2021-10",
+            "value": 91.48,
+            "eligible": 5232
+          },
+          {
+            "period": "2021-11",
+            "value": 95.01,
+            "eligible": 5046
+          },
+          {
+            "period": "2021-12",
+            "value": 97.44,
+            "eligible": 4922
+          },
+          {
+            "period": "2022-01",
+            "value": 96.77,
+            "eligible": 5598
+          },
+          {
+            "period": "2022-02",
+            "value": 93.87,
+            "eligible": 5478
+          },
+          {
+            "period": "2022-03",
+            "value": 94.17,
+            "eligible": 6678
+          },
+          {
+            "period": "2022-04",
+            "value": 94.49,
+            "eligible": 6061
+          },
+          {
+            "period": "2022-05",
+            "value": 93.94,
+            "eligible": 6308
+          },
+          {
+            "period": "2022-06",
+            "value": 93.12,
+            "eligible": 5204
+          },
+          {
+            "period": "2022-07",
+            "value": 91.51,
+            "eligible": 5854
+          },
+          {
+            "period": "2022-08",
+            "value": 93.08,
+            "eligible": 4496
+          },
+          {
+            "period": "2022-09",
+            "value": 90.93,
+            "eligible": 5213
+          },
+          {
+            "period": "2022-10",
+            "value": 92.97,
+            "eligible": 3899
+          },
+          {
+            "period": "2022-11",
+            "value": 98.64,
+            "eligible": 2431
+          },
+          {
+            "period": "2022-12",
+            "value": 98.23,
+            "eligible": 2989
+          },
+          {
+            "period": "2023-01",
+            "value": 95.77,
+            "eligible": 1134
+          },
+          {
+            "period": "2023-02",
+            "value": 100.0,
+            "eligible": 3
+          },
+          {
+            "period": "2023-03",
+            "value": 100.0,
+            "eligible": 3
+          },
+          {
+            "period": "2023-04",
+            "value": 66.67,
+            "eligible": 3
+          },
+          {
+            "period": "2023-05",
+            "value": 100.0,
+            "eligible": 3467
+          },
+          {
+            "period": "2024-01",
+            "value": 22.82,
+            "eligible": 390
+          },
+          {
+            "period": "2024-02",
+            "value": 25.2,
+            "eligible": 373
+          },
+          {
+            "period": "2024-03",
+            "value": 25.88,
+            "eligible": 371
+          },
+          {
+            "period": "2024-04",
+            "value": 25.92,
+            "eligible": 355
+          },
+          {
+            "period": "2024-05",
+            "value": 22.49,
+            "eligible": 369
+          },
+          {
+            "period": "2024-06",
+            "value": 23.03,
+            "eligible": 343
+          },
+          {
+            "period": "2024-07",
+            "value": 23.12,
+            "eligible": 359
+          },
+          {
+            "period": "2024-08",
+            "value": 22.97,
+            "eligible": 357
+          },
+          {
+            "period": "2024-09",
+            "value": 21.47,
+            "eligible": 326
+          },
+          {
+            "period": "2024-10",
+            "value": 20.38,
+            "eligible": 319
+          },
+          {
+            "period": "2024-11",
+            "value": 21.07,
+            "eligible": 318
+          },
+          {
+            "period": "2024-12",
+            "value": 22.12,
+            "eligible": 339
+          }
+        ]
+      }
+    ]
+  },
+  "finance": {
+    "source": "BPI Challenge 2019 purchase-to-pay log",
+    "period": "2018-01-05 to 2019-01-18 (first invoice clearing per PO item)",
+    "kind": "Anonymised historical purchase-to-pay event log",
+    "credit": "B. van Dongen (2019), BPI Challenge 2019, version 1, 4TU.ResearchData.",
+    "url": "https://doi.org/10.4121/uuid:d06aff4b-79f0-45e6-8ec8-e19730c248f1",
+    "license": "CC BY 4.0",
+    "unit": "PO item with invoice clearing",
+    "completed": 183677,
+    "metrics": [
+      {
+        "label": "PO items with invoice clearing",
+        "value": "183,677",
+        "basis": "183,677 of 251,734 PO items have at least one Clear Invoice event; 68,057 with no clearing excluded from throughput."
+      },
+      {
+        "label": "PO items with invoice receipt",
+        "value": "211,379",
+        "basis": "At least one Record Invoice Receipt event among all 251,734 PO items (1,595,923 events)."
+      },
+      {
+        "label": "PO items with multiple invoice receipts",
+        "value": "9,644",
+        "basis": "More than one Record Invoice Receipt among 211,379 items with any receipt."
+      }
+    ],
+    "trend": [
+      {
+        "period": "2018-01",
+        "count": 257
+      },
+      {
+        "period": "2018-02",
+        "count": 2792
+      },
+      {
+        "period": "2018-03",
+        "count": 9607
+      },
+      {
+        "period": "2018-04",
+        "count": 14670
+      },
+      {
+        "period": "2018-05",
+        "count": 18478
+      },
+      {
+        "period": "2018-06",
+        "count": 19054
+      },
+      {
+        "period": "2018-07",
+        "count": 19183
+      },
+      {
+        "period": "2018-08",
+        "count": 20401
+      },
+      {
+        "period": "2018-09",
+        "count": 18061
+      },
+      {
+        "period": "2018-10",
+        "count": 18069
+      },
+      {
+        "period": "2018-11",
+        "count": 17868
+      },
+      {
+        "period": "2018-12",
+        "count": 8543
+      },
+      {
+        "period": "2019-01",
+        "count": 16694
+      }
+    ],
+    "trendBasis": "Month of earliest Clear Invoice event (UTC) on each of 183,677 PO-item traces. Repeated clearings never add volume.",
+    "limitation": "PO-item clearing is a proxy, not an invoice count, proof of payment, invoice payment time or financial savings.",
+    "outcomeSeries": [
+      {
+        "label": "Payment block removed by first clearing",
+        "unit": "%",
+        "basis": "By month of first Clear Invoice (UTC): share of cleared PO items with a Remove Payment Block event at or before that clearing. Each item counted once; not a share of invoices or a payment rate.",
+        "points": [
+          {
+            "period": "2018-01",
+            "value": 11.67,
+            "eligible": 257
+          },
+          {
+            "period": "2018-02",
+            "value": 20.88,
+            "eligible": 2792
+          },
+          {
+            "period": "2018-03",
+            "value": 24.21,
+            "eligible": 9607
+          },
+          {
+            "period": "2018-04",
+            "value": 21.81,
+            "eligible": 14670
+          },
+          {
+            "period": "2018-05",
+            "value": 24.58,
+            "eligible": 18478
+          },
+          {
+            "period": "2018-06",
+            "value": 27.48,
+            "eligible": 19054
+          },
+          {
+            "period": "2018-07",
+            "value": 25.5,
+            "eligible": 19183
+          },
+          {
+            "period": "2018-08",
+            "value": 25.51,
+            "eligible": 20401
+          },
+          {
+            "period": "2018-09",
+            "value": 26.17,
+            "eligible": 18061
+          },
+          {
+            "period": "2018-10",
+            "value": 27.32,
+            "eligible": 18069
+          },
+          {
+            "period": "2018-11",
+            "value": 32.13,
+            "eligible": 17868
+          },
+          {
+            "period": "2018-12",
+            "value": 30.86,
+            "eligible": 8543
+          },
+          {
+            "period": "2019-01",
+            "value": 30.47,
+            "eligible": 16694
+          }
+        ]
+      }
+    ]
+  },
+  "marketing": {
+    "source": "UCI Bank Marketing (bank-additional-full)",
+    "period": "May 2008 to November 2010 (publisher's full-file coverage)",
+    "kind": "Historical telephone marketing campaign records",
+    "credit": "S. Moro, P. Rita and P. Cortez (2014), Bank Marketing, UCI Machine Learning Repository.",
+    "url": "https://doi.org/10.24432/C5K306",
+    "license": "CC BY 4.0",
+    "unit": "campaign record",
+    "completed": 41188,
+    "metrics": [
+      {
+        "label": "Campaign records",
+        "value": "41,188",
+        "basis": "All 41,188 records in the full additional variant, not unique people or campaigns; no rows excluded."
+      },
+      {
+        "label": "Term-deposit subscriptions",
+        "value": "4,640",
+        "basis": "4,640 yes and 36,548 no outcomes among 41,188 campaign records."
+      },
+      {
+        "label": "Subscription rate",
+        "value": "11.27%",
+        "basis": "4,640 yes outcomes / 41,188 campaign records."
+      }
+    ],
+    "trend": [],
+    "trendBasis": "Only month name and weekday are supplied, not a row-level year or full date. No monthly series.",
+    "limitation": "The denominator counts campaign records, not subscriptions or distinct calls. No campaign spend or ROI is available.",
+    "outcomeSeries": []
+  },
+  "customer": {
+    "source": "Salesforce Case (sfdc-kittycorn)",
+    "period": "2020-01-15 to 2023-02-27 (eligible case closures)",
+    "kind": "Public Salesforce test-harness data",
+    "credit": "Google Cloud, sfdc-kittycorn public test harness; cleaned and augmented by vladkol and lsubatin.",
+    "url": "https://github.com/GoogleCloudPlatform/devrel-demo-datasets/tree/main/sfdc-kittycorn",
+    "license": "Apache-2.0",
+    "unit": "closed case",
+    "completed": 100567,
+    "metrics": [
+      {
+        "label": "Closed cases",
+        "value": "100,567",
+        "basis": "100,567 of 338,512 records flagged closed; 237,945 not closed. Of the closed records, 0 missing dates and 0 closes before creation excluded from dated throughput and duration (100,567 eligible)."
+      },
+      {
+        "label": "Case closure rate",
+        "value": "29.71%",
+        "basis": "100,567 flagged closed out of all 338,512 case records."
+      },
+      {
+        "label": "Median elapsed closure time",
+        "value": "346 hours",
+        "basis": "CreatedDate to ClosedDate (UTC) for 100,567 closed cases with nonnegative durations."
+      }
+    ],
+    "trend": [
+      {
+        "period": "2020-01",
+        "count": 1472
+      },
+      {
+        "period": "2020-02",
+        "count": 3187
+      },
+      {
+        "period": "2020-03",
+        "count": 3385
+      },
+      {
+        "period": "2020-04",
+        "count": 3086
+      },
+      {
+        "period": "2020-05",
+        "count": 2936
+      },
+      {
+        "period": "2020-06",
+        "count": 2838
+      },
+      {
+        "period": "2020-07",
+        "count": 2937
+      },
+      {
+        "period": "2020-08",
+        "count": 3034
+      },
+      {
+        "period": "2020-09",
+        "count": 3030
+      },
+      {
+        "period": "2020-10",
+        "count": 3126
+      },
+      {
+        "period": "2020-11",
+        "count": 2882
+      },
+      {
+        "period": "2020-12",
+        "count": 3065
+      },
+      {
+        "period": "2021-01",
+        "count": 3072
+      },
+      {
+        "period": "2021-02",
+        "count": 2841
+      },
+      {
+        "period": "2021-03",
+        "count": 3028
+      },
+      {
+        "period": "2021-04",
+        "count": 3060
+      },
+      {
+        "period": "2021-05",
+        "count": 3162
+      },
+      {
+        "period": "2021-06",
+        "count": 3058
+      },
+      {
+        "period": "2021-07",
+        "count": 3096
+      },
+      {
+        "period": "2021-08",
+        "count": 3013
+      },
+      {
+        "period": "2021-09",
+        "count": 2847
+      },
+      {
+        "period": "2021-10",
+        "count": 3111
+      },
+      {
+        "period": "2021-11",
+        "count": 2988
+      },
+      {
+        "period": "2021-12",
+        "count": 3149
+      },
+      {
+        "period": "2022-01",
+        "count": 3118
+      },
+      {
+        "period": "2022-02",
+        "count": 2924
+      },
+      {
+        "period": "2022-03",
+        "count": 3243
+      },
+      {
+        "period": "2022-04",
+        "count": 3101
+      },
+      {
+        "period": "2022-05",
+        "count": 3321
+      },
+      {
+        "period": "2022-06",
+        "count": 3334
+      },
+      {
+        "period": "2022-07",
+        "count": 3370
+      },
+      {
+        "period": "2022-08",
+        "count": 3834
+      },
+      {
+        "period": "2022-09",
+        "count": 2560
+      },
+      {
+        "period": "2022-10",
+        "count": 301
+      },
+      {
+        "period": "2023-02",
+        "count": 58
+      }
+    ],
+    "trendBasis": "Month of ClosedDate (UTC) for 100,567 closed records with nonnegative elapsed time. 0 missing and 0 out-of-order dates excluded.",
+    "limitation": "ClosedDate measures closure, not necessarily resolution. Test-harness records are not a customer-service benchmark.",
+    "outcomeSeries": [
+      {
+        "label": "Median elapsed closure time",
+        "unit": "hours",
+        "basis": "By UTC ClosedDate month: median hours from CreatedDate to ClosedDate among closed cases with both timestamps and nonnegative duration.",
+        "points": [
+          {
+            "period": "2020-01",
+            "value": 345.0,
+            "eligible": 1472
+          },
+          {
+            "period": "2020-02",
+            "value": 346.0,
+            "eligible": 3187
+          },
+          {
+            "period": "2020-03",
+            "value": 347.0,
+            "eligible": 3385
+          },
+          {
+            "period": "2020-04",
+            "value": 346.0,
+            "eligible": 3086
+          },
+          {
+            "period": "2020-05",
+            "value": 345.0,
+            "eligible": 2936
+          },
+          {
+            "period": "2020-06",
+            "value": 346.0,
+            "eligible": 2838
+          },
+          {
+            "period": "2020-07",
+            "value": 346.0,
+            "eligible": 2937
+          },
+          {
+            "period": "2020-08",
+            "value": 346.0,
+            "eligible": 3034
+          },
+          {
+            "period": "2020-09",
+            "value": 347.0,
+            "eligible": 3030
+          },
+          {
+            "period": "2020-10",
+            "value": 346.0,
+            "eligible": 3126
+          },
+          {
+            "period": "2020-11",
+            "value": 346.0,
+            "eligible": 2882
+          },
+          {
+            "period": "2020-12",
+            "value": 346.0,
+            "eligible": 3065
+          },
+          {
+            "period": "2021-01",
+            "value": 346.0,
+            "eligible": 3072
+          },
+          {
+            "period": "2021-02",
+            "value": 345.0,
+            "eligible": 2841
+          },
+          {
+            "period": "2021-03",
+            "value": 346.0,
+            "eligible": 3028
+          },
+          {
+            "period": "2021-04",
+            "value": 347.0,
+            "eligible": 3060
+          },
+          {
+            "period": "2021-05",
+            "value": 346.0,
+            "eligible": 3162
+          },
+          {
+            "period": "2021-06",
+            "value": 347.0,
+            "eligible": 3058
+          },
+          {
+            "period": "2021-07",
+            "value": 346.0,
+            "eligible": 3096
+          },
+          {
+            "period": "2021-08",
+            "value": 346.0,
+            "eligible": 3013
+          },
+          {
+            "period": "2021-09",
+            "value": 346.0,
+            "eligible": 2847
+          },
+          {
+            "period": "2021-10",
+            "value": 346.0,
+            "eligible": 3111
+          },
+          {
+            "period": "2021-11",
+            "value": 346.0,
+            "eligible": 2988
+          },
+          {
+            "period": "2021-12",
+            "value": 346.0,
+            "eligible": 3149
+          },
+          {
+            "period": "2022-01",
+            "value": 346.0,
+            "eligible": 3118
+          },
+          {
+            "period": "2022-02",
+            "value": 347.0,
+            "eligible": 2924
+          },
+          {
+            "period": "2022-03",
+            "value": 347.0,
+            "eligible": 3243
+          },
+          {
+            "period": "2022-04",
+            "value": 347.0,
+            "eligible": 3101
+          },
+          {
+            "period": "2022-05",
+            "value": 347.0,
+            "eligible": 3321
+          },
+          {
+            "period": "2022-06",
+            "value": 347.0,
+            "eligible": 3334
+          },
+          {
+            "period": "2022-07",
+            "value": 347.0,
+            "eligible": 3370
+          },
+          {
+            "period": "2022-08",
+            "value": 345.0,
+            "eligible": 3834
+          },
+          {
+            "period": "2022-09",
+            "value": 345.0,
+            "eligible": 2560
+          },
+          {
+            "period": "2022-10",
+            "value": 350.0,
+            "eligible": 301
+          },
+          {
+            "period": "2023-02",
+            "value": 0.0,
+            "eligible": 58
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+EVALUATE
+VAR _People =
+    SELECTCOLUMNS(
+        'CoworkBilling',
+        "Person", COALESCE('CoworkBilling'[DisplayName], 'CoworkBilling'[UserPrincipalName], "(Unnamed person)"),
+        "Sign-in", 'CoworkBilling'[UserPrincipalName],
+        "Person Key", 'CoworkBilling'[UserID],
+        "Seat Action", COALESCE('CoworkBilling'[Seat Action], "(No recommendation)"),
+        "Usage Cohort", COALESCE('CoworkBilling'[UsageCohort Label], "(No cohort)"),
+        "Policy", 'CoworkBilling'[SpendingPolicyId],
+        "Current Allowance", 'CoworkBilling'[MonthlyCreditLimit],
+        "Credits Used", 'CoworkBilling'[MonthlyCreditsUsed],
+        "Recommended Allowance", 'CoworkBilling'[Recommended Limit],
+        "Allowance Delta", 'CoworkBilling'[Seat Delta],
+        "Utilization", 'CoworkBilling'[PctUsed],
+        "Weeks Active", 'CoworkBilling'[Weeks Active],
+        "Weeks Over Limit", 'CoworkBilling'[Weeks Over Limit],
+        "Breach Persistence", 'CoworkBilling'[Breach Persistence],
+        "Last Activity", 'CoworkBilling'[LastActivityDate]
+    )
+VAR _Total = COUNTROWS(_People)
+RETURN
+    ADDCOLUMNS(
+        TOPN(500, _People, [Allowance Delta], DESC, [Person Key], ASC, [Sign-in], ASC),
+        "Total", _Total
+    )
+ORDER BY [Allowance Delta] DESC, [Person Key], [Sign-in]

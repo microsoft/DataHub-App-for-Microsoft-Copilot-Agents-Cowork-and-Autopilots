@@ -11,6 +11,7 @@ import {
     availableDestinations,
     destinations,
     openStage,
+    type Destination,
     type DestinationId,
     type StageId,
 } from "./components/destinations";
@@ -25,6 +26,7 @@ import { NavigationContext } from "./hooks/navigation.context";
 import { useReportPacks } from "./hooks/report-packs.context";
 import { SourceAvailabilityContext, useSourceAvailability } from "./hooks/source-availability.context";
 import { useSourceProbes } from "./hooks/use-source-probes";
+import { VendorScopeContext, useVendorScope } from "./hooks/vendor-scope.context";
 import { packFilters, packRuns } from "./lib/report-pack";
 import { parseHash, routeHash, type Route } from "./lib/route";
 import { runtimeConfig } from "./lib/runtime-config";
@@ -32,10 +34,16 @@ import { SCREENS } from "./screens/registry";
 
 const HOME: Route = { kind: "destination", id: "executive" };
 
+/** Where the app opens: the Executive summary, or the first page there is when ValueLens isn't installed. */
+function home(available: readonly Destination[]): DestinationId {
+    return available.some((candidate) => candidate.id === "executive") ? "executive" : (available[0]?.id ?? "executive");
+}
+
 /**
  * The open destination and stage, or report pack, its slicers and the shell
  * around it. A page whose source turns out to have no data, or a pack that
- * has been deleted, gives way to the Executive summary.
+ * has been deleted, gives way to the Executive summary, or to the first page
+ * there is on an install without ValueLens.
  *
  * The view and its filters live in the URL's hash (see `lib/route.ts`), so
  * Back, Forward, refresh and a copied link all return to the same place.
@@ -43,6 +51,7 @@ const HOME: Route = { kind: "destination", id: "executive" };
 function Workspace() {
     const [initial] = useState(() => parseHash(window.location.hash));
     const [selected, setSelected] = useState<Route>(initial.route ?? HOME);
+    const [vendorPreference, setScope] = useState(initial.vendorScope);
     // Set by a navigation, so the next URL change adds a history entry rather than replacing one.
     const pushNext = useRef(false);
     // Read once by the URL sync: true when the next settled view is a navigation of its own.
@@ -61,10 +70,12 @@ function Workspace() {
             if (pack) return { kind: "pack", pack, ...packRuns(pack.stages, available) };
         }
         const destination = selected.kind === "destination" ? available.find((candidate) => candidate.id === selected.id) : undefined;
-        const id = destination?.id ?? "executive";
+        const id = destination?.id ?? home(available);
         const stage = destination && selected.kind === "destination" ? selected.stage : undefined;
         return { kind: "destination", id, stage: openStage(destinations.find((candidate) => candidate.id === id)!, stage) };
     }, [selected, packs, available]);
+    const scope = view.kind === "destination" && (view.id === "cross-vendor" || view.id === "finops") ? "all" : vendorPreference;
+    const vendorScope = useMemo(() => ({ scope, setScope }), [scope]);
 
     const applicable = useMemo(
         () =>
@@ -78,6 +89,7 @@ function Workspace() {
         () => ({
             navigate: (id: DestinationId, stage?: StageId) => {
                 pushNext.current = true;
+                if (id === "cross-vendor" || id === "finops") setScope("all");
                 setSelected({ kind: "destination", id, stage });
             },
         }),
@@ -98,6 +110,7 @@ function Workspace() {
     const Screen = view.kind === "destination" ? SCREENS[view.id] : undefined;
 
     return (
+        <VendorScopeContext.Provider value={vendorScope}>
         <FilterProvider applicable={applicable} initial={initial.filters}>
             <RouteSync route={route} settled={settled} takePush={takePush} onPop={setSelected} />
             <NavigationContext.Provider value={navigation}>
@@ -122,6 +135,7 @@ function Workspace() {
                 />
             </NavigationContext.Provider>
         </FilterProvider>
+        </VendorScopeContext.Provider>
     );
 }
 
@@ -141,7 +155,8 @@ interface RouteSyncProps {
  */
 function RouteSync({ route, settled, takePush, onPop }: RouteSyncProps) {
     const { filters, setFilters } = useFilterContext();
-    const hash = routeHash(route, filters);
+    const { scope, setScope } = useVendorScope();
+    const hash = routeHash(route, filters, scope);
 
     useEffect(() => {
         if (!settled) return;
@@ -156,11 +171,12 @@ function RouteSync({ route, settled, takePush, onPop }: RouteSyncProps) {
         const restore = () => {
             const parsed = parseHash(window.location.hash);
             onPop(parsed.route ?? HOME);
+            setScope(parsed.vendorScope);
             setFilters((current) => (routeHash(HOME, current) === routeHash(HOME, parsed.filters) ? current : parsed.filters));
         };
         window.addEventListener("popstate", restore);
         return () => window.removeEventListener("popstate", restore);
-    }, [onPop, setFilters]);
+    }, [onPop, setFilters, setScope]);
 
     return null;
 }

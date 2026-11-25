@@ -7,7 +7,6 @@
 
 import { useStageFilter } from "@/hooks/stage-filter.context";
 import { CoworkReadinessStage } from "./cowork-readiness-stage";
-import { HabitLicenceStage } from "./habit-licence-stage";
 import { LicenseReadinessStage } from "./license-readiness-stage";
 
 /**
@@ -19,7 +18,6 @@ export function ReadinessScreen() {
     return (
         <div className="flex flex-col gap-800">
             {show("license-readiness") && <LicenseReadinessStage />}
-            {show("habit-licence") && <HabitLicenceStage />}
             {show("cowork-readiness") && <CoworkReadinessStage />}
         </div>
     );

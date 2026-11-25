@@ -77,6 +77,29 @@ describe("App", () => {
         expect(window.location.hash).toMatch(/^#\/value/);
     });
 
+    it("keeps a legacy leaderboard link inside Adoption without adding a separate sidebar chapter", async () => {
+        window.history.replaceState(null, "", "/#/leaderboards/leaderboard");
+        await act(async () => { render(<Harness><App /></Harness>); });
+        const sidebar = screen.getByRole("navigation", { name: "Sections" });
+        expect(within(sidebar).getByRole("link", { name: "Adoption" })).toHaveAttribute("aria-current", "page");
+        expect(within(sidebar).queryByRole("link", { name: "Leaderboards" })).toBeNull();
+        const topics = screen.getByRole("navigation", { name: "Adoption topics" });
+        expect(within(topics).getByRole("link", { name: "Leaderboards" })).toHaveAttribute("aria-current", "page");
+        expect(window.location.hash).toBe("#/leaderboards/leaderboard");
+    });
+
+    it("opens Ask alongside the current report without navigating away", async () => {
+        window.history.replaceState(null, "", "/#/value/task-breakdown");
+        await act(async () => { render(<Harness><App /></Harness>); });
+        const trigger = screen.getByRole("button", { name: "Ask agent" });
+        fireEvent.click(trigger);
+        expect(screen.getByRole("complementary", { name: "Ask agent" })).toBeInTheDocument();
+        expect(window.location.hash).toBe("#/value/task-breakdown");
+        fireEvent.click(screen.getByRole("button", { name: "Close Ask agent" }));
+        expect(screen.queryByRole("complementary", { name: "Ask agent" })).toBeNull();
+        expect(trigger).toHaveFocus();
+    });
+
     it.each([
         { layout: "expanded sidebar", width: 1280 },
         { layout: "compact rail", width: 900 },

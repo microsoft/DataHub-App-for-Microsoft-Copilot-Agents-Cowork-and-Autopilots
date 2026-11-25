@@ -13,10 +13,11 @@ import { availableDestinations, destinations, stageAnchor } from "@/components/d
 import { useSourceAvailability } from "@/hooks/source-availability.context";
 import { askQuestion, AskError, type AskReply, type AskRun, type AskTurn } from "@/lib/ask-api";
 import { dataAgentUrl } from "@/lib/fabric-item-url";
+import { businessImpactLive } from "@/lib/optional-modules";
 import { runtimeConfig, type AskConfig, type RuntimeHost } from "@/lib/runtime-config";
 import { BODY, SMALL } from "@/lib/type-scale";
 import { cn } from "@/lib/utils";
-import { runSummary, suggestedPages, type SuggestedPage } from "./ask-helpers";
+import { BUSINESS_IMPACT_QUESTIONS, runSummary, suggestedPages, type SuggestedPage } from "./ask-helpers";
 
 const QUESTION_MAX = 1000;
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
@@ -42,12 +43,18 @@ export function AskScreen() {
     const config = runtimeConfig();
     const sources = useSourceAvailability();
     const pages = useMemo(
-        () => suggestedPages(availableDestinations(config.semanticModels, sources)),
-        [config.semanticModels, sources],
+        () =>
+            suggestedPages(
+                availableDestinations(config.semanticModels, sources),
+                config.ask?.mode === "fabric" && businessImpactLive(config.semanticModels)
+                    ? { "business-impact": BUSINESS_IMPACT_QUESTIONS }
+                    : {},
+            ),
+        [config.ask, config.semanticModels, sources],
     );
 
     return (
-        <div className="flex flex-col gap-800">
+        <div className="@container flex flex-col gap-800">
             <Section id={stageAnchor("ask")} title="Ask" description={describe(config.ask, config.host)}>
                 {config.ask?.mode === "chat" ? (
                     <AskChat pages={pages} />
@@ -67,7 +74,7 @@ function describe(ask: AskConfig | undefined, host: RuntimeHost): string {
     if (ask?.mode === "chat")
         return "Ask a question about the data. Answers come only from the queries behind this app's pages, run with your own access, and show the queries used.";
     if (ask?.mode === "fabric")
-        return "The DataHub App data agent in Fabric answers questions about the data from the same models as this app, with your own access.";
+        return "The configured Fabric data agent answers questions about its connected sources, with your own access. Sources shown in this app are not automatically added to the agent.";
     return host === "azure"
         ? "Ask isn't turned on for this install yet. These are the kinds of questions it answers."
         : "There's no DataHub App data agent for this install yet. These are the kinds of questions it answers.";
@@ -76,7 +83,7 @@ function describe(ask: AskConfig | undefined, host: RuntimeHost): string {
 function GroupedQuestions({ pages, children }: { pages: SuggestedPage[]; children: (question: string) => ReactNode }) {
     if (pages.length === 0) return null;
     return (
-        <div className="grid gap-500 md:grid-cols-2">
+        <div className="grid gap-500 @md:grid-cols-2">
             {pages.map((page) => (
                 <section key={page.destination} aria-label={`${page.label} questions`} className="flex flex-col gap-200">
                     <h3 className={cn(SMALL, "font-semibold text-muted-foreground")}>{page.label}</h3>
@@ -148,8 +155,8 @@ function FabricAsk({ agent, pages }: { agent: { workspaceId: string; itemId: str
         <div className="flex flex-col gap-600">
             <div className="flex flex-col gap-300 rounded-md border border-border bg-card p-400">
                 <p className={BODY}>
-                    Pick a question below to copy it, then paste it into the data agent. Every figure it gives comes
-                    from the DataHub App models, and it says when a source has no data.
+                    Pick a question below to copy it, then paste it into the data agent. Check its source coverage before
+                    asking about Business impact or vendor comparisons, and review the evidence behind each answer.
                 </p>
                 {link && (
                     <a href={link} target="_blank" rel="noreferrer" className={cn(PRIMARY, "w-fit")}>

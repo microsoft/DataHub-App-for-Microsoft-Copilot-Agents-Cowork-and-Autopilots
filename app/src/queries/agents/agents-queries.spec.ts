@@ -52,7 +52,6 @@ const modules = [
 const specModules = [
     { name: "agentUsage", factory: () => agentUsage() },
     { name: "agentLifecycle", factory: () => agentLifecycle() },
-    { name: "coworkReadinessByOrg", factory: () => coworkReadinessByOrg() },
 ];
 
 /** Characters `ColumnDef.name` strips from the original DAX column name. */

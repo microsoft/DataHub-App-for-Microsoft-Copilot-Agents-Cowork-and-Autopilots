@@ -31,7 +31,7 @@ import { PerformanceStage } from "./performance-stage";
 
 const OPTIONS = evaluationOptions();
 const STATUS = evaluatorStatus();
-const SOURCE = { anchor: stageAnchor("agent-performance"), page: "Agent Evaluation", model: "Agent Evaluator" };
+const SOURCE = { anchor: stageAnchor("agent-performance"), page: "Agent quality", model: "Agent Evaluator" };
 
 /**
  * The Agent Evaluator report's pages for Copilot Studio agents: how they

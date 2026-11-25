@@ -1,0 +1,31 @@
+EVALUATE
+FILTER(
+    UNION(
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Payable items]),
+            "Year", 'Date'[Year], "Process", "Invoice to pay", "Items", [Items]
+        ),
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Receivable items]),
+            "Year", 'Date'[Year], "Process", "Order to cash", "Items", [Items]
+        ),
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Requisition items]),
+            "Year", 'Date'[Year], "Process", "Requisition to order", "Items", [Items]
+        ),
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Purchase order items]),
+            "Year", 'Date'[Year], "Process", "Source to contract", "Items", [Items]
+        ),
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Sales document items]),
+            "Year", 'Date'[Year], "Process", "Order fulfilment", "Items", [Items]
+        ),
+        SELECTCOLUMNS(
+            SUMMARIZECOLUMNS('Date'[Year], "Items", [Journal line items]),
+            "Year", 'Date'[Year], "Process", "Record to report", "Items", [Items]
+        )
+    ),
+    NOT ISBLANK([Year]) && [Items] > 0
+)
+ORDER BY [Year], [Process]

@@ -9,6 +9,7 @@ import { VegaVisual as EvalVegaVisual } from "@microsoft/fabric-visuals";
 import { EmbeddableVegaVisual } from "@microsoft/fabric-visuals/embeddable";
 import { useIsPrefetch } from "@/hooks/prefetch.context";
 import { rowCountKey } from "@/lib/chart-height";
+import { describeSpec, useVisualGuide } from "./visual-guide";
 
 export type { VegaVisualHandle, VisualizationSpec } from "@microsoft/fabric-visuals";
 
@@ -32,6 +33,8 @@ const HostVegaVisual = isEvalBlocked() ? EmbeddableVegaVisual : EvalVegaVisual;
 export type VegaVisualProps = ComponentProps<typeof HostVegaVisual> & {
     /** What the chart shows, read by screen readers in place of "Vega visualization". */
     label: string;
+    /** Plain words on what the chart shows, for the section's info overlay; defaults to the subtitle. */
+    about?: string;
 };
 
 /**
@@ -40,7 +43,7 @@ export type VegaVisualProps = ComponentProps<typeof HostVegaVisual> & {
  * collapse onto one line and the bars vanish until the window is resized.
  * Remounting on a new row count draws the chart fresh at its new size.
  */
-export function VegaVisual({ label, spec, ...props }: VegaVisualProps) {
+export function VegaVisual({ label, spec, about, ...props }: VegaVisualProps) {
     // A page fetched ahead of a visit only wants its data; drawing it would cost the open page.
     const prefetching = useIsPrefetch();
     // Vega names the chart from the spec's description.
@@ -48,6 +51,9 @@ export function VegaVisual({ label, spec, ...props }: VegaVisualProps) {
         () => (spec && typeof spec === "object" ? ({ ...(spec as object), description: label } as typeof spec) : spec),
         [spec, label],
     );
+    const reading = useMemo(() => (spec && typeof spec === "object" ? describeSpec(spec as object) : undefined), [spec]);
+    const header = props.header as { title?: string; subtitle?: string } | undefined;
+    useVisualGuide(prefetching || !reading ? null : { kind: reading.kind, title: header?.title || label, what: about ?? header?.subtitle, how: reading.how });
     if (prefetching) return null;
     return <HostVegaVisual key={rowCountKey(props.data)} spec={described} {...props} />;
 }

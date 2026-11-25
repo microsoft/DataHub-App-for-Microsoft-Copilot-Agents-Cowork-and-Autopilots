@@ -1,0 +1,17 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "width": "container",
+    "height": "container",
+    "mark": { "type": "bar" },
+    "encoding": {
+        "x": { "field": "Rate", "type": "quantitative", "title": "Share of eligible items", "scale": { "domain": [0, 1] }, "axis": { "format": ".0%" } },
+        "y": { "field": "Process", "type": "nominal", "sort": "-x", "title": null, "axis": { "labelLimit": 180 } },
+        "tooltip": [
+            { "field": "Process", "type": "nominal" },
+            { "field": "Signal", "type": "nominal" },
+            { "field": "Rate", "type": "quantitative", "format": ".2%", "title": "Review signal share" },
+            { "field": "Items", "type": "quantitative", "format": ",.0f", "title": "Items to review" },
+            { "field": "Eligible", "type": "quantitative", "format": ",.0f", "title": "Eligible items" }
+        ]
+    }
+}
