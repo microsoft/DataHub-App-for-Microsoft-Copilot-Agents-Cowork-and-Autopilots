@@ -3,6 +3,7 @@
 **Getting started**
 
 - [Which path?](Home.md#which-path)
+- [Set-up summary](../SETUP-SUMMARY.md)
 - [FAQ](../FAQ.md)
 
 **Fabric or Azure (installer)**
