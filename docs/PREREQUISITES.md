@@ -2,7 +2,8 @@
 
 The installer checks what it can before making changes and tells you what is missing. Choose
 [Fabric](../1-fabric/) or [Azure](../2-azure/), then ask only the admins you need. For manual
-setup, see the additional [requirements](MANUAL-INSTALL.md#1-prerequisites).
+setup, see the additional [requirements](MANUAL-INSTALL.md#1-prerequisites). For every step on one
+page, see the [Set-up summary](SETUP-SUMMARY.md).
 
 ## At a glance
 

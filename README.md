@@ -67,7 +67,8 @@ and [video reference](docs/README.md#what-you-get); those still use earlier bran
 <a id="fabric-or-azure"></a><a id="architecture-and-running-costs"></a>
 
 Not sure? Pick [Fabric](1-fabric/). [Azure](2-azure/) costs about $5–40 a month for a small tenant
-([costs](docs/ARCHITECTURE.md)). Full list: [Prerequisites](docs/PREREQUISITES.md).
+([costs](docs/ARCHITECTURE.md)). Full list: [Prerequisites](docs/PREREQUISITES.md). Every step on
+one page: [Set-up summary](docs/SETUP-SUMMARY.md).
 
 ## Choose your path
 

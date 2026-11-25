@@ -21,6 +21,7 @@ PAGES = {
     "docs/wiki/Home.md": "Home",
     "docs/wiki/_Sidebar.md": "_Sidebar",
     "docs/PREREQUISITES.md": "Prerequisites",
+    "docs/SETUP-SUMMARY.md": "Set-up-Summary",
     "docs/INSTALL.md": "Install",
     "docs/MANUAL-INSTALL.md": "Manual-Install",
     "docs/MANAGED-APP.md": "Copilot-Managed-App",
